@@ -457,6 +457,99 @@ const consensus = await coordinatorAgent.seekConsensus({
 
 ---
 
+## TM Forum ODA Alignment
+
+This architecture aligns with the **TM Forum Open Digital Architecture (ODA)** standards for building modular, interoperable telecom components.
+
+### Reference Implementation
+
+For Helm chart deployment patterns and ODA-compliant component packaging, refer to:
+
+> **[eoskl/reference-example-components](https://github.com/eoskl/reference-example-components)**
+>
+> Reference example ODA Components Helm Chart repository providing production-ready
+> patterns for deploying containerized agents in Kubernetes.
+
+### ODA Component Mapping
+
+| A2A Agent | ODA Component Type | TMF API Alignment |
+|-----------|-------------------|-------------------|
+| Product Catalog Agent | Core Commerce | TMF620 Product Catalog |
+| Customer Data Agent | Party Management | TMF629 Customer Management |
+| Quoting Agent | Core Commerce | TMF648 Quote Management |
+| Knowledge Graph Agent | Core Commerce | TMF620 + RDF Extensions |
+| Intent Analyst Agent | AI/ML Canvas | Custom NLU Component |
+| Compliance Agent | Security Canvas | GDPR/Audit Component |
+
+### Helm Deployment Pattern
+
+Each agent is packaged as an ODA-compliant Helm chart:
+
+```yaml
+# Example: Intent Analyst Agent Chart
+apiVersion: v2
+name: intent-analyst-agent
+description: ODA Component for NLU-based intent analysis
+version: 2.0.0
+appVersion: "2.0.0"
+
+dependencies:
+  - name: oda-component-base
+    version: "1.0.0"
+    repository: "https://eoskl.github.io/reference-example-components"
+
+# Optional MCP Server support (from reference-example-components)
+mcp:
+  enabled: true
+  server:
+    image: intent-analyst-mcp:2.0.0
+    port: 3001
+```
+
+### Integration with Reference Components
+
+```mermaid
+flowchart TB
+    subgraph "ODA Canvas"
+        subgraph "Core Commerce"
+            PC[Product Catalog]
+            QM[Quote Management]
+        end
+        subgraph "Party Management"
+            CM[Customer Management]
+        end
+        subgraph "AI/ML Canvas"
+            IA[Intent Analyst]
+            PA[Personalization]
+        end
+    end
+
+    subgraph "Reference Components"
+        RC["eoskl/reference-example-components"]
+        HC[Helm Charts]
+        MCP[MCP Server Support]
+    end
+
+    RC --> HC
+    RC --> MCP
+    HC --> PC
+    HC --> QM
+    HC --> CM
+    MCP --> IA
+    MCP --> PA
+
+    style RC fill:#f9f,stroke:#333
+```
+
+### Key Features from Reference Implementation
+
+1. **Helm Chart Packaging** - Standardized deployment via `helm repo add` and `helm install`
+2. **MCP Server Support** - Optional Model Context Protocol server for AI agent capabilities
+3. **API Dependency Management** - Configurable inter-component dependencies
+4. **ODA Compliance** - TMF-aligned component specifications
+
+---
+
 ## Technology Stack
 
 | Component | Technology | Purpose |
@@ -497,3 +590,31 @@ const consensus = await coordinatorAgent.seekConsensus({
 3. **Benchmark** A2A latency vs current architecture
 4. **Define** agent SLAs and contracts
 5. **Plan** migration strategy from current system
+
+---
+
+## References
+
+### Standards & Specifications
+
+| Reference | Description |
+|-----------|-------------|
+| [TM Forum ODA](https://www.tmforum.org/oda/) | Open Digital Architecture specification |
+| [TMF620](https://www.tmforum.org/resources/specification/tmf620-product-catalog-management-api-rest-specification-r19-0-0/) | Product Catalog Management API |
+| [TMF629](https://www.tmforum.org/resources/specification/tmf629-customer-management-api-rest-specification-r19-0-0/) | Customer Management API |
+| [TMF648](https://www.tmforum.org/resources/specification/tmf648-quote-management-api-rest-specification-r19-0-0/) | Quote Management API |
+| [Model Context Protocol](https://modelcontextprotocol.io/) | MCP specification for AI tool integration |
+
+### Reference Implementations
+
+| Repository | Purpose |
+|------------|---------|
+| [eoskl/reference-example-components](https://github.com/eoskl/reference-example-components) | ODA Components Helm Charts with MCP Server support |
+| [tmforum-oda/oda-canvas](https://github.com/tmforum-oda/oda-canvas) | TM Forum ODA Canvas reference implementation |
+| [anthropics/anthropic-cookbook](https://github.com/anthropics/anthropic-cookbook) | Claude API patterns and examples |
+
+### Related Documentation
+
+- [LLM Agentic MCP Sequence Diagram](../diagrams/llm-agentic-mcp-sequence.md)
+- [LLM Agentic MCP C4 Architecture](../diagrams/llm-agentic-mcp-c4.md)
+- [Knowledge Graph MCP Migration Guide](../../v2.x/KNOWLEDGE_GRAPH_MCP_MIGRATION.md)
