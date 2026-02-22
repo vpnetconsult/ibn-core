@@ -68,5 +68,3 @@ encryption/*.tar.gz.enc
 .claude/
 .specify/
 
-# Private operator implementations — transfer to ibn-operator-adapters
-_private/
