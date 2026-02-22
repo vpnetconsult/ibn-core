@@ -378,4 +378,9 @@ For issues or questions:
 
 ## License
 
-[Your License Here]
+Copyright 2026 [Vpnet Cloud Solutions Sdn. Bhd.](https://vpnet.cloud)
+
+Licensed under the Apache License, Version 2.0. See [LICENSE](./LICENSE) for details.
+
+This project implements [RFC 9315](https://www.rfc-editor.org/rfc/rfc9315) Intent-Based
+Networking. See [NOTICE](./NOTICE) for third-party attributions.

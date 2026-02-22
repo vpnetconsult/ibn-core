@@ -1,0 +1,46 @@
+ibn-core — RFC 9315 Intent-Based Networking Production Implementation
+Copyright 2026 Vpnet Cloud Solutions Sdn. Bhd.
+
+This product includes software developed by Vpnet Cloud Solutions Sdn. Bhd.
+
+THIRD-PARTY ATTRIBUTIONS:
+
+TM Forum Intent Management API (TMF921 v5.0.0)
+Licensed under Apache License 2.0
+https://github.com/tmforum-apis/TMF921_Intent
+
+CAMARA Project API Definitions
+Copyright The Linux Foundation and CAMARA Project Contributors
+Licensed under Apache License 2.0
+https://github.com/camaraproject
+
+Model Context Protocol (MCP) Specification
+Copyright Anthropic PBC
+Licensed under MIT License
+https://modelcontextprotocol.io
+
+Kubernetes
+Copyright The Kubernetes Authors
+Licensed under Apache License 2.0
+https://kubernetes.io
+
+Istio Service Mesh
+Copyright Istio Authors
+Licensed under Apache License 2.0
+https://istio.io
+
+STANDARDS IMPLEMENTED:
+
+RFC 9315 "Intent-Based Networking — Concepts and Definitions"
+A. Clemm, L. Ciavaglia, L. Z. Granville, J. Tantsura
+IRTF NMRG, October 2022
+© IETF Trust
+
+RFC 7575 "Autonomic Networking: Definitions and Design Goals"
+M. Behringer, M. Pritikin, S. Bjarnason, A. Clemm, B. Carpenter,
+S. Jiang, L. Ciavaglia
+IETF, June 2015
+© IETF Trust
+
+TM Forum Autonomous Networks Reference Architecture (IG1230)
+© TM Forum. Cited for academic attribution purposes.
