@@ -67,3 +67,6 @@ encryption/*.tar.gz.enc
 # Claude and Specify directories
 .claude/
 .specify/
+
+# Private operator implementations — transfer to ibn-operator-adapters
+_private/

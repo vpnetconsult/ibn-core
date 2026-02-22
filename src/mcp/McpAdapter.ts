@@ -86,7 +86,7 @@ export interface McpAdapter {
  */
 export class MockMcpAdapter implements McpAdapter {
   readonly adapterName = 'MockMcpAdapter';
-  readonly camaraEndpoint = 'http://localhost:9000/mock';
+  readonly camaraEndpoint = 'http://mock-mcp-service:9000';
 
   async orchestrate(request: IntentOrchestrationRequest): Promise<IntentOrchestrationResult> {
     return {
@@ -110,12 +110,26 @@ export class MockMcpAdapter implements McpAdapter {
   }
 
   async getCapabilities() {
-    return [{
-      capabilityId: 'camara.qod.v0',
-      name: 'Quality on Demand (Mock)',
-      camaraApi: 'CAMARA QoD API v0.10',
-      parameters: { maxLatencyMs: 50, profiles: ['QOS_E', 'QOS_S', 'QOS_M', 'QOS_L'] }
-    }];
+    return [
+      {
+        capabilityId: 'mock.broadband.residential',
+        name: 'Broadband Residential (Mock)',
+        camaraApi: 'mock-broadband-v1',
+        parameters: { maxBandwidthMbps: 1000, profiles: ['residential_basic', 'residential_premium'] }
+      },
+      {
+        capabilityId: 'mock.broadband.business',
+        name: 'Broadband Business (Mock)',
+        camaraApi: 'mock-broadband-business-v1',
+        parameters: { maxBandwidthMbps: 10000, slaProfiles: ['business_standard', 'business_premium'] }
+      },
+      {
+        capabilityId: 'mock.qod.v0',
+        name: 'Quality on Demand (Mock)',
+        camaraApi: 'mock-qod-v0',
+        parameters: { maxLatencyMs: 50, profiles: ['QOS_E', 'QOS_S', 'QOS_M', 'QOS_L'] }
+      }
+    ];
   }
 
   async cancelIntent(intentId: string) {

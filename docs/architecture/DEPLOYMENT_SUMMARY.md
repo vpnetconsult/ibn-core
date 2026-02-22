@@ -1,5 +1,23 @@
 # Business Intent Agent - Kubernetes Deployment Summary
 
+## Open Core Architecture
+
+This repository contains the public ibn-core framework.
+
+| Component | Location | Reason |
+|-----------|----------|--------|
+| McpAdapter interface | src/mcp/McpAdapter.ts (this repo) | Public contract |
+| MockMcpAdapter | src/mcp/McpAdapter.ts (this repo) | Local dev |
+| Generic mock MCP server | mcp-services-k8s/mock-mcp.yaml (this repo) | Local dev |
+| Operator BSS/OSS adapters | ibn-operator-adapters (private repo) | Operator-specific |
+| CAMARA adapters | ibn-operator-adapters (private repo) | Operator credentials |
+
+The O2C (Order-to-Cash) use case runs against the generic mock
+in this repo. Production O2C against real operator BSS/OSS
+systems uses adapters from the private repository.
+
+---
+
 **Deployment Date:** December 26, 2025
 **Environment:** Local Kubernetes (kind cluster: local-k8s)
 **Namespace:** intent-platform

@@ -1,0 +1,195 @@
+# mock-mcp.yaml — Generic MCP server for local development
+# Copyright 2026 Vpnet Cloud Solutions Sdn. Bhd.
+# Apache License 2.0
+#
+# This is the PUBLIC mock replacement for operator-specific MCP
+# adapters. Operator-specific implementations (U Mobile, TM) are
+# in the private ibn-operator-adapters repository.
+#
+# RFC 9315 §4 P5 Capability Exposure — mock implementation
+# RFC 9315 §5.1.3 Orchestration — mock responses
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mock-mcp-config
+  namespace: intent-platform
+  labels:
+    app: mock-mcp
+    component: mcp-services
+    tier: mock
+data:
+  PORT: "9000"
+  SERVICE_NAME: "mock-mcp"
+  LOG_LEVEL: "info"
+  # Generic mock capabilities — no operator-specific logic
+  MOCK_CAPABILITIES: |
+    [
+      {
+        "capabilityId": "mock.broadband.residential",
+        "name": "Broadband Residential (Mock)",
+        "camaraApi": "mock-broadband-v1",
+        "parameters": {
+          "maxBandwidthMbps": 1000,
+          "profiles": ["residential_basic", "residential_premium"]
+        }
+      },
+      {
+        "capabilityId": "mock.broadband.business",
+        "name": "Broadband Business (Mock)",
+        "camaraApi": "mock-broadband-business-v1",
+        "parameters": {
+          "maxBandwidthMbps": 10000,
+          "slaProfiles": ["business_standard", "business_premium"]
+        }
+      },
+      {
+        "capabilityId": "mock.qod.v0",
+        "name": "Quality on Demand (Mock)",
+        "camaraApi": "mock-qod-v0",
+        "parameters": {
+          "maxLatencyMs": 50,
+          "profiles": ["QOS_E", "QOS_S", "QOS_M", "QOS_L"]
+        }
+      }
+    ]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mock-mcp
+  namespace: intent-platform
+  labels:
+    app: mock-mcp
+    component: mcp-services
+    tier: mock
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mock-mcp
+  template:
+    metadata:
+      labels:
+        app: mock-mcp
+        component: mcp-services
+        tier: mock
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: mock-mcp
+          image: node:20-alpine
+          command: ["node", "-e"]
+          args:
+            - |
+              const http = require('http');
+              const PORT = process.env.PORT || 9000;
+              const capabilities = JSON.parse(process.env.MOCK_CAPABILITIES || '[]');
+
+              const server = http.createServer((req, res) => {
+                res.setHeader('Content-Type', 'application/json');
+                const url = new URL(req.url, `http://localhost:${PORT}`);
+
+                // Health check
+                if (url.pathname === '/health') {
+                  return res.end(JSON.stringify({ status: 'healthy', service: 'mock-mcp', timestamp: new Date().toISOString() }));
+                }
+
+                // RFC 9315 §4 P5 — Capability Exposure
+                if (url.pathname === '/capabilities') {
+                  return res.end(JSON.stringify({ capabilities }));
+                }
+
+                // RFC 9315 §5.1.3 — Orchestration (mock)
+                if (url.pathname === '/orchestrate' && req.method === 'POST') {
+                  let body = '';
+                  req.on('data', chunk => body += chunk);
+                  req.on('end', () => {
+                    const request = JSON.parse(body || '{}');
+                    return res.end(JSON.stringify({
+                      success: true,
+                      orchestrationId: `mock-orch-${Date.now()}`,
+                      provisionedResources: [{
+                        resourceType: 'mock.service',
+                        resourceId: `mock-res-${request.intentId || 'unknown'}`,
+                        status: 'active'
+                      }],
+                      reportState: 'fulfilled',
+                      message: 'Mock orchestration — replace with operator adapter for production'
+                    }));
+                  });
+                  return;
+                }
+
+                // RFC 9315 §5.2.1 — Monitoring (mock status)
+                if (url.pathname.startsWith('/intent/') && url.pathname.endsWith('/status')) {
+                  return res.end(JSON.stringify({
+                    reportState: 'fulfilled',
+                    metrics: { latencyMs: 0, throughputMbps: 100 }
+                  }));
+                }
+
+                // RFC 9315 §5.2.3 — Compliance Actions (mock cancel)
+                if (url.pathname.startsWith('/intent/') && url.pathname.endsWith('/cancel') && req.method === 'POST') {
+                  return res.end(JSON.stringify({ success: true }));
+                }
+
+                // Prometheus metrics stub
+                if (url.pathname === '/metrics') {
+                  res.setHeader('Content-Type', 'text/plain');
+                  return res.end('# HELP mock_mcp_requests_total Total mock MCP requests\n# TYPE mock_mcp_requests_total counter\nmock_mcp_requests_total 0\n');
+                }
+
+                res.statusCode = 404;
+                res.end(JSON.stringify({ error: 'Not found' }));
+              });
+
+              server.listen(PORT, () => console.log(`mock-mcp listening on :${PORT}`));
+          ports:
+            - containerPort: 9000
+              name: http
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: mock-mcp-config
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9000
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9000
+            initialDelaySeconds: 3
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mock-mcp-service
+  namespace: intent-platform
+  labels:
+    app: mock-mcp
+    component: mcp-services
+    tier: mock
+spec:
+  selector:
+    app: mock-mcp
+  ports:
+    - name: http
+      port: 9000
+      targetPort: 9000
+      protocol: TCP
+  type: ClusterIP
