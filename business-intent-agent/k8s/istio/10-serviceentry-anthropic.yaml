@@ -10,8 +10,8 @@ spec:
   - api.anthropic.com
   ports:
   - number: 443
-    name: https
-    protocol: HTTPS
+    name: tls
+    protocol: TLS
   location: MESH_EXTERNAL
   resolution: DNS
 ---
@@ -48,7 +48,7 @@ spec:
   host: api.anthropic.com
   trafficPolicy:
     tls:
-      mode: SIMPLE  # TLS for external HTTPS
+      mode: DISABLE  # App (Anthropic SDK) originates TLS; Istio must not re-wrap
     connectionPool:
       tcp:
         maxConnections: 10

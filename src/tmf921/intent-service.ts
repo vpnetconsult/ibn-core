@@ -356,6 +356,67 @@ export class TMF921IntentService {
   }
 
   /**
+   * Store a synchronously-completed intent for the legacy POST /api/v1/intent endpoint.
+   * Creates the intent directly in COMPLETED state without triggering async processing.
+   * RFC 9315 §5.1.3 — Orchestration result persistence / SSoT
+   */
+  async recordIntent(customerId: string, intentText: string, result: any): Promise<Intent> {
+    const now = new Date().toISOString();
+    const intentId = uuidv4();
+
+    const reportEntry: IntentReportEntry = {
+      id: uuidv4(),
+      reportingTimeStamp: now,
+      reportState: 'fulfilled',
+      reportValue: JSON.stringify({
+        offer: result.recommended_offer?.name,
+        products: result.recommended_offer?.selected_products,
+        quote: result.quote,
+      }),
+      '@type': 'IntentReportEntry',
+    };
+
+    const report: IntentReport = {
+      id: uuidv4(),
+      href: `/tmf-api/intentManagement/v5/intent/${intentId}/intentReport/${reportEntry.id}`,
+      creationDate: now,
+      reportEntry: [reportEntry],
+      '@type': 'IntentReport',
+    };
+
+    const intent: Intent = {
+      id: intentId,
+      href: `/tmf-api/intentManagement/v5/intent/${intentId}`,
+      name: intentText.slice(0, 100),
+      description: intentText,
+      intentType: IntentType.CUSTOMER_INTENT,
+      priority: 5,
+      lifecycleStatus: IntentLifecycleStatus.COMPLETED,
+      statusChangeDate: now,
+      creationDate: now,
+      lastUpdate: now,
+      version: '1.0',
+      isBundle: false,
+      intentExpectation: [],
+      characteristic: [],
+      attachment: [],
+      intentRelationship: [],
+      relatedParty: [{
+        id: customerId,
+        role: 'customer',
+        '@referredType': 'Individual',
+        '@type': 'RelatedParty',
+      }],
+      intentReport: [report],
+      '@type': 'Intent',
+    };
+
+    this.store.save(intent);
+    logger.info({ intentId, customerId }, 'Intent recorded as completed (legacy O2C path)');
+    return intent;
+  }
+
+  /**
    * Add a report to an Intent
    */
   private async addIntentReport(intentId: string, reportState: string, reportValue?: string): Promise<void> {
@@ -403,7 +464,7 @@ export class TMF921IntentService {
 
       // Update lifecycleStatus to completed
       this.store.update(intent.id!, { lifecycleStatus: IntentLifecycleStatus.COMPLETED });
-      await this.addIntentReport(intent.id!, 'completed', JSON.stringify({
+      await this.addIntentReport(intent.id!, 'fulfilled', JSON.stringify({
         offer: result.recommended_offer?.name,
         products: result.recommended_offer?.selected_products,
         quote: result.quote

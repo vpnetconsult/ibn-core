@@ -197,16 +197,24 @@ app.post('/api/v1/intent', authenticateApiKey, validateCustomerOwnership, async 
 
     // Process intent with Claude (using sanitized input)
     const result = await intentProcessor.process(customerId, sanitizedIntent, context);
-    
+
+    // Store completed intent for SSoT/SVoT (RFC 9315 §4 P1)
+    const storedIntent = await tmf921IntentService.recordIntent(customerId, sanitizedIntent, result);
+
     const processingTime = Date.now() - startTime;
-    
+
     logger.info({
       customerId,
+      intentId: storedIntent.id,
       processingTime,
       offer: result.recommended_offer?.name,
     }, 'Intent processed successfully');
-    
+
     res.json({
+      intentId: storedIntent.id,
+      lifecycleStatus: storedIntent.lifecycleStatus,
+      reportState: 'fulfilled',
+      href: storedIntent.href,
       ...result,
       processing_time_ms: processingTime,
     });
@@ -216,12 +224,41 @@ app.post('/api/v1/intent', authenticateApiKey, validateCustomerOwnership, async 
       error: (error as Error).message,
       processingTime,
     }, 'Intent processing failed');
-    
+
     res.status(500).json({
       error: 'Intent processing failed',
       message: (error as Error).message,
       processing_time_ms: processingTime,
     });
+  }
+});
+
+// GET /api/v1/intent/:id — SSoT/SVoT check (RFC 9315 §4 P1)
+app.get('/api/v1/intent/:id', authenticateApiKey, async (req: Request, res: Response) => {
+  try {
+    const intent = await tmf921IntentService.getIntent(req.params.id);
+    if (!intent) {
+      return res.status(404).json({ error: 'Not Found', message: `Intent ${req.params.id} not found` });
+    }
+    const customerId = (req as any).auth?.customerId;
+    const hasAccess = intent.relatedParty?.some(p => p.id === customerId && p.role === 'customer');
+    if (!hasAccess) {
+      return res.status(403).json({ error: 'Forbidden', message: 'Access denied to this intent' });
+    }
+    res.json(intent);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error', message: (error as Error).message });
+  }
+});
+
+// GET /api/v1/intent — list intents for authenticated customer
+app.get('/api/v1/intent', authenticateApiKey, async (req: Request, res: Response) => {
+  try {
+    const customerId = (req as any).auth?.customerId;
+    const intents = await tmf921IntentService.listIntents({ relatedPartyId: customerId });
+    res.json(intents);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error', message: (error as Error).message });
   }
 });
 

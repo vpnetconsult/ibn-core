@@ -43,7 +43,7 @@ spec:
         # 1. Local build: docker build -t business-intent-agent:1.0.0 .
         # 2. Docker Hub: yourusername/business-intent-agent:1.0.0
         # 3. Local registry: localhost:5000/business-intent-agent:1.0.0
-        image: business-intent-agent:v1.3.0-tmf921-filters
+        image: business-intent-agent:v1.3.1-o2c-fix
         imagePullPolicy: IfNotPresent
 
         ports:
@@ -93,6 +93,11 @@ spec:
             secretKeyRef:
               name: business-intent-agent-secrets
               key: pii-hash-salt
+        - name: MCP_API_KEY_BUSINESS_INTENT
+          valueFrom:
+            secretKeyRef:
+              name: mcp-api-keys
+              key: MCP_API_KEY_BUSINESS_INTENT
 
         # Resource limits (adjusted for local development)
         resources:
