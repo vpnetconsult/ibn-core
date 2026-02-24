@@ -98,6 +98,11 @@ spec:
             secretKeyRef:
               name: mcp-api-keys
               key: MCP_API_KEY_BUSINESS_INTENT
+        # RFC 9315 §4 P1 — SSoT persistence layer (Redis)
+        - name: REDIS_URL
+          value: "redis://redis:6379"
+        - name: INTENT_TTL_SECONDS
+          value: "7776000"
 
         # Resource limits (adjusted for local development)
         resources:

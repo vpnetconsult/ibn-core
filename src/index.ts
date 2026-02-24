@@ -14,6 +14,8 @@ import { authenticateApiKey, validateCustomerOwnership, generateApiKey } from '.
 import { validateIntentInput } from './prompt-injection-detection';
 import { readRequiredSecret } from './secrets';
 import { responseFilterMiddleware, filterInput } from './response-filter';
+import { probeIntentHandler } from './handlers/probeIntent';
+import { isRedisHealthy } from './store/IntentStore';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -71,13 +73,20 @@ app.use('/tmf-api/intentManagement/v5', tmf921Router);
 
 logger.info('TMF921 Intent Management API mounted at /tmf-api/intentManagement/v5');
 
-// Health check endpoint
-app.get('/health', (req: Request, res: Response) => {
+// Health check endpoint — includes RFC 9315 §4 P1 SSoT (Redis) status
+app.get('/health', async (req: Request, res: Response) => {
+  const redisHealthy = await isRedisHealthy();
   res.json({
-    status: 'healthy',
+    status: redisHealthy ? 'healthy' : 'degraded',
     service: 'business-intent-agent',
-    version: '1.0.0',
+    version: '2.0.0',
     timestamp: new Date().toISOString(),
+    components: {
+      redis: {
+        status: redisHealthy ? 'up' : 'down',
+        role: 'RFC 9315 §4 P1 SSoT persistence',
+      },
+    },
   });
 });
 
@@ -155,6 +164,11 @@ app.post('/api/v1/admin/generate-api-key', (req: Request, res: Response) => {
     expiresAt: null, // TODO: Implement key expiration
   });
 });
+
+// RFC 9315 §4 P2 — ProbeIntent: feasibility assessment before committing
+// TMF921 v5.0.0 ProbeIntent resource
+// Must be registered BEFORE /api/v1/intent to avoid route shadowing
+app.post('/api/v1/intent/probe', authenticateApiKey, probeIntentHandler);
 
 // Process customer intent (PROTECTED ENDPOINT)
 app.post('/api/v1/intent', authenticateApiKey, validateCustomerOwnership, async (req: Request, res: Response) => {

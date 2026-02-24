@@ -1,7 +1,15 @@
 /**
+ * Copyright 2026 Vpnet Cloud Solutions Sdn. Bhd.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE in the project root for license information.
+ *
  * TMF921 Intent Management Service
  *
- * Handles Intent resource management and integrates with existing IntentProcessor
+ * Handles Intent resource management and integrates with existing IntentProcessor.
+ * Uses Redis-backed RedisIntentStore (RFC 9315 §4 P1 SSoT — persistent across restarts).
+ *
+ * Implements RFC 9315 Intent-Based Networking
+ * https://www.rfc-editor.org/rfc/rfc9315
  */
 
 import { v4 as uuidv4 } from 'uuid';
@@ -19,166 +27,20 @@ import {
 } from './types';
 import { IntentProcessor } from '../intent-processor';
 import { logger } from '../logger';
-
-/**
- * In-memory storage for intents (replace with database in production)
- */
-class IntentStore {
-  private intents: Map<string, Intent> = new Map();
-
-  save(intent: Intent): Intent {
-    this.intents.set(intent.id!, intent);
-    return intent;
-  }
-
-  findById(id: string): Intent | undefined {
-    return this.intents.get(id);
-  }
-
-  findAll(filters?: {
-    lifecycleStatus?: IntentLifecycleStatus | string;
-    intentType?: IntentType;
-    relatedPartyId?: string;
-    name?: string;
-    priority?: number | string;
-    version?: string;
-    creationDate?: string;
-    lastUpdate?: string;
-  }): Intent[] {
-    let results = Array.from(this.intents.values());
-
-    if (filters?.lifecycleStatus) {
-      results = results.filter(i => i.lifecycleStatus === filters.lifecycleStatus);
-    }
-
-    if (filters?.intentType) {
-      results = results.filter(i => i.intentType === filters.intentType);
-    }
-
-    if (filters?.relatedPartyId) {
-      results = results.filter(i =>
-        i.relatedParty?.some(p => p.id === filters.relatedPartyId)
-      );
-    }
-
-    if (filters?.name) {
-      results = results.filter(i => i.name === filters.name);
-    }
-
-    if (filters?.priority !== undefined) {
-      results = results.filter(i => String(i.priority) === String(filters.priority));
-    }
-
-    if (filters?.version) {
-      results = results.filter(i => i.version === filters.version);
-    }
-
-    if (filters?.creationDate) {
-      results = results.filter(i => i.creationDate === filters.creationDate);
-    }
-
-    if (filters?.lastUpdate) {
-      results = results.filter(i => i.lastUpdate === filters.lastUpdate);
-    }
-
-    return results;
-  }
-
-  delete(id: string): boolean {
-    return this.intents.delete(id);
-  }
-
-  update(id: string, updates: Partial<Intent>): Intent | undefined {
-    const intent = this.intents.get(id);
-    if (!intent) return undefined;
-
-    const now = new Date().toISOString();
-
-    // Track status changes
-    const statusChanged = updates.lifecycleStatus && updates.lifecycleStatus !== intent.lifecycleStatus;
-
-    const updated = {
-      ...intent,
-      ...updates,
-      lastUpdate: now,
-      statusChangeDate: statusChanged ? now : intent.statusChangeDate,
-    };
-
-    this.intents.set(id, updated);
-    return updated;
-  }
-}
-
-/**
- * In-memory storage for intent specifications
- */
-class IntentSpecificationStore {
-  private specs: Map<string, IntentSpecification> = new Map();
-
-  save(spec: IntentSpecification): IntentSpecification {
-    this.specs.set(spec.id!, spec);
-    return spec;
-  }
-
-  findById(id: string): IntentSpecification | undefined {
-    return this.specs.get(id);
-  }
-
-  findAll(filters?: {
-    name?: string;
-    lifecycleStatus?: string;
-    version?: string;
-    lastUpdate?: string;
-  }): IntentSpecification[] {
-    let results = Array.from(this.specs.values());
-
-    if (filters?.name) {
-      results = results.filter(s => s.name === filters.name);
-    }
-
-    if (filters?.lifecycleStatus) {
-      results = results.filter(s => s.lifecycleStatus === filters.lifecycleStatus);
-    }
-
-    if (filters?.version) {
-      results = results.filter(s => s.version === filters.version);
-    }
-
-    if (filters?.lastUpdate) {
-      results = results.filter(s => s.lastUpdate === filters.lastUpdate);
-    }
-
-    return results;
-  }
-
-  delete(id: string): boolean {
-    return this.specs.delete(id);
-  }
-
-  update(id: string, updates: Partial<IntentSpecification>): IntentSpecification | undefined {
-    const spec = this.specs.get(id);
-    if (!spec) return undefined;
-
-    const updated = {
-      ...spec,
-      ...updates,
-      lastUpdate: new Date().toISOString(),
-    };
-
-    this.specs.set(id, updated);
-    return updated;
-  }
-}
+import {
+  RedisIntentStore,
+  RedisSpecificationStore,
+} from '../store/IntentStore';
 
 export class TMF921IntentService {
-  private store: IntentStore;
-  private specStore: IntentSpecificationStore;
+  private store: RedisIntentStore;
+  private specStore: RedisSpecificationStore;
 
   constructor(
     private intentProcessor: IntentProcessor
   ) {
-    this.store = new IntentStore();
-    this.specStore = new IntentSpecificationStore();
+    this.store = new RedisIntentStore();
+    this.specStore = new RedisSpecificationStore();
   }
 
   /**
@@ -245,8 +107,8 @@ export class TMF921IntentService {
       '@schemaLocation': intentCreate['@schemaLocation']
     };
 
-    // Save intent
-    this.store.save(intent);
+    // Save intent (RFC 9315 §4 P1 — SSoT)
+    await this.store.save(intent);
 
     logger.info({ intentId, customerId, intentType: intent.intentType }, 'TMF921 Intent created');
 
@@ -280,7 +142,7 @@ export class TMF921IntentService {
     limit?: number;
     offset?: number;
   }): Promise<Intent[]> {
-    let results = this.store.findAll({
+    let results = await this.store.findAll({
       lifecycleStatus: filters?.lifecycleStatus,
       intentType: filters?.intentType,
       relatedPartyId: filters?.relatedPartyId,
@@ -303,7 +165,7 @@ export class TMF921IntentService {
    * Update an Intent (PATCH /tmf-api/intentManagement/v5/intent/{id})
    */
   async updateIntent(id: string, updates: IntentUpdate): Promise<Intent | undefined> {
-    const updated = this.store.update(id, updates);
+    const updated = await this.store.update(id, updates);
 
     if (updated) {
       logger.info({ intentId: id, updates }, 'TMF921 Intent updated');
@@ -316,15 +178,15 @@ export class TMF921IntentService {
    * Delete an Intent (DELETE /tmf-api/intentManagement/v5/intent/{id})
    */
   async deleteIntent(id: string): Promise<boolean> {
-    const intent = this.store.findById(id);
+    const intent = await this.store.findById(id);
 
     if (intent) {
       // Mark as cancelled before deletion (TMF921 spec compliant)
-      this.store.update(id, { lifecycleStatus: IntentLifecycleStatus.CANCELLED });
+      await this.store.update(id, { lifecycleStatus: IntentLifecycleStatus.CANCELLED });
       logger.info({ intentId: id }, 'TMF921 Intent cancelled');
     }
 
-    const deleted = this.store.delete(id);
+    const deleted = await this.store.delete(id);
 
     if (deleted) {
       logger.info({ intentId: id }, 'TMF921 Intent deleted');
@@ -337,7 +199,7 @@ export class TMF921IntentService {
    * Delete an IntentReport from an Intent
    */
   async deleteIntentReport(intentId: string, reportId: string): Promise<boolean> {
-    const intent = this.store.findById(intentId);
+    const intent = await this.store.findById(intentId);
     if (!intent || !intent.intentReport) return false;
 
     const initialLength = intent.intentReport.length;
@@ -347,7 +209,7 @@ export class TMF921IntentService {
       return false; // Report not found
     }
 
-    this.store.update(intentId, {
+    await this.store.update(intentId, {
       intentReport: filtered
     });
 
@@ -411,7 +273,7 @@ export class TMF921IntentService {
       '@type': 'Intent',
     };
 
-    this.store.save(intent);
+    await this.store.save(intent);
     logger.info({ intentId, customerId }, 'Intent recorded as completed (legacy O2C path)');
     return intent;
   }
@@ -420,7 +282,7 @@ export class TMF921IntentService {
    * Add a report to an Intent
    */
   private async addIntentReport(intentId: string, reportState: string, reportValue?: string): Promise<void> {
-    const intent = this.store.findById(intentId);
+    const intent = await this.store.findById(intentId);
     if (!intent) return;
 
     const reportEntry: IntentReportEntry = {
@@ -440,7 +302,7 @@ export class TMF921IntentService {
     };
 
     const currentReports = intent.intentReport || [];
-    this.store.update(intentId, {
+    await this.store.update(intentId, {
       intentReport: [...currentReports, report]
     });
   }
@@ -451,7 +313,7 @@ export class TMF921IntentService {
   private async processIntentAsync(intent: Intent, customerId: string): Promise<void> {
     try {
       // Update lifecycleStatus to in progress (TMF921 spec compliant)
-      this.store.update(intent.id!, { lifecycleStatus: IntentLifecycleStatus.IN_PROGRESS });
+      await this.store.update(intent.id!, { lifecycleStatus: IntentLifecycleStatus.IN_PROGRESS });
       await this.addIntentReport(intent.id!, 'processing', 'Intent processing started');
 
       // Extract intent text from intentExpectation
@@ -463,7 +325,7 @@ export class TMF921IntentService {
       });
 
       // Update lifecycleStatus to completed
-      this.store.update(intent.id!, { lifecycleStatus: IntentLifecycleStatus.COMPLETED });
+      await this.store.update(intent.id!, { lifecycleStatus: IntentLifecycleStatus.COMPLETED });
       await this.addIntentReport(intent.id!, 'fulfilled', JSON.stringify({
         offer: result.recommended_offer?.name,
         products: result.recommended_offer?.selected_products,
@@ -474,7 +336,7 @@ export class TMF921IntentService {
 
     } catch (error) {
       // Update lifecycleStatus to failed
-      this.store.update(intent.id!, { lifecycleStatus: IntentLifecycleStatus.FAILED });
+      await this.store.update(intent.id!, { lifecycleStatus: IntentLifecycleStatus.FAILED });
       await this.addIntentReport(intent.id!, 'failed', (error as Error).message);
 
       logger.error({ intentId: intent.id, error: (error as Error).message }, 'TMF921 Intent processing failed');
@@ -531,7 +393,7 @@ export class TMF921IntentService {
       '@schemaLocation': specCreate['@schemaLocation']
     };
 
-    this.specStore.save(spec);
+    await this.specStore.save(spec);
     logger.info({ specId, name: spec.name }, 'TMF921 IntentSpecification created');
 
     return spec;
@@ -560,7 +422,7 @@ export class TMF921IntentService {
    * Update an IntentSpecification (PATCH /tmf-api/intentManagement/v5/intentSpecification/{id})
    */
   async updateIntentSpecification(id: string, updates: IntentSpecificationUpdate): Promise<IntentSpecification | undefined> {
-    const updated = this.specStore.update(id, updates);
+    const updated = await this.specStore.update(id, updates);
 
     if (updated) {
       logger.info({ specId: id, updates }, 'TMF921 IntentSpecification updated');
@@ -573,7 +435,7 @@ export class TMF921IntentService {
    * Delete an IntentSpecification (DELETE /tmf-api/intentManagement/v5/intentSpecification/{id})
    */
   async deleteIntentSpecification(id: string): Promise<boolean> {
-    const deleted = this.specStore.delete(id);
+    const deleted = await this.specStore.delete(id);
 
     if (deleted) {
       logger.info({ specId: id }, 'TMF921 IntentSpecification deleted');
