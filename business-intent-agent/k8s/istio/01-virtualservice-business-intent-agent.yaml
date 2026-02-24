@@ -28,8 +28,8 @@ spec:
         host: business-intent-agent-service.intent-platform.svc.cluster.local
         port:
           number: 8080
-    timeout: 30s  # Overall timeout for API calls (handles long AI requests)
+    timeout: 120s  # Extended for two-round-trip Claude API calls in O2C pipeline
     retries:
-      attempts: 3
-      perTryTimeout: 10s
+      attempts: 1
+      perTryTimeout: 60s
       retryOn: 5xx,reset,connect-failure,refused-stream
