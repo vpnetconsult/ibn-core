@@ -1,0 +1,256 @@
+╔════════════════════════════════════════════════════════════╗
+║  Claude Code MCP Security - Quick Diagnostic Report        ║
+║  Generated: Sun Feb  1 14:28:44 CET 2026                        ║
+╚════════════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. CONFIGURATION FILES STATUS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ Claude config directory exists
+  Location: /Users/blacktie/Library/Application Support/Claude
+  Files:       22 items
+✓ Claude Code config directory exists
+  Location: /Users/blacktie/.claude
+  Files:       14 items
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. MCP CONFIGURATION SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✗ MCP config file NOT found
+  Expected: /Users/blacktie/.claude/config.json
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. FILE PERMISSIONS AUDIT (CRITICAL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Claude Code config dir: 755
+  ⚠ WARNING: Directory readable by others!
+
+JSON config files:
+  known_marketplaces.json: 600
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  installed_plugins.json: 600
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  .mcp.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  hooks.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  stdio-server.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  http-server.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  sse-server.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  hooks.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  hooks.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  hooks.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  hooks.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  marketplace.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  .mcp.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  .mcp.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  .mcp.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  .mcp.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  .mcp.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  .mcp.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  .mcp.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  .mcp.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  .mcp.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  .mcp.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  .mcp.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  .mcp.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  .mcp.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  plugin.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  stats-cache.json: 600
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  sessions-index.json: 600
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  45495433-cf1c-4503-9667-4ccaa5997024-agent-45495433-cf1c-4503-9667-4ccaa5997024.json: 600
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  659f7a96-b896-455d-93f6-abfecf8add83-agent-659f7a96-b896-455d-93f6-abfecf8add83.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  a28d4687-e3f4-4e47-ac55-84fea613d9bb-agent-a28d4687-e3f4-4e47-ac55-84fea613d9bb.json: 600
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  c8d52349-7e1c-490f-b959-83d765d7d343-agent-c8d52349-7e1c-490f-b959-83d765d7d343.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  d309921d-1863-4f31-b3d2-3ddd502d1de9-agent-d309921d-1863-4f31-b3d2-3ddd502d1de9.json: 600
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  6cc9406e-958a-4044-ae8c-5b055836c583-agent-6cc9406e-958a-4044-ae8c-5b055836c583.json: 600
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  43328551-61ae-497d-909b-9deecff4ee39-agent-43328551-61ae-497d-909b-9deecff4ee39.json: 600
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  404da2d1-00c7-4ca0-9481-a1a4a704815d-agent-404da2d1-00c7-4ca0-9481-a1a4a704815d.json: 600
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  1ec05f31-7f54-4736-a6f8-68f90127efee-agent-1ec05f31-7f54-4736-a6f8-68f90127efee.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  f9c36268-1417-416d-94bf-39c28644898c-agent-f9c36268-1417-416d-94bf-39c28644898c.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  2be18c09-7096-4bd8-986c-b5bebbd39c7a-agent-2be18c09-7096-4bd8-986c-b5bebbd39c7a.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  2faeef6c-ad14-4528-80c7-7b8da33b5589-agent-2faeef6c-ad14-4528-80c7-7b8da33b5589.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  a0393e49-4cd1-41b6-a8da-8e4ecf4a8bb4-agent-a0393e49-4cd1-41b6-a8da-8e4ecf4a8bb4.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  85d72d77-5124-4921-839c-b68c8c9b1106-agent-85d72d77-5124-4921-839c-b68c8c9b1106.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  ab28636e-42d4-4f53-b0fc-9e6898cf5a98-agent-ab28636e-42d4-4f53-b0fc-9e6898cf5a98.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  dad23362-63f7-4abf-b816-cf034bccdc28-agent-dad23362-63f7-4abf-b816-cf034bccdc28.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  240aa814-57ea-4cba-86fe-d7545a677ffe-agent-240aa814-57ea-4cba-86fe-d7545a677ffe.json: 600
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  3936e8a2-725c-4fb5-93fb-de63f15915ab-agent-3936e8a2-725c-4fb5-93fb-de63f15915ab.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  da654742-c223-4e39-93ff-fd15943353f0-agent-da654742-c223-4e39-93ff-fd15943353f0.json: 644
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  8846cdd2-2a09-4d9a-86ce-83e00c0ca986-agent-8846cdd2-2a09-4d9a-86ce-83e00c0ca986.json: 600
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  0013944b-97a3-432a-bfeb-c042d488ec1c-agent-0013944b-97a3-432a-bfeb-c042d488ec1c.json: 600
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  76ac47e9-67df-4821-9961-f7365300a2f5-agent-76ac47e9-67df-4821-9961-f7365300a2f5.json: 600
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+  41e8735b-a374-4dc7-b292-ff9d75398ac8-agent-41e8735b-a374-4dc7-b292-ff9d75398ac8.json: 600
+    ⚠ SECURITY ISSUE: Not restricted to owner only!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. CREDENTIAL EXPOSURE SCAN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠ WARNING: Found     8134 potential credential exposures
+
+Details:
+/Users/blacktie/.claude/plugins/marketplaces/claude-plugins-official/plugins/agent-sdk-dev/commands/new-sdk-app.md:   - Create a `.env.example` file with `ANTHROPIC_API_KEY=your_api_key_here`
+/Users/blacktie/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/README.md:name: api-key-in-typescript
+/Users/blacktie/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/greptile/README.md:export GREPTILE_API_KEY="your-api-key-here"
+/Users/blacktie/.claude/projects/-Users-blacktie-projects-k8s-src-mcp-services/76ac47e9-67df-4821-9961-f7365300a2f5/tool-results/toolu_019vmK9fAugqnQ3tNg5EcVsb.txt:    35→  const defaultKey = process.env.DEFAULT_API_KEY || 'dev-api-key-12345';
+/Users/blacktie/.claude/projects/-Users-blacktie-projects-k8s-src-mcp-services/76ac47e9-67df-4821-9961-f7365300a2f5/tool-results/toolu_019vmK9fAugqnQ3tNg5EcVsb.txt:    46→ * Validates API key in Authorization header: "Bearer <api-key>"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. ENVIRONMENT VARIABLES CHECK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ No obvious sensitive environment variables detected
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6. KEYCHAIN INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠ No Claude items found in Keychain
+  Consider storing credentials securely in Keychain
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+7. NETWORK CONNECTIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• No active network connections from Claude detected
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+8. MCP SERVER PROCESSES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• No active MCP server processes detected
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+9. CLAUDE CLI STATUS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ Claude CLI installed
+2.1.29 (Claude Code)
+
+Attempting to list MCP servers via CLI...
+Checking MCP server health...
+
+serena: uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context claude-code --project /Users/blacktie/projects/k8s - ✓ Connected
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+10. SECURITY SUMMARY & RECOMMENDATIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PRIORITY ACTIONS:
+────────────────
+1. [ ] Run full assessment with telecom_mcp_security_assessment.md
+2. [ ] Review MCP server configurations for credential exposure
+3. [ ] Audit file permissions - ensure config files are 600
+4. [ ] Migrate plaintext credentials to macOS Keychain
+5. [ ] Verify OAuth 2.0 for all API-based MCP servers
+6. [ ] Set up audit logging for MCP operations
+7. [ ] Document credentials rotation schedule
+8. [ ] Test incident response procedures
+
+RESOURCES:
+──────────
+Full assessment: telecom_mcp_security_assessment.md
+Detailed commands: claude_code_mcp_commands.md
+Automated scan: claude_code_security_assessment.sh
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Report generated: Sun Feb  1 14:28:57 CET 2026
+Save this report: security_report_20260201_142857.txt
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -1,0 +1,148 @@
+==========================================
+Claude Code Security Assessment - macOS
+==========================================
+
+[0;34m[1] CHECKING CLAUDE CODE INSTALLATION[0m
+========================================
+[0;32m✓[0m Claude CLI found
+2.1.29 (Claude Code)
+
+[0;34m[2] CHECKING CONFIGURATION DIRECTORIES[0m
+========================================
+[0;32m✓[0m Claude config directory exists: /Users/blacktie/Library/Application Support/Claude
+  Permissions:
+drwx------@ 24 blacktie  staff  768 May 27  2025 /Users/blacktie/Library/Application Support/Claude
+[0;32m✓[0m Claude Code config directory exists: /Users/blacktie/.claude
+  Permissions:
+drwxr-xr-x@ 17 blacktie  staff  544 Feb  1 11:21 /Users/blacktie/.claude
+
+[0;34m[3] CHECKING MCP CONFIGURATION[0m
+========================================
+[1;33m⚠[0m No MCP configuration files found
+
+[0;34m[4] CHECKING ENVIRONMENT VARIABLES[0m
+========================================
+Checking for Claude/API-related environment variables:
+  No suspicious env vars found (filtered view)
+
+[0;34m[5] LISTING MCP SERVERS (if CLI available)[0m
+========================================
+Attempting to list MCP servers...
+Checking MCP server health...
+
+serena: uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context claude-code --project /Users/blacktie/projects/k8s - ✓ Connected
+
+[0;34m[6] CHECKING FOR CREDENTIAL STORAGE[0m
+========================================
+Checking for API keys/tokens in common locations:
+
+[0;34m[7] FILE PERMISSIONS AUDIT[0m
+========================================
+Checking file permissions (should be readable only by user):
+
+Checking: /Users/blacktie/Library/Application Support/Claude
+-rw-------@ /Users/blacktie/Library/Application
+-rw-------@ /Users/blacktie/Library/Application
+-rw-------@ /Users/blacktie/Library/Application
+-rw-------@ /Users/blacktie/Library/Application
+-rw-------@ /Users/blacktie/Library/Application
+-rw-r--r--@ /Users/blacktie/Library/Application
+-rw-------@ /Users/blacktie/Library/Application
+-rw-------@ /Users/blacktie/Library/Application
+-rw-------@ /Users/blacktie/Library/Application
+-rw-------@ /Users/blacktie/Library/Application
+-rw-------@ /Users/blacktie/Library/Application
+-rw-------@ /Users/blacktie/Library/Application
+-rw-------@ /Users/blacktie/Library/Application
+-rw-------@ /Users/blacktie/Library/Application
+-rw-------@ /Users/blacktie/Library/Application
+-rw-------@ /Users/blacktie/Library/Application
+-rw-------@ /Users/blacktie/Library/Application
+-rw-------@ /Users/blacktie/Library/Application
+-rw-------@ /Users/blacktie/Library/Application
+-rw-------@ /Users/blacktie/Library/Application
+
+Checking: /Users/blacktie/.claude
+-rw-r--r--@ /Users/blacktie/.claude/.DS_Store
+-rw-r--r--@ /Users/blacktie/.claude/cache/changelog.md
+-rw-r--r--@ /Users/blacktie/.claude/plans/smooth-churning-catmull.md
+-rw-r--r--@ /Users/blacktie/.claude/plans/expressive-imagining-parrot.md
+-rw-------@ /Users/blacktie/.claude/plugins/known_marketplaces.json
+-rw-------@ /Users/blacktie/.claude/plugins/installed_plugins.json
+-rw-r--r--@ /Users/blacktie/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/README.md
+-rw-r--r--@ /Users/blacktie/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/.claude-plugin/plugin.json
+-rw-r--r--@ /Users/blacktie/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/automation-recommender-example.png
+-rw-r--r--@ /Users/blacktie/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/references/hooks-patterns.md
+-rw-r--r--@ /Users/blacktie/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/references/subagent-templates.md
+-rw-r--r--@ /Users/blacktie/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/references/plugins-reference.md
+-rw-r--r--@ /Users/blacktie/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/references/mcp-servers.md
+-rw-r--r--@ /Users/blacktie/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/references/skills-reference.md
+-rw-r--r--@ /Users/blacktie/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/SKILL.md
+-rw-r--r--@ /Users/blacktie/.claude/plugins/marketplaces/claude-plugins-official/plugins/kotlin-lsp/README.md
+-rw-r--r--@ /Users/blacktie/.claude/plugins/marketplaces/claude-plugins-official/plugins/gopls-lsp/README.md
+-rw-r--r--@ /Users/blacktie/.claude/plugins/marketplaces/claude-plugins-official/plugins/feature-dev/agents/code-reviewer.md
+-rw-r--r--@ /Users/blacktie/.claude/plugins/marketplaces/claude-plugins-official/plugins/feature-dev/agents/code-explorer.md
+-rw-r--r--@ /Users/blacktie/.claude/plugins/marketplaces/claude-plugins-official/plugins/feature-dev/agents/code-architect.md
+
+[0;34m[8] CHECKING FOR KEYCHAIN INTEGRATION[0m
+========================================
+Checking for Claude-related items in macOS Keychain:
+  No Claude items found in Keychain
+
+[0;34m[9] CHECKING FOR RECENT MCP SERVER CONNECTIONS[0m
+========================================
+[1;33m⚠[0m Claude logs not found at: /Users/blacktie/Library/Logs/Claude/claude.log
+
+[0;34m[10] NETWORK SECURITY CHECK[0m
+========================================
+Checking for network connections from Claude Code:
+  No active Claude network connections detected
+
+[0;34m[11] CUSTOM MCP SERVER STATUS[0m
+========================================
+Checking for local MCP server processes:
+  No active MCP server processes found
+
+[0;34m[12] SECURITY RECOMMENDATIONS[0m
+========================================
+Based on your setup, review these security items:
+
+1. CREDENTIAL MANAGEMENT
+   [ ] Are API keys stored in Keychain, not config files?
+   [ ] Are environment variables properly scoped?
+   [ ] Do config files have restricted permissions (600)?
+
+2. MCP SERVER CONFIGURATION
+   [ ] List all configured MCP servers
+   [ ] Verify each server's transport method (stdio/HTTP)
+   [ ] Check authentication mechanisms for each server
+
+3. ACCESS CONTROL
+   [ ] Review which data/APIs each MCP server can access
+   [ ] Set appropriate permission boundaries
+   [ ] Implement principle of least privilege
+
+4. AUDIT LOGGING
+   [ ] Enable audit logging for MCP operations
+   [ ] Monitor for unusual access patterns
+   [ ] Check logs for failed authentication attempts
+
+5. NETWORK SECURITY
+   [ ] Use HTTPS only for remote MCP servers
+   [ ] Verify certificate validation
+   [ ] Use SSH tunneling for sensitive connections
+
+6. CODE EXECUTION
+   [ ] Review custom MCP servers for injection vulnerabilities
+   [ ] Implement sandboxing for code execution
+   [ ] Set resource limits (timeout, memory)
+
+7. SECRET ROTATION
+   [ ] Establish rotation policy for API keys
+   [ ] Document token expiry dates
+   [ ] Automate credential updates
+
+
+==========================================
+Assessment Complete
+==========================================
