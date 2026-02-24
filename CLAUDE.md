@@ -198,6 +198,7 @@ When modifying code, maintain traceability to these standards:
 | `v1.4.1` | `cd8880c` | Open Core Baseline — Apache 2.0 licence. |
 | `v1.4.2` | `d91f12c` | Clean MCP boundary — operator services separated to private repo. |
 | `v1.4.3` | `306fa01` | O2C verification fixes — MCP auth, TMF921 response shape, Istio TLS egress. Paper 1 cited release. |
+| `v2.0.0` | `9a61c19` | RFC 9315 §4 P1+P2 closed. Redis SSoT + ProbeIntent. Paper 1 v2.0 implementation complete. |
 
 **Rule:** Never rewrite or force-push these tags. They are cited in academic publications.
 
@@ -223,7 +224,7 @@ Paper: [claim this supports, e.g. "supports §IV-B CTK compliance claim"]
 The paper citation for this repo:
 > R. Pfeifer, "ibn-core: RFC 9315 Intent-Based Networking Production
 > Implementation," GitHub, 2026. [Online].
-> Available: https://github.com/vpnetconsult/ibn-core, v1.4.3.
+> Available: https://github.com/vpnetconsult/ibn-core, v2.0.0.
 
 ---
 
@@ -247,4 +248,4 @@ If this test fails after any change, do not commit.
 
 ---
 
-*Last updated: February 2026 — Vpnet Cloud Solutions Sdn. Bhd.*
+*Last updated: February 2026 (v2.0.0) — Vpnet Cloud Solutions Sdn. Bhd.*
