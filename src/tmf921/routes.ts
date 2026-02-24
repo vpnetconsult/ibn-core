@@ -44,10 +44,11 @@ function projectFields(obj: any, fields: string[]): any {
     }
   }
 
-  // Always include id and href for TMF921 compliance
+  // Always include mandatory fields for TMF921 compliance
   if (obj.id) projected.id = obj.id;
   if (obj.href) projected.href = obj.href;
   if (obj['@type']) projected['@type'] = obj['@type'];
+  if (obj.creationDate) projected.creationDate = obj.creationDate;
 
   return projected;
 }
