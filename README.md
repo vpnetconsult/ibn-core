@@ -49,17 +49,17 @@ The operator-specific CAMARA adapters (real radio/transport orchestration) live 
                 │         │                                           │
                 │         ▼                                           │
                 │  McpAdapter.orchestrate()     RFC 9315 §5.1.3       │ ◄── private adapter
-                │         │           ╔══════════════════════╗        │     (CAMARA/operator)
-                │         │           ║  Business Layer       ║        │
-                │         │           ║  Service  Layer       ║        │
-                │         │           ║  Resource Layer (BSS) ║        │
-                │         │           ╚══════════════════════╝        │
+                │         │           ╔═══════════════════════╗       │     (CAMARA/operator)
+                │         │           ║  Business Layer       ║       │
+                │         │           ║  Service  Layer       ║       │
+                │         │           ║  Resource Layer (BSS) ║       │
+                │         │           ╚═══════════════════════╝       │
                 │         ▼                                           │
                 │  RedisIntentStore   SSoT/SVoT  RFC 9315 §4 P1       │
                 │  TTL 90 days · AOF  persistence                     │
                 │         │                                           │
                 │         ▼                                           │
-                │  IntentReport       reportState: fulfilled           │
+                │  IntentReport       reportState: fulfilled          │
                 │  TMF921 v5.0.0 compliant response                   │
                 └─────────────────────────────────────────────────────┘
                          │
