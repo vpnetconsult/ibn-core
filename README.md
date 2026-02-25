@@ -8,7 +8,7 @@
 
 [![Version](https://img.shields.io/badge/version-v2.0.1-6272a4?style=flat-square)](https://github.com/vpnetconsult/ibn-core/releases/tag/v2.0.1)
 [![License](https://img.shields.io/badge/license-Apache%202.0-50fa7b?style=flat-square)](LICENSE)
-[![CI](https://img.shields.io/github/actions/workflow/status/vpnetconsult/ibn-core/codeql.yml?branch=main&label=CI&style=flat-square)](https://github.com/vpnetconsult/ibn-core/actions)
+[![CI](https://img.shields.io/github/actions/workflow/status/vpnetconsult/ibn-core/security-audit.yml?branch=main&label=CI&style=flat-square)](https://github.com/vpnetconsult/ibn-core/actions)
 [![GHCR](https://img.shields.io/badge/ghcr.io-business--intent--agent-8be9fd?style=flat-square&logo=docker&logoColor=white)](https://github.com/vpnetconsult/ibn-core/pkgs/container/business-intent-agent)
 [![RFC 9315](https://img.shields.io/badge/RFC%209315-P1%20%2B%20P2%20closed-bd93f9?style=flat-square)](https://www.rfc-editor.org/rfc/rfc9315)
 [![TMF921 CTK](https://img.shields.io/badge/TMF921%20CTK-83%2F83%20%E2%9C%94-ff79c6?style=flat-square)](docs/compliance/TMF921_CTK_RESULTS_V2_0_0.md)
