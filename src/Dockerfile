@@ -21,7 +21,8 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-RUN addgroup -g 1001 -S nodejs && \
+RUN npm install -g npm@latest && \
+    addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
 COPY --from=builder /app/node_modules ./node_modules
