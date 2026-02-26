@@ -2,7 +2,8 @@
 
 **Project:** ibn-core — RFC 9315 Intent-Based Networking Framework
 **Version:** v2.0.1
-**Namespace:** `intent-platform` (Istio sidecar injection enabled, strict mTLS)
+**Namespaces:** `intent-platform` (application), `istio-system` (service mesh + observability)
+**Runtime:** Kubernetes v1.35.0 / containerd 2.2.0 / Istio 1.20.1
 **Last updated:** February 2026 — Vpnet Cloud Solutions Sdn. Bhd.
 
 ---
@@ -181,6 +182,118 @@
 
 ---
 
+## Infrastructure Platform
+
+### 6. Kubernetes
+
+| Field | Value |
+|-------|-------|
+| **Version** | v1.35.0 |
+| **Distribution** | kind (Kubernetes in Docker) — single-node, local |
+| **Node** | `local-k8s-control-plane` |
+| **Node role** | control-plane (single-node; workloads also run here) |
+| **Architecture** | arm64 |
+| **OS** | Debian GNU/Linux 12 (Bookworm) — kernel 6.12.69-linuxkit |
+| **Container runtime** | containerd 2.2.0 |
+| **Namespace** | `intent-platform` |
+
+**Purpose:** Container orchestration layer. Manages pod scheduling, service discovery, secrets, RBAC, PersistentVolumes, and the HPA for the business-intent-agent. Provides the runtime for all application and infrastructure components.
+
+**Key cluster resources:**
+
+| Resource | Purpose |
+|----------|---------|
+| Namespace `intent-platform` | Isolates all ibn-core workloads; Istio injection enabled |
+| ServiceAccount + RBAC | Least-privilege pod identity for the agent |
+| Secrets | Anthropic API key, MCP URLs, Neo4j credentials, PII hash salt |
+| ConfigMap | Non-sensitive agent configuration (model, timeouts, log level) |
+| PersistentVolumeClaim | 2Gi for Neo4j graph data |
+| HPA | Autoscales business-intent-agent 2–5 replicas on CPU/memory |
+
+---
+
+### 7. Istio
+
+| Field | Value |
+|-------|-------|
+| **Version** | 1.20.1 |
+| **Components** | istiod (pilot), ingress gateway, egress gateway |
+| **Image** | `docker.io/istio/pilot:1.20.1` |
+| **mTLS mode** | STRICT (PeerAuthentication, namespace-wide) |
+| **Sidecar injection** | Automatic (namespace label `istio-injection: enabled`) |
+
+**Purpose:** Service mesh providing mutual TLS encryption for all pod-to-pod traffic, traffic management (retries, timeouts, circuit breaking), and controlled egress to the Anthropic API. Implements RFC 9315 §5.2.3 compliance actions via DestinationRule circuit breakers and HPA triggers.
+
+**Deployed resources:**
+
+| Resource | Kind | Purpose |
+|----------|------|---------|
+| `intent-platform-gateway` | Gateway | HTTP :80 / HTTPS :443 ingress |
+| `business-intent-agent-vs` | VirtualService | Routes external traffic → agent :8080 |
+| `bss-oss-mcp-vs` | VirtualService | Routes to BSS/OSS MCP adapter |
+| `customer-data-mcp-vs` | VirtualService | Routes to customer data MCP |
+| `knowledge-graph-mcp-vs` | VirtualService | Routes to Neo4j knowledge graph MCP |
+| `intent-platform-mtls` | PeerAuthentication STRICT | Enforces mTLS for all pods in namespace |
+| `anthropic-api` | ServiceEntry | Registers api.anthropic.com as mesh external service |
+| `anthropic-api-vs` | VirtualService | 120 s timeout, 2 retries on 5xx/reset/connect-failure |
+| `anthropic-api-dr` | DestinationRule | App-originated TLS, max 10 TCP / 10 HTTP2 connections |
+| DestinationRules (×4) | DestinationRule | Per-service circuit breaker policies |
+
+---
+
+## Observability Stack
+
+All observability components run in the `istio-system` namespace, installed as part of the Istio add-on bundle.
+
+### 8. Prometheus
+
+| Field | Value |
+|-------|-------|
+| **Image** | `prom/prometheus:v2.41.0` |
+| **Sidecar** | `jimmidyson/configmap-reload:v0.8.0` |
+| **Port** | 9090 (HTTP) |
+| **Replicas** | 1 |
+
+**Purpose:** Metrics collection and storage. Scrapes Prometheus-format metrics from business-intent-agent, mock-mcp, knowledge-graph-mcp, and all Istio sidecar proxies. Backs Grafana dashboards and feeds RFC 9315 §5.2.1 monitoring data.
+
+---
+
+### 9. Grafana
+
+| Field | Value |
+|-------|-------|
+| **Image** | `docker.io/grafana/grafana:9.5.5` |
+| **Port** | 3000 (HTTP) |
+| **Replicas** | 1 |
+
+**Purpose:** Visualisation layer for Prometheus metrics. Provides dashboards for intent lifecycle throughput, latency, MCP orchestration success rates, and Istio mesh telemetry.
+
+---
+
+### 10. Jaeger
+
+| Field | Value |
+|-------|-------|
+| **Image** | `docker.io/jaegertracing/all-in-one:1.46` |
+| **Ports** | 16686 (UI), 14268 (collector), 6831/UDP (agent) |
+| **Replicas** | 1 |
+
+**Purpose:** Distributed tracing. Captures end-to-end traces for intent requests — from TMF921 API ingress through Claude MCP calls to Redis persistence and MCP orchestration. Traces are injected automatically by Istio sidecars (Zipkin-compatible B3 headers).
+
+---
+
+### 11. Kiali
+
+| Field | Value |
+|-------|-------|
+| **Image** | `quay.io/kiali/kiali:v1.76` |
+| **Port** | 20001 (HTTP) |
+| **Replicas** | 1 |
+
+**Purpose:** Istio service mesh observability console. Provides live traffic topology, mTLS validation, VirtualService/DestinationRule health, and integration with Prometheus and Jaeger for unified mesh insight.
+
+---
+
 ## Networking — Istio
 
 ### Ingress
@@ -210,6 +323,8 @@ All service-to-service traffic (agent ↔ Redis, agent ↔ knowledge-graph-mcp, 
 
 ## Resource Summary
 
+**Application components** (`intent-platform` namespace):
+
 | Component | Image | Port | CPU req/lim | Mem req/lim | Replicas |
 |-----------|-------|------|-------------|-------------|----------|
 | business-intent-agent | `business-intent-agent:v1.3.1-o2c-fix` | 8080 | 250m / 1000m | 512Mi / 2Gi | 2–5 (HPA) |
@@ -217,6 +332,18 @@ All service-to-service traffic (agent ↔ Redis, agent ↔ knowledge-graph-mcp, 
 | neo4j | `neo4j:5-community` | 7474, 7687 | 500m / 2000m | 1Gi / 2Gi | 1 |
 | knowledge-graph-mcp | `vpnet/knowledge-graph-mcp-service:2.0.0` | 8080 | — | — | 1 |
 | mock-mcp *(dev)* | `node:20-alpine` | 9000 | 50m / 200m | 64Mi / 128Mi | 1 |
+
+**Infrastructure platform** (`istio-system` namespace + cluster):
+
+| Component | Image | Port | Version |
+|-----------|-------|------|---------|
+| Kubernetes | — | — | v1.35.0 |
+| containerd | — | — | 2.2.0 |
+| Istio (istiod) | `istio/pilot:1.20.1` | — | 1.20.1 |
+| Prometheus | `prom/prometheus:v2.41.0` | 9090 | v2.41.0 |
+| Grafana | `grafana/grafana:9.5.5` | 3000 | 9.5.5 |
+| Jaeger | `jaegertracing/all-in-one:1.46` | 16686 | 1.46 |
+| Kiali | `kiali/kiali:v1.76` | 20001 | v1.76 |
 
 ---
 
