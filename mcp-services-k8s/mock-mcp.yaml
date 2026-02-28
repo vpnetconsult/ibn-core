@@ -81,7 +81,7 @@ spec:
     spec:
       containers:
         - name: mock-mcp
-          image: node:20-alpine
+          image: node:22.14.0-alpine
           command: ["node", "-e"]
           args:
             - |
