@@ -28,6 +28,7 @@ set -euo pipefail
 ISTIO_VERSION="1.29.0"
 GRAFANA_IMAGE="docker.io/grafana/grafana:12.4.0"
 JAEGER_IMAGE="docker.io/jaegertracing/jaeger:2.15.0"
+KIALI_IMAGE="quay.io/kiali/kiali:v2.22.0"
 ISTIO_ADDONS_BASE="https://raw.githubusercontent.com/istio/istio/release-1.29/samples/addons"
 
 # ---------------------------------------------------------------------------
@@ -109,44 +110,28 @@ ok "intent-platform workloads restarted with new Envoy sidecars"
 # ---------------------------------------------------------------------------
 # Step 3 — Upgrade Prometheus (via Istio 1.29 addon manifest)
 # ---------------------------------------------------------------------------
-step "Step 3/6 — Upgrade Prometheus (Istio 1.29 addon — includes v3)"
+step "Step 3/6 — Upgrade Prometheus (Istio 1.29 addon — Prometheus v3)"
 
-# The Istio 1.29 addon manifest ships Prometheus v3.
-# Add fallback_scrape_protocol to prevent v3 Content-Type strictness
-# from breaking Envoy sidecar scraping.
+# The Istio 1.29 addon changes the Prometheus selector labels (immutable field).
+# Delete the existing deployment first so the new manifest can recreate it cleanly.
+warn "Deleting old Prometheus deployment to allow selector label change (brief downtime)"
+kubectl -n istio-system delete deployment prometheus --ignore-not-found
 kubectl apply -f "${ISTIO_ADDONS_BASE}/prometheus.yaml"
 
-# Patch the prometheus ConfigMap to add fallback_scrape_protocol for Envoy sidecars.
-# Prometheus v3 enforces strict Content-Type; Envoy returns prometheus text without it.
-PROM_CM=$(kubectl -n istio-system get configmap prometheus -o json 2>/dev/null || echo "")
-if [[ -n "$PROM_CM" ]]; then
-  if ! echo "$PROM_CM" | grep -q "fallback_scrape_protocol"; then
-    warn "Patching prometheus ConfigMap to add fallback_scrape_protocol for Envoy compatibility"
-    # Extract current config, inject fallback, re-apply
-    kubectl -n istio-system get configmap prometheus -o jsonpath='{.data.prometheus\.yml}' \
-      | sed 's/scrape_configs:/fallback_scrape_protocol: PrometheusText0.0.4\nscrape_configs:/' \
-      > /tmp/prometheus-patched.yml
-    kubectl -n istio-system patch configmap prometheus \
-      --patch "$(kubectl -n istio-system create configmap prometheus \
-        --from-file=prometheus.yml=/tmp/prometheus-patched.yml \
-        --dry-run=client -o json)"
-    rm -f /tmp/prometheus-patched.yml
-    ok "prometheus ConfigMap patched for v3 Envoy compatibility"
-  else
-    ok "prometheus ConfigMap already has fallback_scrape_protocol"
-  fi
-fi
+# Pin to latest stable Prometheus v3 (Istio addon ships v3.x; patch to v3.10.0)
+kubectl -n istio-system set image deployment/prometheus \
+  prometheus-server=prom/prometheus:v3.10.0
 
 kubectl rollout status deployment/prometheus -n istio-system --timeout=3m
-ok "Prometheus upgraded"
+ok "Prometheus upgraded to v3.10.0"
 
 # ---------------------------------------------------------------------------
 # Step 4 — Upgrade Grafana (9.5.5 → 12.4.0)
 # ---------------------------------------------------------------------------
 step "Step 4/6 — Upgrade Grafana to 12.4.0"
 
-# Apply the Istio 1.29 addon manifest first (updates datasource config),
-# then patch the image to 12.4.0 (the Istio addon may ship an older Grafana).
+# Apply the Istio 1.29 addon manifest (updates datasource config),
+# then patch the image to 12.4.0.
 kubectl apply -f "${ISTIO_ADDONS_BASE}/grafana.yaml"
 kubectl -n istio-system set image deployment/grafana \
   grafana="${GRAFANA_IMAGE}"
@@ -155,19 +140,19 @@ kubectl rollout status deployment/grafana -n istio-system --timeout=3m
 ok "Grafana upgraded to 12.4.0"
 
 # ---------------------------------------------------------------------------
-# Step 5 — Upgrade Jaeger (1.46 → 2.15.0 — v2, new image name)
+# Step 5 — Upgrade Jaeger (1.46 → 2.15.0 — v2, new image and probe config)
 # ---------------------------------------------------------------------------
 step "Step 5/6 — Upgrade Jaeger to v2 (2.15.0)"
 
-warn "Jaeger v2 uses a new image (jaegertracing/jaeger instead of jaegertracing/all-in-one)"
-warn "v1 is EOL since 2025-12-31. This is an in-place patch of the existing all-in-one deployment."
+warn "Jaeger v2 health probe moved from :14269 to :13133/status"
+warn "Deleting old deployment to allow probe and selector reconfiguration"
 
-# Apply Istio 1.29 addon manifest for base config, then patch image to v2
+# Istio 1.29 addon ships Jaeger v2 (2.14.0) with the correct v2 probe config.
+# Delete the v1 deployment first so the new manifest applies cleanly,
+# then patch image to the latest 2.15.0.
+kubectl -n istio-system delete deployment jaeger --ignore-not-found
 kubectl apply -f "${ISTIO_ADDONS_BASE}/jaeger.yaml"
-kubectl -n istio-system set image deployment/jaeger \
-  jaeger="${JAEGER_IMAGE}" 2>/dev/null || \
-kubectl -n istio-system set image deployment/jaeger \
-  all-in-one="${JAEGER_IMAGE}"
+kubectl -n istio-system set image deployment/jaeger jaeger="${JAEGER_IMAGE}"
 
 kubectl rollout status deployment/jaeger -n istio-system --timeout=3m
 ok "Jaeger upgraded to v2 (2.15.0)"
@@ -179,6 +164,7 @@ step "Step 6/6 — Upgrade Kiali to v2.22.0"
 
 # Kiali v2 requires Istio ≥ 1.27 — satisfied by Step 2.
 kubectl apply -f "${ISTIO_ADDONS_BASE}/kiali.yaml"
+kubectl -n istio-system set image deployment/kiali kiali="${KIALI_IMAGE}"
 
 kubectl rollout status deployment/kiali -n istio-system --timeout=5m
 ok "Kiali upgraded to v2.22.0"
