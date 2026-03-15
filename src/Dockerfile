@@ -21,7 +21,8 @@ FROM node:22.22.1-alpine
 
 WORKDIR /app
 
-RUN npm install -g npm@latest && \
+RUN apk update && apk upgrade --no-cache zlib libssl3 && \
+    npm install -g npm@latest && \
     addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
