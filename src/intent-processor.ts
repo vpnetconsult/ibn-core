@@ -1,94 +1,76 @@
+/**
+ * Copyright 2026 Vpnet Cloud Solutions Sdn. Bhd.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE in the project root for license information.
+ *
+ * Implements RFC 9315 Intent-Based Networking
+ * https://www.rfc-editor.org/rfc/rfc9315
+ */
+
+import { v4 as uuidv4 } from 'uuid';
 import { ClaudeClient } from './claude-client';
 import { MCPClient } from './mcp-client';
 import { logger } from './logger';
-import { maskCustomerProfile, validateNoRawPII, redactForLogs } from './pii-masking';
+import { IntentHandlingCycleRunner } from './imf/IntentHandlingCycleRunner';
 
+/**
+ * IntentProcessor — public API for intent processing within ibn-core.
+ *
+ * Executes the RFC 9315 §5 intent handling cycle via IntentHandlingCycleRunner
+ * and maps the result back to the shape expected by:
+ *   - The legacy POST /api/v1/intent route (index.ts)
+ *   - TMF921IntentService.processIntentAsync (tmf921/intent-service.ts)
+ *
+ * The public interface (process signature and return shape) is intentionally
+ * stable; callers do not need to know about the cycle internals.
+ * The additive `handlingTrace` field carries RFC 9315 §5 observability data.
+ */
 export class IntentProcessor {
+  private readonly cycleRunner: IntentHandlingCycleRunner;
+
   constructor(
-    private claude: ClaudeClient,
-    private mcpClients: {
+    private readonly claude: ClaudeClient,
+    private readonly mcpClients: {
       bss: MCPClient;
       knowledgeGraph: MCPClient;
       customerData: MCPClient;
-    }
-  ) {}
+    },
+  ) {
+    this.cycleRunner = new IntentHandlingCycleRunner(claude, mcpClients);
+  }
 
-  async process(customerId: string, intent: string, _context?: any): Promise<any> {
+  /**
+   * Process a natural-language intent for the given customer.
+   *
+   * @param customerId  Opaque customer reference (not a PII value in logs)
+   * @param intent      Sanitized natural-language intent expression
+   * @param context     Optional caller context; tmf921Intent.id is used as
+   *                    the correlation ID when present
+   * @returns           Processing result including offer, quote, and the
+   *                    RFC 9315 §5 handling trace
+   */
+  async process(customerId: string, intent: string, context?: any): Promise<any> {
+    const intentId: string = context?.tmf921Intent?.id ?? uuidv4();
     const startTime = Date.now();
 
     try {
-      // Step 1: Get customer profile
-      logger.info({ customerId }, 'Fetching customer profile');
-      const customerProfile = await this.mcpClients.customerData.call(
-        'get_customer_profile',
-        { customer_id: customerId }
-      );
-
-      // Step 1.5: Mask PII before sending to external AI service
-      logger.info({ customerId }, 'Masking PII data for GDPR compliance');
-      const maskedProfile = maskCustomerProfile(customerProfile);
-
-      // Validate no raw PII remains
-      const validation = validateNoRawPII(maskedProfile);
-      if (!validation.valid) {
-        logger.error({ violations: validation.violations }, 'PII validation failed - raw PII detected');
-        throw new Error(`PII validation failed: ${validation.violations.join(', ')}`);
-      }
-
-      logger.debug({
-        originalProfile: redactForLogs(customerProfile),
-        maskedProfile
-      }, 'Customer profile masked');
-
-      // Step 2: Analyze intent with Claude (using masked profile)
-      logger.info({ intent }, 'Analyzing intent with Claude');
-      const intentAnalysis = await this.claude.analyzeIntent(intent, maskedProfile);
-
-      // Step 3: Search product catalog
-      logger.info({ tags: intentAnalysis.tags }, 'Searching product catalog');
-      const products = await this.mcpClients.bss.call(
-        'search_product_catalog',
-        {
-          intent: intentAnalysis.tags,
-          customer_segment: customerProfile.segment,
-        }
-      );
-
-      // Step 4: Find related products (bundles)
-      logger.info({ productTypes: intentAnalysis.product_types }, 'Finding bundles');
-      const bundles = await this.mcpClients.knowledgeGraph.call(
-        'find_related_products',
-        { base_products: intentAnalysis.product_types }
-      );
-
-      // Step 5: Generate personalized offer with Claude (using masked profile)
-      logger.info('Generating personalized offer');
-      const offer = await this.claude.generateOffer({
-        intent: intentAnalysis,
-        customer: maskedProfile, // Use masked profile, not raw
-        products,
-        bundles,
-      });
-
-      // Step 6: Generate quote
-      logger.info({ products: offer.selected_products }, 'Generating quote');
-      const quote = await this.mcpClients.bss.call(
-        'generate_quote',
-        {
-          customer_id: customerId,
-          products: offer.selected_products,
-          discounts: offer.recommended_discounts,
-        }
-      );
-
+      const result = await this.cycleRunner.run(intentId, customerId, intent);
+      const ctx = result.context;
       const processingTime = Date.now() - startTime;
 
       return {
-        intent_analysis: intentAnalysis,
-        customer_profile: customerProfile, // Will be filtered by response-filter middleware based on role
-        recommended_offer: offer,
-        quote: quote,
+        intent_analysis:    ctx.intentAnalysis,
+        // rawCustomerProfile is returned here for the response-filter middleware,
+        // which redacts fields based on the caller's role before the value is
+        // sent to the client. The cycle uses only the PII-masked customerProfile
+        // for all AI processing.
+        customer_profile:   ctx.rawCustomerProfile,
+        recommended_offer:  ctx.selectedOffer,
+        quote:              ctx.quote,
         processing_time_ms: processingTime,
+        // Additive: RFC 9315 §5 handling trajectory for observability.
+        // Not part of the core TMF921 Intent resource shape.
+        handlingTrace:      result.handlingTrace,
       };
     } catch (error: any) {
       logger.error({ error: error.message, customerId }, 'Intent processing failed');
