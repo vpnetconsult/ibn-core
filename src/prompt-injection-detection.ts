@@ -240,41 +240,34 @@ export function sanitizeInput(input: string): string {
   let sanitized = input;
   let previousLength = 0;
 
-  // Iteratively remove dangerous patterns until no more changes occur
-  // This prevents bypass attacks like <scr<script>ipt>
+  // Iteratively remove dangerous patterns until stable.
+  // The loop handles nested bypass attempts like <scr<script>ipt> where
+  // removing inner tags exposes an outer dangerous tag in the next pass.
   while (sanitized.length !== previousLength) {
     previousLength = sanitized.length;
 
-    // Remove script tags with any attributes or variations (handles all whitespace including tabs/newlines)
-    // This pattern matches <script...>...</script> with any whitespace in closing tag
-    sanitized = sanitized.replace(/<script[^>]*>.*?<\/\s*script[\s\S]*?>/gis, '');
+    // Remove complete script/style blocks including their content
+    sanitized = sanitized.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+    sanitized = sanitized.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
 
-    // Remove any remaining script-like patterns (case insensitive)
-    sanitized = sanitized.replace(/script/gi, '');
-
-    // Remove all HTML tags (including malformed/nested ones)
+    // Remove all remaining HTML tags
     sanitized = sanitized.replace(/<[^>]*>/g, '');
 
-    // Remove event handlers comprehensively - handle all variations
-    // Remove patterns like: onclick="..." or onclick='...' or onclick=...
-    sanitized = sanitized.replace(/\bon\w+\s*=\s*["'][^"']*["']/gi, '');
-    sanitized = sanitized.replace(/\bon\w+\s*=\s*[^\s>]*/gi, '');
-
-    // Remove any remaining 'on' followed by word characters that might be event handlers
-    sanitized = sanitized.replace(/\bon[a-z]+/gi, '');
+    // Remove event handler attributes (requires '=' to avoid matching innocent
+    // words like "online", "only", "once")
+    sanitized = sanitized.replace(/\bon[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi, '');
   }
 
-  // Remove JavaScript protocol (after loop to catch encoded versions)
-  sanitized = sanitized.replace(/javascript\s*:/gi, '');
-  sanitized = sanitized.replace(/data\s*:text\/html/gi, '');
-  sanitized = sanitized.replace(/vbscript\s*:/gi, '');
+  // Replace dangerous URL schemes using an allowlist.
+  // Only http:, https:, ftp:, mailto: are permitted — all others are stripped.
+  sanitized = sanitized.replace(/\b(?!https?:|ftp:|mailto:)[a-zA-Z][a-zA-Z0-9+\-.]*:/g, '');
 
-  // Remove excessive newlines/spaces
+  // Remove control characters (except newline \x0A, tab \x09, carriage return \x0D)
+  sanitized = sanitized.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F-\x9F]/g, '');
+
+  // Normalize whitespace
   sanitized = sanitized.replace(/\n{3,}/g, '\n\n');
   sanitized = sanitized.replace(/\s{3,}/g, ' ');
-
-  // Remove control characters (except newline, tab, carriage return)
-  sanitized = sanitized.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F-\x9F]/g, '');
 
   // Normalize Unicode to prevent homograph attacks
   sanitized = sanitized.normalize('NFKC');
