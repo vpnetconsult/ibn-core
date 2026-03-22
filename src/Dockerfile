@@ -22,7 +22,9 @@ RUN npm run build
 # Stage 2: Runtime
 FROM node:22.22.1-alpine
 
-# Upgrade Alpine packages to patch base-image CVEs (zlib, openssl, busybox, tar)
+WORKDIR /app
+
+# Upgrade all Alpine packages to patch base-image CVEs (zlib, openssl, busybox, tar)
 RUN apk upgrade --no-cache && \
     npm install -g npm@latest && \
     addgroup -g 1001 -S nodejs && \

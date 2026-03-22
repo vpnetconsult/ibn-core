@@ -14,6 +14,30 @@ import crypto from 'crypto';
 import { logger } from './logger';
 import { authFailureCounter, authSuccessCounter } from './metrics';
 
+/**
+ * Strip CRLF and control characters from user-controlled values before logging.
+ * Prevents log injection attacks (CWE-117).
+ */
+function sanitizeLogField(value: string | undefined): string {
+  return String(value ?? '').replace(/[\r\n\t\x00-\x08\x0B-\x1F]/g, '_').substring(0, 200);
+}
+
+/**
+ * Timing-safe API key lookup using crypto.timingSafeEqual.
+ * Prevents timing attacks (CWE-208) on the authentication path.
+ */
+function lookupApiKey(apiKey: string): { customerId: string; name: string; createdAt: Date } | undefined {
+  const keyBuffer = Buffer.from(apiKey);
+  for (const [storedKey, info] of API_KEYS.entries()) {
+    const storedBuffer = Buffer.from(storedKey);
+    if (keyBuffer.length === storedBuffer.length &&
+        crypto.timingSafeEqual(keyBuffer, storedBuffer)) {
+      return info;
+    }
+  }
+  return undefined;
+}
+
 // In-memory API key store (for development)
 // Production: Use external secret manager (Vault, AWS Secrets Manager, etc.)
 const API_KEYS = new Map<string, { customerId: string; name: string; createdAt: Date }>();
@@ -53,8 +77,8 @@ export function authenticateApiKey(req: Request, res: Response, next: NextFuncti
   if (!authHeader) {
     authFailureCounter.inc({ reason: 'missing_header' });
     logger.warn({
-      ip: req.ip,
-      path: req.path,
+      ip: sanitizeLogField(req.ip),
+      path: sanitizeLogField(req.path),
       duration: Date.now() - startTime,
     }, 'Authentication failed: Missing Authorization header');
 
@@ -70,8 +94,8 @@ export function authenticateApiKey(req: Request, res: Response, next: NextFuncti
   if (parts.length !== 2 || parts[0] !== 'Bearer') {
     authFailureCounter.inc({ reason: 'invalid_format' });
     logger.warn({
-      ip: req.ip,
-      path: req.path,
+      ip: sanitizeLogField(req.ip),
+      path: sanitizeLogField(req.path),
       duration: Date.now() - startTime,
     }, 'Authentication failed: Invalid Authorization header format');
 
@@ -84,13 +108,13 @@ export function authenticateApiKey(req: Request, res: Response, next: NextFuncti
 
   const apiKey = parts[1];
 
-  // Validate API key
-  const keyInfo = API_KEYS.get(apiKey);
+  // Validate API key — timing-safe lookup to prevent CWE-208
+  const keyInfo = lookupApiKey(apiKey);
   if (!keyInfo) {
     authFailureCounter.inc({ reason: 'invalid_key' });
     logger.warn({
-      ip: req.ip,
-      path: req.path,
+      ip: sanitizeLogField(req.ip),
+      path: sanitizeLogField(req.path),
       duration: Date.now() - startTime,
     }, 'Authentication failed: Invalid API key');
 
@@ -112,8 +136,8 @@ export function authenticateApiKey(req: Request, res: Response, next: NextFuncti
   };
 
   logger.info({
-    customerId: keyInfo.customerId,
-    path: req.path,
+    customerId: sanitizeLogField(keyInfo.customerId),
+    path: sanitizeLogField(req.path),
     duration: Date.now() - startTime,
   }, 'Authentication successful');
 
@@ -188,9 +212,9 @@ export function validateCustomerOwnership(req: Request, res: Response, next: Nex
   // Validate ownership
   if (requestedCustomerId && auth.customerId !== requestedCustomerId) {
     logger.warn({
-      authenticatedCustomer: auth.customerId,
-      requestedCustomer: requestedCustomerId,
-      path: req.path,
+      authenticatedCustomer: sanitizeLogField(auth.customerId),
+      requestedCustomer: sanitizeLogField(requestedCustomerId),
+      path: sanitizeLogField(req.path),
     }, 'Customer ownership validation failed');
 
     res.status(403).json({
