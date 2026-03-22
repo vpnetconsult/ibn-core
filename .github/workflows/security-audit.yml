@@ -57,7 +57,7 @@ jobs:
           docker build -t vpnet/business-intent-agent:${{ github.sha }} -f Dockerfile.build .
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.29.0
+        uses: aquasecurity/trivy-action@v0.35.0
         with:
           image-ref: 'vpnet/business-intent-agent:${{ github.sha }}'
           format: 'sarif'
