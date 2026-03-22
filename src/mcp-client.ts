@@ -12,6 +12,7 @@ import { logger } from './logger';
 import { provenanceTracker } from './provenance/ProvenanceTracker';
 import { SessionContext } from './provenance/types';
 import { scanMcpResponse } from './mcp-response-filter';
+import { toolPolicyEngine } from './policy/ToolPolicyEngine';
 
 export class MCPClient {
   private client: AxiosInstance;
@@ -40,6 +41,29 @@ export class MCPClient {
     const startTime = Date.now();
     let responseStatus: 'success' | 'error' | 'timeout' = 'success';
     let response: any;
+
+    // RBAC check — paper §4.1/§4.5: deny-by-default tool-level authorisation.
+    if (session?.apiKeyName) {
+      const policy = toolPolicyEngine.checkAccess(session.apiKeyName, tool);
+      if (!policy.permitted) {
+        const rbacError = new Error(
+          `RBAC denied: ${policy.reason ?? `tool '${tool}' not permitted for role '${policy.role}'`}`
+        );
+        if (session) {
+          provenanceTracker.record({
+            session,
+            toolName: tool,
+            mcpServer: this.baseURL,
+            toolParameters: params ?? {},
+            toolResponse: { denied: true, role: policy.role, reason: policy.reason },
+            responseStatus: 'error',
+            durationMs: Date.now() - startTime,
+            agentReasoning,
+          });
+        }
+        throw rbacError;
+      }
+    }
 
     try {
       const axiosResponse = await this.client.post('/mcp/tools/call', {
