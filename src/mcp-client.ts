@@ -11,6 +11,7 @@ import axios, { AxiosInstance } from 'axios';
 import { logger } from './logger';
 import { provenanceTracker } from './provenance/ProvenanceTracker';
 import { SessionContext } from './provenance/types';
+import { scanMcpResponse } from './mcp-response-filter';
 
 export class MCPClient {
   private client: AxiosInstance;
@@ -64,6 +65,28 @@ export class MCPClient {
       }
 
       throw error;
+    }
+
+    // Scan the response for injected instructions before forwarding to the LLM.
+    // Paper §3.2/§4.3 — indirect prompt injection via MCP tool responses.
+    const scanResult = scanMcpResponse(tool, this.baseURL, response);
+    if (scanResult.blocked) {
+      const injectionError = new Error(
+        `MCP response injection blocked: tool=${tool} server=${this.baseURL} patterns=${scanResult.patterns.join('; ')}`
+      );
+      if (session) {
+        provenanceTracker.record({
+          session,
+          toolName: tool,
+          mcpServer: this.baseURL,
+          toolParameters: params ?? {},
+          toolResponse: { blocked: true, patterns: scanResult.patterns },
+          responseStatus: 'error',
+          durationMs: Date.now() - startTime,
+          agentReasoning,
+        });
+      }
+      throw injectionError;
     }
 
     if (session) {
