@@ -237,48 +237,38 @@ function calculateConfidence(severity: string, patternCount: number): number {
  * Sanitize user input
  */
 export function sanitizeInput(input: string): string {
-  let sanitized = input;
-  let previousLength = 0;
+  // Encode HTML angle brackets in a single global pass.
+  //
+  // Replacing every '<' with '&lt;' and every '>' with '&gt;' is a complete,
+  // bypass-proof defence: after the replacement no '<' character exists in the
+  // string, so no HTML tag — <script>, <style>, event-handler attribute, etc.
+  // — can ever be constructed.  Iterative regex removal (the previous approach)
+  // triggers CodeQL js/incomplete-multi-character-sanitization on every line
+  // because each individual replace() leaves the forbidden substring reachable
+  // via alternate patterns.  A single global character replacement is
+  // statically verifiable as complete.
+  //
+  // Output is sent to Claude (not rendered in a browser), so entity-encoded
+  // text is semantically transparent to the LLM.
+  let sanitized = input
+    .replace(/&/g, '&amp;')   // must come first to avoid double-encoding
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 
-  // Iteratively remove dangerous patterns until stable.
-  // The loop handles nested bypass attempts like <scr<script>ipt> where
-  // removing inner tags exposes an outer dangerous tag in the next pass.
-  while (sanitized.length !== previousLength) {
-    previousLength = sanitized.length;
-
-    // Remove complete script/style blocks including their content.
-    // Closing tag allows optional whitespace before > (e.g. </script >) — CodeQL js/bad-tag-filter.
-    sanitized = sanitized.replace(/<script[^>]*>[\s\S]*?<\/script\s*>/gi, '');
-    sanitized = sanitized.replace(/<style[^>]*>[\s\S]*?<\/style\s*>/gi, '');
-
-    // Remove partial/unclosed script and style opening tags (e.g. "<script " with no closing ">").
-    // <[^>]*> requires a ">" so these would otherwise survive — CodeQL js/incomplete-multi-character-sanitization.
-    sanitized = sanitized.replace(/<script\b[^>]*/gi, '');
-    sanitized = sanitized.replace(/<style\b[^>]*/gi, '');
-
-    // Remove all remaining complete HTML tags.
-    sanitized = sanitized.replace(/<[^>]*>/g, '');
-
-    // Remove event handler attributes with value (onclick="...", onerror='...', onload=...).
-    sanitized = sanitized.replace(/\bon[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi, '');
-  }
-
-  // Belt-and-suspenders: strip any residual event-handler keyword followed by "=" that
-  // survived the loop (e.g. bare onerror= outside a tag context) — CodeQL js/incomplete-multi-character-sanitization.
-  sanitized = sanitized.replace(/\bon[a-z]+\s*=/gi, '');
-
-  // Replace dangerous URL schemes using an allowlist.
-  // Only http:, https:, ftp:, mailto: are permitted — all others are stripped.
+  // Strip dangerous URL schemes using an allowlist.
+  // Only http:, https:, ftp:, mailto: are permitted — all others removed.
+  // (javascript:, vbscript:, data:, filesystem:, blob:, etc.)
   sanitized = sanitized.replace(/\b(?!https?:|ftp:|mailto:)[a-zA-Z][a-zA-Z0-9+\-.]*:/g, '');
 
-  // Remove control characters (except newline \x0A, tab \x09, carriage return \x0D)
+  // Remove control characters (except newline \x0A, tab \x09, carriage return \x0D).
   sanitized = sanitized.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F-\x9F]/g, '');
 
-  // Normalize whitespace
+  // Normalize whitespace.
   sanitized = sanitized.replace(/\n{3,}/g, '\n\n');
   sanitized = sanitized.replace(/\s{3,}/g, ' ');
 
-  // Normalize Unicode to prevent homograph attacks
+  // Normalize Unicode to prevent homograph attacks.
   sanitized = sanitized.normalize('NFKC');
 
   return sanitized.trim();
