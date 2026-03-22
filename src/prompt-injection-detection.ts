@@ -246,17 +246,26 @@ export function sanitizeInput(input: string): string {
   while (sanitized.length !== previousLength) {
     previousLength = sanitized.length;
 
-    // Remove complete script/style blocks including their content
-    sanitized = sanitized.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
-    sanitized = sanitized.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+    // Remove complete script/style blocks including their content.
+    // Closing tag allows optional whitespace before > (e.g. </script >) — CodeQL js/bad-tag-filter.
+    sanitized = sanitized.replace(/<script[^>]*>[\s\S]*?<\/script\s*>/gi, '');
+    sanitized = sanitized.replace(/<style[^>]*>[\s\S]*?<\/style\s*>/gi, '');
 
-    // Remove all remaining HTML tags
+    // Remove partial/unclosed script and style opening tags (e.g. "<script " with no closing ">").
+    // <[^>]*> requires a ">" so these would otherwise survive — CodeQL js/incomplete-multi-character-sanitization.
+    sanitized = sanitized.replace(/<script\b[^>]*/gi, '');
+    sanitized = sanitized.replace(/<style\b[^>]*/gi, '');
+
+    // Remove all remaining complete HTML tags.
     sanitized = sanitized.replace(/<[^>]*>/g, '');
 
-    // Remove event handler attributes (requires '=' to avoid matching innocent
-    // words like "online", "only", "once")
+    // Remove event handler attributes with value (onclick="...", onerror='...', onload=...).
     sanitized = sanitized.replace(/\bon[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi, '');
   }
+
+  // Belt-and-suspenders: strip any residual event-handler keyword followed by "=" that
+  // survived the loop (e.g. bare onerror= outside a tag context) — CodeQL js/incomplete-multi-character-sanitization.
+  sanitized = sanitized.replace(/\bon[a-z]+\s*=/gi, '');
 
   // Replace dangerous URL schemes using an allowlist.
   // Only http:, https:, ftp:, mailto: are permitted — all others are stripped.
