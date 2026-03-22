@@ -188,7 +188,7 @@ export class ToolPolicyEngine {
         toolName,
         reason: `Unknown role '${role}' — deny by default`,
       };
-      logger.warn({ apiKeyName, role, toolName, permitted: false, reason: decision.reason }, 'RBAC deny');
+      logger.warn({ role, toolName, permitted: false, reason: decision.reason }, 'RBAC deny');
       return decision;
     }
 
@@ -198,7 +198,7 @@ export class ToolPolicyEngine {
       logger.info({ role, toolName, permitted: true }, 'RBAC permit');
     } else {
       logger.warn(
-        { apiKeyName, role, toolName, permitted: false, reason: 'tool not in role allowlist' },
+        { role, toolName, permitted: false, reason: 'tool not in role allowlist' },
         'RBAC deny'
       );
     }

@@ -31,7 +31,6 @@ import { redactForLogs } from '../pii-masking';
 import {
   ProvenanceRecord,
   RecordToolCallParams,
-  SessionContext,
   SessionSummary,
 } from './types';
 

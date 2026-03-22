@@ -180,10 +180,8 @@ describe('ToolPolicyEngine.registerRole()', () => {
     const engine = makeEngine();
     engine.registerRole('billing', ['get_quote', 'list_orders', 'generate_invoice']);
 
-    const decision = engine.checkAccess('Billing Service Key', 'get_quote');
     // 'Billing Service Key' resolves to 'customer' (no admin/analyst/agent keyword)
-    // so we test with an apiKeyName that resolves to 'billing' — we can't do that
-    // without a custom resolveRole override. Instead verify via getAllowedTools.
+    // so we verify via getAllowedTools rather than checkAccess with a billing key.
     const tools = engine.getAllowedTools('billing');
     expect(tools).toBeDefined();
     expect(tools!.has('get_quote')).toBe(true);
