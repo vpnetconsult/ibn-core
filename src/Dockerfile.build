@@ -3,6 +3,9 @@
 # Stage 1: Build
 FROM node:22.22.1-alpine AS builder
 
+# Upgrade Alpine packages to patch base-image CVEs (zlib, openssl, busybox, tar)
+RUN apk upgrade --no-cache
+
 WORKDIR /app
 
 COPY package*.json ./
@@ -21,7 +24,8 @@ FROM node:22.22.1-alpine
 
 WORKDIR /app
 
-RUN apk update && apk upgrade --no-cache zlib libssl3 && \
+# Upgrade all Alpine packages to patch base-image CVEs (zlib, openssl, busybox, tar)
+RUN apk upgrade --no-cache && \
     npm install -g npm@latest && \
     addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
