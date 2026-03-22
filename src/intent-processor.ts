@@ -1,7 +1,18 @@
+/**
+ * Copyright 2026 Vpnet Cloud Solutions Sdn. Bhd.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE in the project root for license information.
+ *
+ * Implements RFC 9315 Intent-Based Networking
+ * https://www.rfc-editor.org/rfc/rfc9315
+ */
+
+import { v4 as uuidv4 } from 'uuid';
 import { ClaudeClient } from './claude-client';
 import { MCPClient } from './mcp-client';
 import { logger } from './logger';
 import { maskCustomerProfile, validateNoRawPII, redactForLogs } from './pii-masking';
+import { SessionContext } from './provenance/types';
 
 export class IntentProcessor {
   constructor(
@@ -13,15 +24,26 @@ export class IntentProcessor {
     }
   ) {}
 
-  async process(customerId: string, intent: string, _context?: any): Promise<any> {
+  async process(customerId: string, intent: string, context?: { sessionId?: string; userId?: string; apiKeyName?: string; intentId?: string; correlationId?: string }): Promise<any> {
     const startTime = Date.now();
+
+    // Build a provenance session context for this request.
+    const session: SessionContext = {
+      sessionId: context?.sessionId ?? uuidv4(),
+      userId: context?.userId ?? customerId,
+      apiKeyName: context?.apiKeyName ?? 'unknown',
+      intentId: context?.intentId,
+      correlationId: context?.correlationId,
+    };
 
     try {
       // Step 1: Get customer profile
       logger.info({ customerId }, 'Fetching customer profile');
       const customerProfile = await this.mcpClients.customerData.call(
         'get_customer_profile',
-        { customer_id: customerId }
+        { customer_id: customerId },
+        session,
+        'Fetching customer profile to personalise intent fulfilment'
       );
 
       // Step 1.5: Mask PII before sending to external AI service
@@ -51,14 +73,18 @@ export class IntentProcessor {
         {
           intent: intentAnalysis.tags,
           customer_segment: customerProfile.segment,
-        }
+        },
+        session,
+        'Searching BSS product catalog to match customer intent tags'
       );
 
       // Step 4: Find related products (bundles)
       logger.info({ productTypes: intentAnalysis.product_types }, 'Finding bundles');
       const bundles = await this.mcpClients.knowledgeGraph.call(
         'find_related_products',
-        { base_products: intentAnalysis.product_types }
+        { base_products: intentAnalysis.product_types },
+        session,
+        'Querying knowledge graph for product bundles to enrich offer'
       );
 
       // Step 5: Generate personalized offer with Claude (using masked profile)
@@ -78,7 +104,9 @@ export class IntentProcessor {
           customer_id: customerId,
           products: offer.selected_products,
           discounts: offer.recommended_discounts,
-        }
+        },
+        session,
+        'Generating BSS quote for the recommended product offer'
       );
 
       const processingTime = Date.now() - startTime;

@@ -147,10 +147,12 @@ describe('IntentProcessor', () => {
     expect(result.quote).toBeDefined();
     expect(result.quote.quote_id).toBe('QT-2024-001');
 
-    // Verify MCP call sequence
+    // Verify MCP call sequence (session + agentReasoning are optional trailing args)
     expect(mockMcpClients.customerData.call).toHaveBeenCalledWith(
       'get_customer_profile',
-      { customer_id: 'CUST-123' }
+      { customer_id: 'CUST-123' },
+      expect.objectContaining({ userId: 'CUST-123' }),
+      expect.any(String)
     );
     expect(mockMcpClients.bss.call).toHaveBeenCalledTimes(2);
     expect(mockMcpClients.knowledgeGraph.call).toHaveBeenCalledTimes(1);
