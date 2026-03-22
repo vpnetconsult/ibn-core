@@ -13,6 +13,7 @@ import { provenanceTracker } from './provenance/ProvenanceTracker';
 import { SessionContext } from './provenance/types';
 import { scanMcpResponse } from './mcp-response-filter';
 import { toolPolicyEngine } from './policy/ToolPolicyEngine';
+import { dlpPolicy } from './policy/DLPPolicy';
 
 export class MCPClient {
   private client: AxiosInstance;
@@ -113,20 +114,30 @@ export class MCPClient {
       throw injectionError;
     }
 
+    // Apply inline DLP — redact fields the calling role is not permitted to see
+    // before the response reaches the LLM context.
+    // Paper §4.4 — data loss prevention at the MCP layer.
+    let sanitisedResponse = response;
+    if (session?.apiKeyName && response && typeof response === 'object') {
+      const role = toolPolicyEngine.resolveRole(session.apiKeyName);
+      const dlpResult = dlpPolicy.apply(tool, role, response as Record<string, unknown>);
+      sanitisedResponse = dlpResult.sanitised as any;
+    }
+
     if (session) {
       provenanceTracker.record({
         session,
         toolName: tool,
         mcpServer: this.baseURL,
         toolParameters: params ?? {},
-        toolResponse: response ?? {},
+        toolResponse: sanitisedResponse ?? {},
         responseStatus,
         durationMs: Date.now() - startTime,
         agentReasoning,
       });
     }
 
-    return response;
+    return sanitisedResponse;
   }
 
   async ping(): Promise<boolean> {
