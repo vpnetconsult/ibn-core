@@ -24,7 +24,7 @@ export class IntentProcessor {
     }
   ) {}
 
-  async process(customerId: string, intent: string, context?: { sessionId?: string; userId?: string; apiKeyName?: string; intentId?: string; correlationId?: string }): Promise<any> {
+  async process(customerId: string, intent: string, context?: { sessionId?: string; userId?: string; apiKeyName?: string; intentId?: string; correlationId?: string; [key: string]: unknown }): Promise<any> {
     const startTime = Date.now();
 
     // Build a provenance session context for this request.
