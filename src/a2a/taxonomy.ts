@@ -266,7 +266,7 @@ export class AgentClassifier {
     isInteractive: boolean;
     isAI: boolean;
   }): AgentTaxonomyLevel {
-    const { isUnrestricted, isLLM, isGenAI, isML, isInteractive, isAI } = flags;
+    const { isUnrestricted, isLLM, isGenAI, isInteractive, isAI } = flags;
 
     if (!isAI) return AgentTaxonomyLevel.NON_AI;
 
