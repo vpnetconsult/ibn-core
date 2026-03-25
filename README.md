@@ -79,8 +79,7 @@ The operator-specific CAMARA adapters (real radio/transport orchestration) live 
 <tr>
 <td width="33%" valign="top">
 
-**Business Layer**
-`RFC 9315 §5.1.1`
+**Business Layer**<br>`RFC 9315 §5.1.1`
 
 - NL intent ingestion
 - Claude Sonnet translation
@@ -90,8 +89,7 @@ The operator-specific CAMARA adapters (real radio/transport orchestration) live 
 </td>
 <td width="33%" valign="top">
 
-**Service Layer**
-`RFC 9315 §5.1.3`
+**Service Layer**<br>`RFC 9315 §5.1.3`
 
 - MCP adapter orchestration
 - Offer recommendation
@@ -101,8 +99,7 @@ The operator-specific CAMARA adapters (real radio/transport orchestration) live 
 </td>
 <td width="33%" valign="top">
 
-**Resource Layer**
-`RFC 9315 §5.2.x`
+**Resource Layer**<br>`RFC 9315 §5.2.x`
 
 - BSS quote generation
 - Redis SSoT persistence
