@@ -5,6 +5,111 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-03-24
+
+### Added
+
+#### RFC 9315 §5 Intent Handling Cycle — Phase 1 (PR #7)
+
+Motivated by Ericsson White Paper BCSS-25:024439, §"Agents for intent management functions".
+
+- **`src/imf/IntentHandlingCycle.ts`** — `IntentHandlingPhase` enum mapping all six RFC 9315 §5
+  phases (INGESTING §5.1.1, TRANSLATING §5.1.2, ORCHESTRATING §5.1.3, MONITORING §5.2.1,
+  ASSESSING §5.2.2, ACTING §5.2.3) and `IntentHandlingStep` trace record
+- **`src/imf/IntentHandlingContext.ts`** — immutable, per-phase-enriched context carried through
+  the cycle; holds PII-masked customer profile, intent analysis, selected offer, and quote
+- **`src/imf/IntentHandlingCycleRunner.ts`** — six-phase cycle executor with §5.2.3
+  corrective-action retry loop (max 1 retry); PII masking and SessionContext provenance
+  internalised here
+- **`src/intent-processor.ts`** refactored — `IntentProcessor` now delegates to
+  `IntentHandlingCycleRunner`; public `process()` signature and return shape unchanged;
+  additive `handlingTrace` field exposes RFC 9315 §5 phase trajectory for observability
+- **`docs/architecture/AI_AGENT_ALIGNMENT_PLAN.md`** — Ericsson paper Phases 1–5 alignment
+  roadmap
+
+#### Agent Taxonomy Classification — Phase 2 (PR #18)
+
+- **`src/a2a/taxonomy.ts`** — `AgentTaxonomyLevel` enum: 8 positions covering the full
+  Ericsson paper BCSS-25:024439 Figure 1 tree
+  (`NON_AI → RESTRICTED_NON_GENAI → RESTRICTED_GENAI_NON_LLM → RESTRICTED_LLM →
+  RESTRICTED_LLM_COPILOT → UNRESTRICTED_NON_GENAI → UNRESTRICTED_GENAI_NON_LLM →
+  UNRESTRICTED_LLM`)
+- **`AgentClassifier`** — infers taxonomy from declared `AgentCapability[]`; tracks
+  `SELF_MODIFY` (sandbox required) and `GOAL_MODIFY` (goal-change audit required)
+  independently per paper boundary rule; `fromLevel()` returns max-permissions posture
+- **`TaxonomyPolicy`** — runtime governance constraints: `requiresChainOfThought` (all
+  unrestricted agents), `requiresHumanConfirmation` (copilot + goal-modify),
+  `requiresSandbox` (self-modify), `requiresGoalChangeAudit` (goal-modify)
+- 32 tests; full suite 140 passing
+
+#### IMF Knowledge Store — Phase 3 (PR #19)
+
+Implements the Knowledge component of Ericsson paper Figure 2 closed control loop
+(`Intent → Requirement → Knowledge → Decision → Action → … → Report`).
+
+- **`src/imf/KnowledgeStore.ts`** — per-domain knowledge store:
+  - **Facts** — typed key-value knowledge with TTL + confidence; lazy expiry on access
+  - **Measurements** — actuation outcome feedback that auto-transitions `DomainState`
+    (`fulfilled→idle`, `degraded→degraded`, `not-fulfilled→recovering`; `failed` is sticky)
+  - **Decisions** — agent choices logged per RFC 9315 phase; feeds Phase 5 trajectory
+    evaluator
+  - **`snapshot()`** — diagnostic summary for observability and SIEM pipelines
+- **`KnowledgeRegistry`** — process-level singleton registry; `getOrCreate(domainId)`
+  is idempotent
+- 39 tests; full suite 147 passing
+
+#### MCP Semantic Tool Registry — Phase 4 (PR #20)
+
+- **`src/mcp/SemanticToolRegistry.ts`** — `SemanticToolRegistry` implementing MCP
+  semantic tool abstraction per Ericsson paper §"MCP semantic tool abstraction": tool
+  registration with semantic metadata, semantic lookup, and capability matching
+- Complements the existing `McpAdapter` open-core seam without modifying the interface
+
+#### Intent Hierarchy, Shared State Plane & Conflict Arbitration (PR #21)
+
+Implements the competing-thermostats solution: multiple autonomous closed-loop domain
+agents targeting the same network resource (e.g. RAN PRB slice) without coordination
+produce oscillation. The three mechanisms below prevent it.
+
+- **`src/imf/IntentHierarchy.ts`** — four-layer priority registry:
+  L1 BUSINESS=1 → L2 SERVICE=2 → L3 RESOURCE=3 → L4 OPTIMISATION=4.
+  Lower value = higher priority; business SLA always overrides energy optimisation.
+  Module-level singleton `intentHierarchy`. 30 tests.
+- **`src/imf/SharedStatePlane.ts`** — authoritative actuation state store with configurable
+  hysteresis window (default 120 s) preventing rapid re-actuation of the same resource.
+  `IntentActuationStatus`: `idle | pending-proposal | actuating | fulfilled | degraded | failed`.
+  Module-level singleton `sharedStatePlane`. 35 tests.
+- **`src/imf/ConflictArbiter.ts`** — propose-arbitrate-execute pattern; four sequential
+  checks before any actuation command is emitted:
+  1. Intent hierarchy — higher-priority active intent blocks lower → 120 s cooldown
+  2. Pending proposals — opposing in-flight proposal blocks → `superseded`
+  3. Hysteresis window — resource in cooling period → 30 s cooldown
+  4. SLA validity — intent already `fulfilled` → 120 s cooldown
+
+  `ArbiterVerdict`: `accepted | rejected | superseded`.
+  Module-level singleton `conflictArbiter`. 32 tests including end-to-end thermostat
+  scenario (capacity agent `increase` vs energy agent `decrease` on same resource →
+  energy proposal `superseded`, one actuation emitted).
+
+### Changed
+
+- **`src/intent-processor.ts`** — inline six-step MCP orchestration removed; replaced
+  by delegation to `IntentHandlingCycleRunner`. PII masking and provenance session
+  context now managed inside the cycle runner where they belong architecturally
+
+### Standards Alignment
+
+| Component | RFC 9315 | Ericsson BCSS-25:024439 |
+|-----------|----------|-------------------------|
+| `IntentHandlingCycleRunner` | §5.1.1–§5.2.3 all phases | §"Agents for IMF", Figure 2 |
+| `KnowledgeStore` | §5.1.2, §5.2.1, §5.2.2, §5.2.3 | Figure 2 Knowledge node |
+| `AgentTaxonomyLevel` | — | Figure 1 taxonomy tree |
+| `ConflictArbiter` + `SharedStatePlane` | §5.1.3, §5.2.2 | IG1253 · O-RAN WG2 A1 · 3GPP TS 28.312 |
+| `IntentHierarchy` | §4 Principle 1 (priority) | §"Robustness and trustworthiness" |
+| `SemanticToolRegistry` | — | §"MCP semantic tool abstraction" |
+
+---
+
 ## [1.4.0] - 2026-01-10
 
 ### Added
