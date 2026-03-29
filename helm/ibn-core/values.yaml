@@ -1,0 +1,140 @@
+# Copyright 2026 Vpnet Cloud Solutions Sdn. Bhd.
+# Licensed under the Apache License, Version 2.0
+# See LICENSE in the project root for license information.
+#
+# Implements RFC 9315 Intent-Based Networking
+# https://www.rfc-editor.org/rfc/rfc9315
+
+# -- Target namespace.
+# ODA Canvas standard: "components"
+# Standalone deployment: "intent-platform"
+namespace: components
+
+# -- ODA Component identity
+component:
+  name: ibn-core
+  version: "2.2.0"
+  domain: B2C Customer Management
+
+# -- Application image
+image:
+  repository: ghcr.io/vpnetconsult/business-intent-agent
+  tag: "v2.2.0"
+  pullPolicy: IfNotPresent
+
+# -- Replica configuration
+replicaCount: 2
+
+# -- Resource requests and limits
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+
+# -- HPA configuration
+autoscaling:
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# -- Application configuration (maps 1:1 to existing ConfigMap values)
+config:
+  logLevel: info
+  port: "8080"
+  nodeEnv: production
+  claudeModel: "claude-sonnet-4-20250514"
+  claudeMaxTokens: "4000"
+  claudeTemperature: "0.7"
+  mcpTimeoutMs: "10000"
+  mcpRetryAttempts: "3"
+  defaultCurrency: EUR
+  minOrderValue: "10.00"
+  maxBundleProducts: "5"
+
+# -- Secrets (ALL values MUST be overridden at install time; never committed)
+# Required: anthropicApiKey, adminSecret, piiHashSalt
+secrets:
+  anthropicApiKey: ""
+  defaultApiKey: "dev-api-key-12345"
+  adminSecret: ""
+  piiHashSalt: ""
+  mcpBssUrl: "http://bss-oss-mcp-service:8080"
+  mcpKnowledgeGraphUrl: "http://knowledge-graph-mcp-service:8080"
+  mcpCustomerDataUrl: "http://customer-data-mcp-service:8080"
+  mcpApiKeyBusinessIntent: ""
+
+# -- Redis (RFC 9315 §4 P1 SSoT)
+redis:
+  enabled: true
+  image: redis:7.4.7-alpine
+  intentTtlSeconds: "7776000"
+  resources:
+    requests:
+      memory: 64Mi
+      cpu: 50m
+    limits:
+      memory: 256Mi
+      cpu: 200m
+
+# -- Istio service mesh
+# Set istio.enabled=false when deploying to:
+#   (a) a Canvas using api-operator-istio (Canvas manages routing)
+#   (b) a cluster without Istio
+istio:
+  enabled: true
+  mtls:
+    mode: STRICT
+  tracing:
+    samplingPercentage: 100.0
+  gateway:
+    # "*" matches all hosts — suitable for local/dev Canvas.
+    host: "*"
+  anthropicApi:
+    # DISABLE because the Anthropic SDK originates TLS; Istio must not re-wrap.
+    tlsMode: DISABLE
+
+# -- RBAC
+serviceAccount:
+  name: business-intent-agent
+
+# -- Pod security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  fsGroup: 1001
+
+# -- Container security context
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1001
+  capabilities:
+    drop:
+      - ALL
+
+# -- ODA Canvas API exposure (feeds into component CRD spec)
+# Do not change unless the TMF921 path or port changes.
+odaApi:
+  intentManagement:
+    path: /tmf-api/intentManagement/v5
+    port: 8080
+  metrics:
+    path: /metrics
+    port: 8080
+
+# -- ODA Canvas security
+odaSecurity:
+  controllerRole: ibn-core-role
+
+# -- AI-Native Canvas annotations (forward-compatible; feeds component CRD metadata)
+# See: https://github.com/tmforum-oda/oda-canvas/blob/main/AI-Native-Canvas-design.md
+aiNative:
+  # Primary LLM — RFC 9315 §5.1.2 Translation phase
+  dependentModel: claude-sonnet-4-20250514
+  # MCP server path exposed to Canvas AI Gateway
+  mcpPath: /mcp

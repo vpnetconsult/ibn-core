@@ -1,0 +1,134 @@
+{{- if .Values.istio.enabled }}
+# VirtualService — routes intent and TMF921 API traffic to ibn-core service
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ include "ibn-core.fullname" . }}-vs
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "ibn-core.labels" . | nindent 4 }}
+    managed-by: istio
+spec:
+  hosts:
+  - {{ .Values.istio.gateway.host | quote }}
+  gateways:
+  - {{ include "ibn-core.fullname" . }}-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /api/v1/intent
+    - uri:
+        prefix: /tmf-api/intentManagement/v5
+    - uri:
+        prefix: /health
+    - uri:
+        prefix: /ready
+    - uri:
+        prefix: /metrics
+    route:
+    - destination:
+        host: {{ include "ibn-core.serviceFQDN" . }}
+        port:
+          number: 8080
+    timeout: 120s  # Extended for two-round-trip Claude API calls in O2C pipeline
+    retries:
+      attempts: 1
+      perTryTimeout: 60s
+      retryOn: 5xx,reset,connect-failure,refused-stream
+---
+# VirtualService — BSS/OSS MCP service
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: bss-oss-mcp-vs
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "ibn-core.labels" . | nindent 4 }}
+    managed-by: istio
+spec:
+  hosts:
+  - bss-oss-mcp-service.{{ .Values.namespace }}.svc.cluster.local
+  http:
+  - route:
+    - destination:
+        host: bss-oss-mcp-service.{{ .Values.namespace }}.svc.cluster.local
+        port:
+          number: 8080
+    timeout: 10s
+    retries:
+      attempts: 3
+      perTryTimeout: 3s
+      retryOn: 5xx,reset,connect-failure,refused-stream
+---
+# VirtualService — Customer Data MCP service
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: customer-data-mcp-vs
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "ibn-core.labels" . | nindent 4 }}
+    managed-by: istio
+spec:
+  hosts:
+  - customer-data-mcp-service.{{ .Values.namespace }}.svc.cluster.local
+  http:
+  - route:
+    - destination:
+        host: customer-data-mcp-service.{{ .Values.namespace }}.svc.cluster.local
+        port:
+          number: 8080
+    timeout: 10s
+    retries:
+      attempts: 3
+      perTryTimeout: 3s
+      retryOn: 5xx,reset,connect-failure,refused-stream
+---
+# VirtualService — Knowledge Graph MCP service
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: knowledge-graph-mcp-vs
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "ibn-core.labels" . | nindent 4 }}
+    managed-by: istio
+spec:
+  hosts:
+  - knowledge-graph-mcp-service.{{ .Values.namespace }}.svc.cluster.local
+  http:
+  - route:
+    - destination:
+        host: knowledge-graph-mcp-service.{{ .Values.namespace }}.svc.cluster.local
+        port:
+          number: 8080
+    timeout: 10s
+    retries:
+      attempts: 3
+      perTryTimeout: 3s
+      retryOn: 5xx,reset,connect-failure,refused-stream
+---
+# VirtualService — Anthropic API egress
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: anthropic-api-vs
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "ibn-core.labels" . | nindent 4 }}
+    managed-by: istio
+spec:
+  hosts:
+  - api.anthropic.com
+  http:
+  - timeout: 120s
+    retries:
+      attempts: 2
+      perTryTimeout: 60s
+      retryOn: 5xx,reset,connect-failure
+    route:
+    - destination:
+        host: api.anthropic.com
+        port:
+          number: 443
+{{- end }}

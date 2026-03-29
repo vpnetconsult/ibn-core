@@ -1,0 +1,145 @@
+# Copyright 2026 Vpnet Cloud Solutions Sdn. Bhd.
+# Licensed under the Apache License, Version 2.0
+# See LICENSE in the project root for license information.
+#
+# Implements RFC 9315 Intent-Based Networking
+# https://www.rfc-editor.org/rfc/rfc9315
+#
+# ODA Component CRD — registers ibn-core as a TM Forum ODA Component.
+#
+# Canvas use cases declared:
+#   UC001 — Identity Bootstrap   (security.controllerRole)
+#   UC002 — Expose API           (coreFunction.exposedAPIs → TMF921)
+#   UC004/UC005 — Observability  (management.exposedAPIs → Prometheus /metrics)
+#
+# AI-Native Canvas forward-compatibility (annotations):
+#   dependentModels  — RFC 9315 §5.1.2 Claude Sonnet translation
+#   mcpInterfaces    — RFC 9315 §5.1.3 MCP orchestration tools
+#   agentCard        — A2A agent capability contract
+#   evaluationDataset— O2C canonical evaluation entry
+#
+# References:
+#   ODA Canvas CTK:       https://github.com/tmforum-oda/oda-canvas-ctk
+#   AI-Native Canvas:     https://github.com/tmforum-oda/oda-canvas/blob/main/AI-Native-Canvas-design.md
+#   TMF921 v5.0.0:        https://github.com/tmforum-apis/TMF921_IntentManagement
+#   RFC 9315:             https://www.rfc-editor.org/rfc/rfc9315
+#
+# PREREQUISITE: Canvas operators must install oda.tmforum.org/v1alpha3 CRD
+#   via the canvas-oda umbrella Helm chart before this chart deploys.
+apiVersion: oda.tmforum.org/v1alpha3
+kind: component
+metadata:
+  name: {{ include "ibn-core.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "ibn-core.labels" . | nindent 4 }}
+  annotations:
+    # ── Standard ODA annotations ────────────────────────────────────────────
+    oda.tmforum.org/componentVersion: {{ .Values.component.version | quote }}
+    oda.tmforum.org/domain: {{ .Values.component.domain | quote }}
+
+    # ── AI-Native Canvas forward-compatibility annotations ──────────────────
+    # These fields are not yet formalised in oda.tmforum.org/v1alpha3.
+    # Declared here as annotations to signal AI-native capability to Canvas
+    # tooling (e.g. TMF639 Resource Inventory MCP, AI Gateway).
+    # Migrate to first-class spec fields when TM Forum publishes the schema.
+    # Reference: https://github.com/tmforum-oda/oda-canvas/blob/main/AI-Native-Canvas-design.md
+
+    # dependentModels — AI-Native Canvas §dependentModels
+    # RFC 9315 §5.1.2: Translation phase uses Claude Sonnet for NL→requirements
+    oda.tmforum.org/dependentModels: |
+      - provider: anthropic
+        model: {{ .Values.aiNative.dependentModel | quote }}
+        priority: 1
+        useCase: "RFC 9315 NL intent translation and orchestration (§5.1.2)"
+        guardrails:
+          dlp: enabled
+          toolPolicy: rbac
+          promptInjection: enabled
+
+    # mcpInterfaces — AI-Native Canvas §MCP
+    # RFC 9315 §5.1.3: McpAdapter exposes orchestration tools via MCP
+    oda.tmforum.org/mcpInterfaces: |
+      - name: intentOrchestration
+        protocol: mcp
+        path: {{ .Values.aiNative.mcpPath | quote }}
+        port: {{ .Values.odaApi.intentManagement.port }}
+        tools:
+          - orchestrate
+          - getIntentStatus
+          - getCapabilities
+          - cancelIntent
+
+    # agentCard — AI-Native Canvas §A2A
+    # Agent-to-Agent capability contract; exposes ibn-core to peer agents
+    oda.tmforum.org/agentCard: |
+      name: ibn-core Intent Agent
+      version: {{ .Values.component.version | quote }}
+      description: >
+        RFC 9315 Intent-Based Networking agent. Accepts natural-language
+        business intents and orchestrates TMF921 fulfilment via CAMARA APIs.
+      capabilities:
+        - intentIngestion
+        - intentTranslation
+        - intentOrchestration
+        - complianceMonitoring
+      evaluationDataset: docs/compliance/O2C_EVALUATION.md
+      a2aEndpoint: /api/v1/intent/probe
+
+    # evaluationDataset — AI-Native Canvas §EvaluationDatasets
+    # O2C canonical test is the primary evaluation entry for non-deterministic AI
+    oda.tmforum.org/evaluationDataset: "docs/compliance/O2C_EVALUATION.md"
+
+spec:
+  type: {{ .Values.component.name }}
+  version: {{ .Values.component.version | quote }}
+  description: >
+    RFC 9315 Intent-Based Networking production framework.
+    Implements TMF921 Intent Management API v5.0.0 (83/83 CTK conformance).
+    AI-Native ODA Component — MCP tool exposure, Claude Sonnet, A2A agent card.
+    Apache 2.0 open core — Vpnet Cloud Solutions Sdn. Bhd.
+  maintainers:
+    - name: Vpnet Cloud Solutions Sdn. Bhd.
+      url: https://github.com/vpnetconsult/ibn-core
+
+  # ---------------------------------------------------------------------------
+  # coreFunction — UC002: Expose API
+  # The oda-controller-ingress operator reads this block and creates Ingress /
+  # HTTPRoute to expose TMF921 externally.
+  # ---------------------------------------------------------------------------
+  coreFunction:
+    exposedAPIs:
+      - name: intentManagement
+        specification: TMF921
+        apitype: openapi
+        path: {{ .Values.odaApi.intentManagement.path }}
+        port: {{ .Values.odaApi.intentManagement.port }}
+        # required: true — component is not healthy until this API is reachable
+        required: true
+        implementation: {{ include "ibn-core.fullname" . }}-service
+
+  # ---------------------------------------------------------------------------
+  # management — UC004/UC005: Observability
+  # Prometheus metrics endpoint for Canvas observability pipeline.
+  # ---------------------------------------------------------------------------
+  management:
+    exposedAPIs:
+      - name: metrics
+        apitype: prometheus
+        path: {{ .Values.odaApi.metrics.path }}
+        port: {{ .Values.odaApi.metrics.port }}
+        implementation: {{ include "ibn-core.fullname" . }}-service
+
+  # ---------------------------------------------------------------------------
+  # security — UC001: Identity Bootstrap
+  # The identityconfig-operator-keycloak creates this role in Keycloak and
+  # injects the client ID as a Secret into the component namespace.
+  # ---------------------------------------------------------------------------
+  security:
+    controllerRole: {{ .Values.odaSecurity.controllerRole }}
+
+  # ---------------------------------------------------------------------------
+  # dependentAPIs — external APIs this component consumes at runtime.
+  # MCP services are consumed internally; no Canvas-managed API dependency needed.
+  # ---------------------------------------------------------------------------
+  dependentAPIs: []

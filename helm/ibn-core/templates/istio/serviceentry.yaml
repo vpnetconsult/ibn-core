@@ -1,0 +1,20 @@
+{{- if .Values.istio.enabled }}
+# ServiceEntry — registers Anthropic API as a known external service
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: anthropic-api
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "ibn-core.labels" . | nindent 4 }}
+    managed-by: istio
+spec:
+  hosts:
+  - api.anthropic.com
+  ports:
+  - number: 443
+    name: tls
+    protocol: TLS
+  location: MESH_EXTERNAL
+  resolution: DNS
+{{- end }}

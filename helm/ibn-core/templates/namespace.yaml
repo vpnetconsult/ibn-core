@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.namespace }}
+  labels:
+    name: {{ .Values.namespace }}
+    environment: {{ .Values.config.nodeEnv }}
+    {{- include "ibn-core.labels" . | nindent 4 }}
+    {{- if .Values.istio.enabled }}
+    istio-injection: enabled
+    {{- end }}

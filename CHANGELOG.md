@@ -5,6 +5,57 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-03-29
+
+### Added
+
+#### TM Forum ODA Canvas CTK Compliance + AI-Native Canvas Alignment
+
+Implements: RFC 9315 §5 (Orchestration, Monitoring, Autonomy via Canvas operators)
+TMF921: component CRD coreFunction exposes intentManagement API segment to Canvas oda-controller-ingress
+Paper: supports ODA ecosystem integration claim — UC001/UC002/UC004/UC005; AI-Native Canvas alignment
+
+- **`helm/ibn-core/Chart.yaml`** — Helm v2 chart descriptor; `oda.tmforum.org/componentName`,
+  `oda.tmforum.org/aiNative` annotations for Canvas chart scanning
+- **`helm/ibn-core/values.yaml`** — Parameterised values replacing all hard-coded namespace,
+  image, resource, and secret references; `aiNative.*` keys for MCP path + model name
+- **`helm/ibn-core/templates/component.yaml`** — `oda.tmforum.org/v1alpha3` Component CRD
+  declaring UC001 (`security.controllerRole`), UC002 (`coreFunction.exposedAPIs` → TMF921),
+  UC004/UC005 (`management.exposedAPIs` → Prometheus `/metrics`); forward-compatible
+  AI-Native Canvas annotations: `dependentModels`, `mcpInterfaces`, `agentCard`,
+  `evaluationDataset`
+- **`helm/ibn-core/templates/_helpers.tpl`** — Standard Helm label helpers
+- **`helm/ibn-core/templates/*.yaml`** — All `business-intent-agent/k8s/` manifests converted
+  to Helm templates; namespace, image, resource, and secret refs parameterised via values.yaml
+- **`helm/ibn-core/templates/istio/`** — Istio resources gated on `istio.enabled` flag;
+  set `false` when deploying to Canvas with `api-operator-istio` (Canvas owns routing)
+- **`helm/ibn-core/templates/redis-*.yaml`** — Redis SSoT (RFC 9315 §4 P1) included in chart,
+  gated on `redis.enabled`
+- **`docs/compliance/ODA_CANVAS_CTK.md`** — Canvas infrastructure prerequisites, CTK use case
+  coverage matrix, AI-Native Canvas alignment table, install runbook, verification steps
+- **`docs/compliance/O2C_EVALUATION.md`** — AI-Native Canvas evaluation dataset; O2C canonical
+  test case as primary entry; schema for extending the dataset
+- **`README.md`** — ODA Canvas + AI-Native Canvas sections and badges added
+
+### Changed
+
+- **Deployment model** — ibn-core can now be installed via `helm install` into the Canvas
+  `components` namespace instead of raw `kubectl apply` into `intent-platform`
+- **Default namespace** — `components` (Canvas-standard); override to `intent-platform`
+  for non-Canvas deployments via `--set namespace=intent-platform`
+- **Version badges** — updated to v2.2.0
+
+### Standards Alignment
+
+| Component | RFC 9315 | ODA Canvas CTK | AI-Native Canvas |
+|-----------|----------|----------------|-----------------|
+| `component.yaml coreFunction` | §5.1.3 Orchestration | UC002 Expose API | mcpInterfaces |
+| `component.yaml management` | §5.2.1 Monitoring | UC004/UC005 Observability | evaluationDataset |
+| `component.yaml security` | §4 P3 Autonomy (role bootstrap) | UC001 Identity | — |
+| `component.yaml annotations` | — | — | dependentModels, agentCard |
+
+---
+
 ## [2.1.0] - 2026-03-24
 
 ### Added
