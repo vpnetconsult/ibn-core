@@ -1,0 +1,25 @@
+{{- if .Values.istio.enabled }}
+apiVersion: telemetry.istio.io/v1alpha1
+kind: Telemetry
+metadata:
+  name: {{ include "ibn-core.fullname" . }}-telemetry
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "ibn-core.labels" . | nindent 4 }}
+    managed-by: istio
+spec:
+  tracing:
+  - providers:
+    - name: jaeger
+    randomSamplingPercentage: {{ .Values.istio.tracing.samplingPercentage }}
+    customTags:
+      environment:
+        literal:
+          value: {{ .Values.config.nodeEnv | quote }}
+      namespace:
+        literal:
+          value: {{ .Values.namespace | quote }}
+  metrics:
+  - providers:
+    - name: prometheus
+{{- end }}

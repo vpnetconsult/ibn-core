@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "ibn-core.fullname" . }}-config
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "ibn-core.labels" . | nindent 4 }}
+data:
+  LOG_LEVEL: {{ .Values.config.logLevel | quote }}
+  PORT: {{ .Values.config.port | quote }}
+  NODE_ENV: {{ .Values.config.nodeEnv | quote }}
+  CLAUDE_MODEL: {{ .Values.config.claudeModel | quote }}
+  CLAUDE_MAX_TOKENS: {{ .Values.config.claudeMaxTokens | quote }}
+  CLAUDE_TEMPERATURE: {{ .Values.config.claudeTemperature | quote }}
+  MCP_TIMEOUT_MS: {{ .Values.config.mcpTimeoutMs | quote }}
+  MCP_RETRY_ATTEMPTS: {{ .Values.config.mcpRetryAttempts | quote }}
+  DEFAULT_CURRENCY: {{ .Values.config.defaultCurrency | quote }}
+  MIN_ORDER_VALUE: {{ .Values.config.minOrderValue | quote }}
+  MAX_BUNDLE_PRODUCTS: {{ .Values.config.maxBundleProducts | quote }}

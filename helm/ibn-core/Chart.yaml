@@ -1,0 +1,35 @@
+# Copyright 2026 Vpnet Cloud Solutions Sdn. Bhd.
+# Licensed under the Apache License, Version 2.0
+# See LICENSE in the project root for license information.
+#
+# Implements RFC 9315 Intent-Based Networking
+# https://www.rfc-editor.org/rfc/rfc9315
+apiVersion: v2
+name: ibn-core
+description: >
+  RFC 9315 Intent-Based Networking production framework.
+  Implements TMF921 Intent Management API v5.0.0 (83/83 CTK conformance).
+  AI-Native ODA Component — MCP tool exposure, Claude Sonnet, A2A agent card.
+  Apache 2.0 open core — Vpnet Cloud Solutions Sdn. Bhd.
+type: application
+version: 2.2.0
+appVersion: "2.2.0"
+home: https://github.com/vpnetconsult/ibn-core
+sources:
+  - https://github.com/vpnetconsult/ibn-core
+maintainers:
+  - name: Vpnet Cloud Solutions Sdn. Bhd.
+    url: https://github.com/vpnetconsult
+keywords:
+  - tmforum
+  - oda
+  - intent-based-networking
+  - rfc9315
+  - tmf921
+  - ai-native
+annotations:
+  category: B2C Customer Management
+  oda.tmforum.org/componentName: ibn-core
+  oda.tmforum.org/componentVersion: "2.2.0"
+  oda.tmforum.org/featureSet: TMF921
+  oda.tmforum.org/aiNative: "true"

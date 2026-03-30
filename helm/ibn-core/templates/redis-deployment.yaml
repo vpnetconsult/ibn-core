@@ -1,0 +1,70 @@
+{{- if .Values.redis.enabled }}
+# RFC 9315 §4 P1 — SSoT Persistence Layer
+# Single Redis instance. For production: replace with Redis Sentinel or Cluster.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ibn-core.fullname" . }}-redis
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "ibn-core.labels" . | nindent 4 }}
+    component: intent-sot
+    tier: persistence
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "ibn-core.fullname" . }}-redis
+  template:
+    metadata:
+      labels:
+        app: {{ include "ibn-core.fullname" . }}-redis
+        component: intent-sot
+        tier: persistence
+      annotations:
+        prometheus.io/scrape: "false"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        fsGroup: 999
+      containers:
+      - name: redis
+        image: {{ .Values.redis.image | quote }}
+        ports:
+        - containerPort: 6379
+          name: redis
+          protocol: TCP
+        # Enable AOF persistence — survives pod restarts within the same node
+        command: ["redis-server", "--appendonly", "yes"]
+        resources:
+          {{- toYaml .Values.redis.resources | nindent 10 }}
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+        livenessProbe:
+          exec:
+            command: ["redis-cli", "ping"]
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command: ["redis-cli", "ping"]
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          runAsUser: 999
+          capabilities:
+            drop:
+            - ALL
+      volumes:
+      - name: redis-data
+        emptyDir: {}
+{{- end }}

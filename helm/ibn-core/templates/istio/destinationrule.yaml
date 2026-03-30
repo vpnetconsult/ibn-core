@@ -1,0 +1,140 @@
+{{- if .Values.istio.enabled }}
+# DestinationRule — ibn-core main service
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: {{ include "ibn-core.fullname" . }}-dr
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "ibn-core.labels" . | nindent 4 }}
+    managed-by: istio
+spec:
+  host: {{ include "ibn-core.serviceFQDN" . }}
+  trafficPolicy:
+    loadBalancer:
+      simple: LEAST_REQUEST  # Better for AI workloads with variable latency
+    connectionPool:
+      tcp:
+        maxConnections: 100
+        connectTimeout: 3s
+      http:
+        http1MaxPendingRequests: 50
+        http2MaxRequests: 100
+        maxRequestsPerConnection: 10
+    outlierDetection:
+      consecutiveErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 50
+  subsets:
+  - name: v1
+    labels:
+      version: {{ .Values.component.version | quote }}
+---
+# DestinationRule — BSS/OSS MCP service
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: bss-oss-mcp-dr
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "ibn-core.labels" . | nindent 4 }}
+    managed-by: istio
+spec:
+  host: bss-oss-mcp-service.{{ .Values.namespace }}.svc.cluster.local
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 50
+        connectTimeout: 2s
+      http:
+        http1MaxPendingRequests: 25
+        http2MaxRequests: 50
+        maxRequestsPerConnection: 5
+    outlierDetection:
+      consecutiveErrors: 3
+      interval: 20s
+      baseEjectionTime: 20s
+      maxEjectionPercent: 100
+---
+# DestinationRule — Customer Data MCP service
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: customer-data-mcp-dr
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "ibn-core.labels" . | nindent 4 }}
+    managed-by: istio
+spec:
+  host: customer-data-mcp-service.{{ .Values.namespace }}.svc.cluster.local
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 50
+        connectTimeout: 2s
+      http:
+        http1MaxPendingRequests: 25
+        http2MaxRequests: 50
+        maxRequestsPerConnection: 5
+    outlierDetection:
+      consecutiveErrors: 3
+      interval: 20s
+      baseEjectionTime: 20s
+      maxEjectionPercent: 100
+---
+# DestinationRule — Knowledge Graph MCP service
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: knowledge-graph-mcp-dr
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "ibn-core.labels" . | nindent 4 }}
+    managed-by: istio
+spec:
+  host: knowledge-graph-mcp-service.{{ .Values.namespace }}.svc.cluster.local
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 50
+        connectTimeout: 2s
+      http:
+        http1MaxPendingRequests: 25
+        http2MaxRequests: 50
+        maxRequestsPerConnection: 5
+    outlierDetection:
+      consecutiveErrors: 3
+      interval: 20s
+      baseEjectionTime: 20s
+      maxEjectionPercent: 100
+---
+# DestinationRule — Anthropic API (external)
+# TLS mode DISABLE: Anthropic SDK originates TLS; Istio must not re-wrap
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: anthropic-api-dr
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "ibn-core.labels" . | nindent 4 }}
+    managed-by: istio
+spec:
+  host: api.anthropic.com
+  trafficPolicy:
+    tls:
+      mode: {{ .Values.istio.anthropicApi.tlsMode }}
+    connectionPool:
+      tcp:
+        maxConnections: 10
+        connectTimeout: 10s
+      http:
+        http2MaxRequests: 10
+{{- end }}

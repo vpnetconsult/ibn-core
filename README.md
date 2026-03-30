@@ -6,12 +6,14 @@
 
 *Natural-language business intents → network resources, autonomously.*
 
-[![Version](https://img.shields.io/badge/version-v2.1.0-6272a4?style=flat-square)](https://github.com/vpnetconsult/ibn-core/releases/tag/v2.1.0)
+[![Version](https://img.shields.io/badge/version-v2.2.0-6272a4?style=flat-square)](https://github.com/vpnetconsult/ibn-core/releases/tag/v2.2.0)
 [![License](https://img.shields.io/badge/license-Apache%202.0-50fa7b?style=flat-square)](LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/vpnetconsult/ibn-core/security-audit.yml?branch=main&label=CI&style=flat-square)](https://github.com/vpnetconsult/ibn-core/actions)
 [![GHCR](https://img.shields.io/badge/ghcr.io-business--intent--agent-8be9fd?style=flat-square&logo=docker&logoColor=white)](https://github.com/vpnetconsult/ibn-core/pkgs/container/business-intent-agent)
 [![RFC 9315](https://img.shields.io/badge/RFC%209315-P1%20%2B%20P2%20closed-bd93f9?style=flat-square)](https://www.rfc-editor.org/rfc/rfc9315)
 [![TMF921 CTK](https://img.shields.io/badge/TMF921%20CTK-83%2F83%20%E2%9C%94-ff79c6?style=flat-square)](docs/compliance/TMF921_CTK_RESULTS_V2_0_0.md)
+[![ODA Canvas](https://img.shields.io/badge/ODA%20Canvas-UC001%2FUC002%2FUC004-44b58c?style=flat-square)](docs/compliance/ODA_CANVAS_CTK.md)
+[![AI-Native](https://img.shields.io/badge/AI--Native%20Canvas-MCP%20%2B%20A2A%20%2B%20dependentModels-ff9800?style=flat-square)](docs/compliance/ODA_CANVAS_CTK.md#3-ai-native-canvas-alignment)
 
 </div>
 
@@ -253,6 +255,55 @@ curl -sX POST http://localhost:8080/tmf-api/intentManagement/v5/intent \
 | Kubernetes + Istio | 1.29 / 1.20 | P3 Autonomy — HPA + circuit breakers | — |
 
 See [`docs/compliance/TMF921_CTK_RESULTS_V2_0_0.md`](docs/compliance/TMF921_CTK_RESULTS_V2_0_0.md) for the full CTK run log and root-cause analysis.
+
+---
+
+## ODA Canvas Compliance
+
+ibn-core ships as a TM Forum ODA Component (Helm chart at `helm/ibn-core/`), targeting both the
+[ODA Canvas CTK](https://github.com/tmforum-oda/oda-canvas-ctk) and the
+[AI-Native Canvas design](https://github.com/tmforum-oda/oda-canvas/blob/main/AI-Native-Canvas-design.md).
+
+### Canvas CTK Use Cases
+
+| UC | Title | Status | Mechanism |
+|----|-------|--------|-----------|
+| UC001 | Identity Bootstrap | ✅ Declared | `security.controllerRole: ibn-core-role` |
+| UC002 | Expose API | ✅ Declared | `coreFunction.exposedAPIs` → TMF921 at `/tmf-api/intentManagement/v5` |
+| UC004/005 | Observability | ✅ Declared | `management.exposedAPIs` → Prometheus at `/metrics` |
+
+### AI-Native Canvas Alignment
+
+ibn-core is an AI-native component by design — MCP tool exposure, Claude Sonnet dependency, A2A agent card, and evaluation dataset are all declared in the ODA Component CRD.
+
+| Concept | Implementation |
+|---------|----------------|
+| MCP interfaces | `src/mcp/McpAdapter.ts` — 4 orchestration tools |
+| `dependentModels` | Claude Sonnet 4 (`src/claude-client.ts`) |
+| A2A agent card | `src/a2a/agent.ts` + `src/a2a/taxonomy.ts` |
+| Evaluation dataset | [`docs/compliance/O2C_EVALUATION.md`](docs/compliance/O2C_EVALUATION.md) |
+
+### Helm install on a Canvas cluster
+
+```bash
+# Canvas deploy (api-operator-istio manages routing)
+helm install ibn-core ./helm/ibn-core \
+  --namespace components --create-namespace \
+  --set secrets.anthropicApiKey="$ANTHROPIC_API_KEY" \
+  --set secrets.adminSecret="$ADMIN_SECRET" \
+  --set secrets.piiHashSalt="$PII_HASH_SALT" \
+  --set istio.enabled=false
+
+# Standalone deploy (own Istio)
+helm install ibn-core ./helm/ibn-core \
+  --namespace intent-platform --create-namespace \
+  --set namespace=intent-platform \
+  --set secrets.anthropicApiKey="$ANTHROPIC_API_KEY" \
+  --set secrets.adminSecret="$ADMIN_SECRET" \
+  --set secrets.piiHashSalt="$PII_HASH_SALT"
+```
+
+Full compliance mapping: [`docs/compliance/ODA_CANVAS_CTK.md`](docs/compliance/ODA_CANVAS_CTK.md)
 
 ---
 

@@ -1,0 +1,31 @@
+{{- if .Values.istio.enabled }}
+# NOTE: When deploying to a Canvas with api-operator-istio, set istio.enabled=false.
+# The Canvas api-operator-istio manages Istio routing based on the component CRD.
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: {{ include "ibn-core.fullname" . }}-gateway
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "ibn-core.labels" . | nindent 4 }}
+    managed-by: istio
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - {{ .Values.istio.gateway.host | quote }}
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      credentialName: {{ include "ibn-core.fullname" . }}-tls
+    hosts:
+    - {{ .Values.istio.gateway.host | quote }}
+{{- end }}

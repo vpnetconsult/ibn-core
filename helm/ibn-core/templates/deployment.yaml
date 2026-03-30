@@ -1,0 +1,139 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ibn-core.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "ibn-core.labels" . | nindent 4 }}
+    component: ai-agent
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      {{- include "ibn-core.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ibn-core.selectorLabels" . | nindent 8 }}
+        version: {{ .Values.component.version | quote }}
+        component: ai-agent
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: {{ include "ibn-core.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      containers:
+      - name: {{ include "ibn-core.name" . }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        envFrom:
+        - configMapRef:
+            name: {{ include "ibn-core.fullname" . }}-config
+        env:
+        - name: ANTHROPIC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "ibn-core.fullname" . }}-secrets
+              key: anthropic-api-key
+        - name: MCP_BSS_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "ibn-core.fullname" . }}-secrets
+              key: mcp-bss-url
+        - name: MCP_KNOWLEDGE_GRAPH_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "ibn-core.fullname" . }}-secrets
+              key: mcp-knowledge-graph-url
+        - name: MCP_CUSTOMER_DATA_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "ibn-core.fullname" . }}-secrets
+              key: mcp-customer-data-url
+        - name: DEFAULT_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "ibn-core.fullname" . }}-secrets
+              key: default-api-key
+        - name: ADMIN_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "ibn-core.fullname" . }}-secrets
+              key: admin-secret
+        - name: PII_HASH_SALT
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "ibn-core.fullname" . }}-secrets
+              key: pii-hash-salt
+        - name: MCP_API_KEY_BUSINESS_INTENT
+          valueFrom:
+            secretKeyRef:
+              name: mcp-api-keys
+              key: MCP_API_KEY_BUSINESS_INTENT
+        # RFC 9315 §4 P1 — SSoT persistence layer (Redis)
+        - name: REDIS_URL
+          value: "redis://{{ include "ibn-core.fullname" . }}-redis:6379"
+        - name: INTENT_TTL_SECONDS
+          value: {{ .Values.redis.intentTtlSeconds | quote }}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 0
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 30
+        securityContext:
+          {{- toYaml .Values.containerSecurityContext | nindent 10 }}
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: cache
+          mountPath: /app/.cache
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: cache
+        emptyDir: {}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - {{ include "ibn-core.fullname" . }}
+              topologyKey: kubernetes.io/hostname
