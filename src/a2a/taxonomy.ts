@@ -233,7 +233,6 @@ export class AgentClassifier {
       isUnrestricted,
       isLLM,
       isGenAI,
-      isML,
       isInteractive,
       isAI,
     });
@@ -262,9 +261,10 @@ export class AgentClassifier {
     isUnrestricted: boolean;
     isLLM: boolean;
     isGenAI: boolean;
-    isML: boolean;
     isInteractive: boolean;
     isAI: boolean;
+    // isML is intentionally absent: the ML-only case is the residual branch
+    // (isAI && !isLLM && !isGenAI) handled by the final fallback return below.
   }): AgentTaxonomyLevel {
     const { isUnrestricted, isLLM, isGenAI, isInteractive, isAI } = flags;
 

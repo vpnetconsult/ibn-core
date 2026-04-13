@@ -17,12 +17,19 @@ Expand the name of the chart.
 {{/*
 Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this.
+
+NOTE: intentionally does NOT prepend .Release.Name.
+The ODA Canvas component-operator discovers this chart by the stable resource
+name written into the component CRD (spec.componentName).  Prepending the
+release name would make that name release-dependent, breaking Canvas
+component discovery.  Use .Values.fullnameOverride for multi-instance
+installs in non-Canvas environments.
 */}}
 {{- define "ibn-core.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
-{{- .Chart.Name | trunc 63 | trimSuffix "-" }}
+{{- default .Chart.Name .Values.component.name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 {{- end }}
 
@@ -55,14 +62,17 @@ app: {{ include "ibn-core.fullname" . }}
 
 {{/*
 Service account name.
+Falls back to the chart fullname when .Values.serviceAccount.name is not set.
 */}}
 {{- define "ibn-core.serviceAccountName" -}}
-{{ .Values.serviceAccount.name }}
+{{- default (include "ibn-core.fullname" .) .Values.serviceAccount.name | trunc 63 | trimSuffix "-" -}}
 {{- end }}
 
 {{/*
 Fully-qualified Service hostname (for Istio DestinationRule host field).
+Namespace falls back to "components" (ODA Canvas default) when not set.
 */}}
 {{- define "ibn-core.serviceFQDN" -}}
-{{ include "ibn-core.fullname" . }}-service.{{ .Values.namespace }}.svc.cluster.local
+{{- $ns := default "components" .Values.namespace -}}
+{{ include "ibn-core.fullname" . }}-service.{{ $ns }}.svc.cluster.local
 {{- end }}

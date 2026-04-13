@@ -16,7 +16,7 @@ import {
   IntentHandlingStep,
   PhaseOutcome,
 } from './IntentHandlingCycle';
-import { IntentHandlingContext } from './IntentHandlingContext';
+import { IntentAnalysis, CustomerProfile, SelectedOffer, IntentHandlingContext } from './IntentHandlingContext';
 
 export interface IntentHandlingResult {
   /** Fully-enriched context after the cycle completes */
@@ -191,35 +191,35 @@ export class IntentHandlingCycleRunner {
    * fulfilment commitment (selected offer and binding quote).
    */
   private async orchestrate(ctx: IntentHandlingContext): Promise<IntentHandlingContext> {
-    const analysis = ctx.intentAnalysis as any;
-    const profile  = ctx.customerProfile as any;
+    const analysis: IntentAnalysis = ctx.intentAnalysis ?? {};
+    const profile: CustomerProfile = ctx.customerProfile ?? {};
 
     logger.info(
-      { tags: analysis?.tags },
+      { tags: analysis.tags },
       'RFC 9315 §5.1.3 — orchestrating: searching product catalog',
     );
 
     const availableProducts = await this.mcpClients.bss.call(
       'search_product_catalog',
       {
-        intent: analysis?.tags,
-        customer_segment: profile?.segment,
+        intent: analysis.tags,
+        customer_segment: profile.segment,
       },
     );
 
     logger.info(
-      { productTypes: analysis?.product_types },
+      { productTypes: analysis.product_types },
       'RFC 9315 §5.1.3 — orchestrating: resolving bundles',
     );
 
     const availableBundles = await this.mcpClients.knowledgeGraph.call(
       'find_related_products',
-      { base_products: analysis?.product_types },
+      { base_products: analysis.product_types },
     );
 
     logger.info('RFC 9315 §5.1.3 — orchestrating: generating fulfilment offer');
 
-    const selectedOffer = await this.claude.generateOffer({
+    const selectedOffer: SelectedOffer = await this.claude.generateOffer({
       intent:    analysis,
       customer:  profile,
       products:  availableProducts,
@@ -227,7 +227,7 @@ export class IntentHandlingCycleRunner {
     });
 
     logger.info(
-      { products: (selectedOffer as any)?.selected_products },
+      { products: selectedOffer.selected_products },
       'RFC 9315 §5.1.3 — orchestrating: generating quote',
     );
 
@@ -235,8 +235,8 @@ export class IntentHandlingCycleRunner {
       'generate_quote',
       {
         customer_id: ctx.customerId,
-        products:    (selectedOffer as any)?.selected_products,
-        discounts:   (selectedOffer as any)?.recommended_discounts,
+        products:    selectedOffer.selected_products,
+        discounts:   selectedOffer.recommended_discounts,
       },
     );
 
@@ -255,9 +255,9 @@ export class IntentHandlingCycleRunner {
       'RFC 9315 §5.2.1 — monitoring fulfilment state',
     );
 
-    const offer = ctx.selectedOffer as any;
+    const offer: SelectedOffer = ctx.selectedOffer ?? {};
     const reportState: IntentHandlingContext['reportState'] =
-      offer?.selected_products?.length > 0 ? 'inProgress' : 'notFulfillable';
+      (offer.selected_products?.length ?? 0) > 0 ? 'inProgress' : 'notFulfillable';
 
     return { ...ctx, reportState };
   }
@@ -273,12 +273,11 @@ export class IntentHandlingCycleRunner {
       'RFC 9315 §5.2.2 — assessing compliance against intent expectations',
     );
 
-    const offer = ctx.selectedOffer as any;
+    const offer: SelectedOffer = ctx.selectedOffer ?? {};
     const quote = ctx.quote;
 
     const fulfilled =
       quote != null &&
-      offer != null &&
       Array.isArray(offer.selected_products) &&
       offer.selected_products.length > 0;
 
@@ -330,10 +329,11 @@ export class IntentHandlingCycleRunner {
       const next = await fn();
       this.endStep(start, trace, 'completed');
       return next;
-    } catch (err: any) {
-      this.endStep(start, trace, 'failed', err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.endStep(start, trace, 'failed', message);
       logger.error(
-        { phase, intentId: ctx.intentId, error: err.message },
+        { phase, intentId: ctx.intentId, error: message },
         'Intent handling phase failed',
       );
       throw err;

@@ -7,6 +7,66 @@
  * https://www.rfc-editor.org/rfc/rfc9315
  */
 
+// ── Typed shapes for cycle-internal data ─────────────────────────────────────
+// These interfaces describe the JSON shapes produced by ClaudeClient and the
+// MCP tools.  All fields are optional because the values arrive at runtime as
+// LLM / MCP output whose exact shape cannot be guaranteed.
+
+/**
+ * Structured output of the RFC 9315 §5.1.2 TRANSLATING phase.
+ *
+ * Produced by `ClaudeClient.analyzeIntent()`.  Fields map to the prompt
+ * extraction list in claude-client.ts:
+ *   1. intent tags   → tags
+ *   2. product types → product_types
+ *   3. priorities    → priority
+ */
+export interface IntentAnalysis {
+  /** Semantic labels extracted from the intent expression (e.g. 'work_from_home'). */
+  tags?: string[];
+  /** BSS product type codes required to fulfil the intent (e.g. 'broadband'). */
+  product_types?: string[];
+  /** Ranked priority attributes (e.g. ['speed', 'reliability']). */
+  priority?: string[];
+}
+
+/**
+ * PII-masked customer profile as returned by the customer-data MCP and
+ * post-processed by `maskCustomerProfile()`.
+ *
+ * Only the fields actually consumed by downstream phases are typed here.
+ * Additional fields returned by the MCP are preserved via the index signature.
+ */
+export interface CustomerProfile {
+  /** Market segment used for product-catalog filtering (e.g. 'consumer'). */
+  segment?: string;
+  /** Services the customer currently holds. */
+  current_services?: string[];
+  /** Customer tenure label (e.g. '2 years'). */
+  tenure?: string;
+  /** Allow additional MCP-returned fields without explicit typing. */
+  [key: string]: unknown;
+}
+
+/**
+ * Fulfilment offer produced by `ClaudeClient.generateOffer()`.
+ *
+ * Consumed by MONITORING (selected_products.length check) and ORCHESTRATING
+ * (quote generation inputs).
+ */
+export interface SelectedOffer {
+  /** BSS product codes chosen for the offer. */
+  selected_products?: string[];
+  /** Discount codes or percentages to apply at quoting. */
+  recommended_discounts?: string[];
+  /** Bundle identifier, if a bundle was selected. */
+  bundle_recommendation?: string;
+  /** Allow additional LLM-returned fields. */
+  [key: string]: unknown;
+}
+
+// ── Context ───────────────────────────────────────────────────────────────────
+
 /**
  * Accumulated state carried through the RFC 9315 §5 intent handling cycle.
  *
@@ -43,7 +103,7 @@ export interface IntentHandlingContext {
    * PII-masked customer profile, safe for downstream AI processing.
    * Raw fields are removed or tokenized before this context field is set.
    */
-  readonly customerProfile?: unknown;
+  readonly customerProfile?: CustomerProfile;
 
   /**
    * Raw customer profile retained solely for the role-based response filter.
@@ -62,7 +122,7 @@ export interface IntentHandlingContext {
    * expression into network-actionable requirements: intent tags, product
    * types, and priority requirements.
    */
-  readonly intentAnalysis?: unknown;
+  readonly intentAnalysis?: IntentAnalysis;
 
   // -------------------------------------------------------------------------
   // Populated by ORCHESTRATING (RFC 9315 §5.1.3)
@@ -75,7 +135,7 @@ export interface IntentHandlingContext {
   readonly availableBundles?: unknown;
 
   /** Selected offer generated from available products and bundles */
-  readonly selectedOffer?: unknown;
+  readonly selectedOffer?: SelectedOffer;
 
   /** Pricing quote for the selected offer */
   readonly quote?: unknown;
