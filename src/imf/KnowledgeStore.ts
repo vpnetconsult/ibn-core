@@ -213,17 +213,35 @@ export class KnowledgeStore {
 
   /**
    * Return all non-expired facts whose keys match the given prefix.
+   *
+   * Expired facts are lazily evicted: we collect the expired keys in a
+   * separate pass and delete them after iteration to avoid mutating the Map
+   * while iterating over it.
    */
   queryFacts(keyPrefix: string): Fact[] {
+    const now = new Date();
     const results: Fact[] = [];
+    const expired: string[] = [];
+
     for (const [key, fact] of this.facts) {
       if (!key.startsWith(keyPrefix)) continue;
-      if (fact.expiresAt && new Date(fact.expiresAt) < new Date()) {
-        this.facts.delete(key);
+      if (fact.expiresAt && new Date(fact.expiresAt) < now) {
+        expired.push(key);
         continue;
       }
       results.push(fact);
     }
+
+    for (const key of expired) {
+      this.facts.delete(key);
+    }
+    if (expired.length > 0) {
+      logger.debug(
+        { domainId: this.domainId, count: expired.length },
+        'IMF facts expired and evicted',
+      );
+    }
+
     return results;
   }
 
@@ -384,7 +402,9 @@ export class KnowledgeStore {
     return {
       domainId: this.domainId,
       domainState: this.domainState,
-      factCount: this.facts.size,
+      // Use the factCount getter so expired facts are evicted before counting,
+      // keeping this snapshot consistent with the public factCount accessor.
+      factCount: this.factCount,
       measurementCount: this.measurements.length,
       decisionCount: this.decisions.length,
       latestMeasurement: this.measurements[this.measurements.length - 1],

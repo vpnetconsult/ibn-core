@@ -134,6 +134,15 @@ export const DEFAULT_HYSTERESIS_MS = 120_000;
  */
 export const DEFAULT_RECENT_WINDOW_MS = 300_000;
 
+/**
+ * Maximum number of actuation records retained in the hot store.
+ *
+ * Oldest records are evicted (FIFO) when the limit is exceeded.  The value
+ * is chosen to exceed the DEFAULT_RECENT_WINDOW_MS at a typical actuation
+ * rate of one per second (300 000 ms ÷ 1000 ms = 300; doubled for headroom).
+ */
+export const MAX_ACTUATIONS = 1_000;
+
 // ── Plane ─────────────────────────────────────────────────────────────────────
 
 /**
@@ -188,12 +197,18 @@ export class SharedStatePlane {
    * @param status      - New status value.
    * @param proposalId  - Must be provided when status is 'pending-proposal'.
    *                      Cleared automatically for all other statuses.
+   * @throws {Error} When status is 'pending-proposal' and proposalId is not provided.
    */
   setActuationStatus(
     intentId: string,
     status: IntentActuationStatus,
     proposalId?: string
   ): IntentStateEntry {
+    if (status === 'pending-proposal' && !proposalId) {
+      throw new Error(
+        `SharedStatePlane: proposalId must be provided when setting status to 'pending-proposal' (intent: ${intentId})`
+      );
+    }
     const entry = this.requireEntry(intentId);
     entry.actuationStatus = status;
     entry.lastUpdatedAt = new Date().toISOString();
@@ -220,6 +235,11 @@ export class SharedStatePlane {
       actuationId: uuidv4(),
     };
     this.actuations.push(stored);
+
+    // Evict oldest record when the cap is exceeded (FIFO ring-buffer behaviour).
+    if (this.actuations.length > MAX_ACTUATIONS) {
+      this.actuations.shift();
+    }
 
     // Update the intent state entry if it exists.
     const entry = this.intentStates.get(record.intentId);
