@@ -305,6 +305,9 @@ helm install ibn-core ./helm/ibn-core \
 
 Full compliance mapping: [`docs/compliance/ODA_CANVAS_CTK.md`](docs/compliance/ODA_CANVAS_CTK.md)
 
+**Published test results (TM Forum ODA Canvas submission-grade):**
+[`docs/compliance/ODA_CANVAS_PUBLISHED_RESULTS.md`](docs/compliance/ODA_CANVAS_PUBLISHED_RESULTS.md)
+
 ---
 
 ## Repository Layout

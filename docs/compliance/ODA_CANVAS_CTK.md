@@ -6,6 +6,11 @@
 **CTK reference:** https://github.com/tmforum-oda/oda-canvas-ctk
 **AI-Native Canvas:** https://github.com/tmforum-oda/oda-canvas/blob/main/AI-Native-Canvas-design.md
 
+> **Looking for the publication-grade conformance record?**
+> See [`ODA_CANVAS_PUBLISHED_RESULTS.md`](ODA_CANVAS_PUBLISHED_RESULTS.md) — the
+> formatted, self-declared test-results page suitable for ODA Canvas catalogue
+> submission and external citation.
+
 ---
 
 ## 1. Canvas Infrastructure Prerequisites
