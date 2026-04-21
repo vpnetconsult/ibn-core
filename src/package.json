@@ -67,6 +67,6 @@
   "engines": {
     "node": ">=20.0.0"
   },
-  "author": "Vpnet Consulting LLC",
-  "license": "PROPRIETARY"
+  "author": "Vpnet Cloud Solutions Sdn. Bhd.",
+  "license": "Apache-2.0"
 }
