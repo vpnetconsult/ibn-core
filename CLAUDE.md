@@ -118,6 +118,7 @@ ibn-core/                          ← repo root
     ├── compliance/                ← TMF921 CTK results and analysis
     ├── security/                  ← DPIA, SECURITY, INCIDENT_RESPONSE
     └── standards/                 ← TMF921 spec review, RFC traceability
+        └── external-reviews/      ← reviews of external I-Ds, RFCs, TS, white papers
 ```
 
 ---
@@ -171,6 +172,14 @@ When modifying code, maintain traceability to these standards:
 - Use: Implement all concepts freely, cite with DOI `10.17487/RFC9315`
 - Copyright notice in code: not required — citation in NOTICE file is sufficient
 - Companion RFCs: RFC 7575, RFC 8309, RFC 8994 — same rules apply
+
+### RFC 8329 (I2NSF framework) — CITATION ONLY
+- Licence: IETF Trust / BCP 78 (permissive)
+- Status in ibn-core: **cited, not implemented.** Surfaced via external review of
+  draft-ahn-nmrg-5g-security-i2nsf-framework-01 in `docs/standards/external-reviews/`.
+- Do not adopt I2NSF terminology (IUF, ICF, SCF, DMF, SDAF, NSF) in public-repo
+  module names until/unless a WG-adopted draft lands. Individual-submission
+  drafts must not shape open-core vocabulary.
 
 ### TMF921 v5.0.0 API (tmforum-apis GitHub) — APACHE 2.0
 - Licence: Apache 2.0
