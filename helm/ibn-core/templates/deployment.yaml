@@ -87,6 +87,27 @@ spec:
           value: "redis://{{ include "ibn-core.fullname" . }}-redis:6379"
         - name: INTENT_TTL_SECONDS
           value: {{ .Values.redis.intentTtlSeconds | quote }}
+        {{- if .Values.canvas.identityConfig.enabled }}
+        # UC007 — Canvas identityconfig-operator-keycloak provisioned client Secret.
+        # The operator creates this Secret with keys `clientId` and `clientSecret`
+        # when the Keycloak client for this component is realised. OIDC_AUDIENCE
+        # equals the clientId by Canvas convention.
+        - name: OIDC_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.canvas.identityConfig.clientSecretName }}
+              key: clientId
+        - name: OIDC_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.canvas.identityConfig.clientSecretName }}
+              key: clientSecret
+        - name: OIDC_AUDIENCE
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.canvas.identityConfig.clientSecretName }}
+              key: clientId
+        {{- end }}
         resources:
           {{- toYaml .Values.resources | nindent 10 }}
         livenessProbe:

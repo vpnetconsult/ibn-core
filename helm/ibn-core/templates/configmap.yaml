@@ -17,3 +17,14 @@ data:
   DEFAULT_CURRENCY: {{ .Values.config.defaultCurrency | quote }}
   MIN_ORDER_VALUE: {{ .Values.config.minOrderValue | quote }}
   MAX_BUNDLE_PRODUCTS: {{ .Values.config.maxBundleProducts | quote }}
+  # UC007 External Authentication (non-secret settings)
+  AUTH_MODE: {{ .Values.auth.mode | quote }}
+  {{- if .Values.auth.jwt.issuerUrl }}
+  OIDC_ISSUER_URL: {{ .Values.auth.jwt.issuerUrl | quote }}
+  {{- end }}
+  {{- if and (not .Values.canvas.identityConfig.enabled) .Values.auth.jwt.audience }}
+  OIDC_AUDIENCE: {{ .Values.auth.jwt.audience | quote }}
+  {{- end }}
+  OIDC_JWKS_CACHE_MAX_AGE_MS: {{ .Values.auth.jwt.jwksCacheMaxAgeMs | quote }}
+  OIDC_JWKS_COOLDOWN_MS: {{ .Values.auth.jwt.jwksCooldownMs | quote }}
+  OIDC_CLOCK_TOLERANCE_SEC: {{ .Values.auth.jwt.clockToleranceSec | quote }}

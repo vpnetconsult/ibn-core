@@ -10,7 +10,8 @@ import { TMF921IntentService } from './tmf921/intent-service';
 import { createTMF921Router } from './tmf921/routes';
 import { logger } from './logger';
 import { metricsMiddleware, register } from './metrics';
-import { authenticateApiKey, validateCustomerOwnership, generateApiKey } from './auth';
+import { validateCustomerOwnership, generateApiKey } from './auth';
+import { authenticate } from './auth-router';
 import { validateIntentInput } from './prompt-injection-detection';
 import { readRequiredSecret } from './secrets';
 import { responseFilterMiddleware, filterInput } from './response-filter';
@@ -168,10 +169,10 @@ app.post('/api/v1/admin/generate-api-key', (req: Request, res: Response) => {
 // RFC 9315 §4 P2 — ProbeIntent: feasibility assessment before committing
 // TMF921 v5.0.0 ProbeIntent resource
 // Must be registered BEFORE /api/v1/intent to avoid route shadowing
-app.post('/api/v1/intent/probe', authenticateApiKey, probeIntentHandler);
+app.post('/api/v1/intent/probe', authenticate, probeIntentHandler);
 
 // Process customer intent (PROTECTED ENDPOINT)
-app.post('/api/v1/intent', authenticateApiKey, validateCustomerOwnership, async (req: Request, res: Response) => {
+app.post('/api/v1/intent', authenticate, validateCustomerOwnership, async (req: Request, res: Response) => {
   const startTime = Date.now();
 
   try {
@@ -248,7 +249,7 @@ app.post('/api/v1/intent', authenticateApiKey, validateCustomerOwnership, async 
 });
 
 // GET /api/v1/intent/:id — SSoT/SVoT check (RFC 9315 §4 P1)
-app.get('/api/v1/intent/:id', authenticateApiKey, async (req: Request, res: Response) => {
+app.get('/api/v1/intent/:id', authenticate, async (req: Request, res: Response) => {
   try {
     const intent = await tmf921IntentService.getIntent(req.params.id);
     if (!intent) {
@@ -266,7 +267,7 @@ app.get('/api/v1/intent/:id', authenticateApiKey, async (req: Request, res: Resp
 });
 
 // GET /api/v1/intent — list intents for authenticated customer
-app.get('/api/v1/intent', authenticateApiKey, async (req: Request, res: Response) => {
+app.get('/api/v1/intent', authenticate, async (req: Request, res: Response) => {
   try {
     const customerId = (req as any).auth?.customerId;
     const intents = await tmf921IntentService.listIntents({ relatedPartyId: customerId });

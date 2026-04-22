@@ -5,6 +5,68 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — targeted v2.3.0
+
+### Added — ODA Canvas UC007 External Authentication
+
+Implements: RFC 9315 §4 P3 Autonomy (identity bootstrap consumption)
+TMF921: n/a — Canvas platform contract
+Paper: supports Canvas-integration claim — UC007 external authentication
+
+- **`src/auth-jwt.ts`** — Keycloak RS256 JWT validation via `jose.createRemoteJWKSet`
+  with cache + cooldown; standard-claim validation (`iss`, `aud`, `exp`, `nbf`,
+  `iat`); Keycloak role extraction (`realm_access.roles` +
+  `resource_access[<clientId>].roles`); RFC 6750-compliant
+  `WWW-Authenticate: Bearer` challenge; log-injection sanitisation.
+- **`src/auth-router.ts`** — `AUTH_MODE={apiKey,jwt,both}` dispatcher. `both`
+  mode picks JWT when the Bearer token is structurally a JWT, otherwise falls
+  back to the API-key path.
+- **`src/auth-jwt.test.ts` + `src/auth-router.test.ts`** — unit coverage for
+  structural helpers and dispatch behaviour.
+- **`helm/ibn-core/values.yaml`** — new `auth.mode`, `auth.jwt.*`,
+  `canvas.identityConfig.*` keys (defaults preserve pre-UC007 behaviour).
+- **`helm/ibn-core/templates/configmap.yaml`** — carries `AUTH_MODE` and
+  non-secret OIDC settings.
+- **`helm/ibn-core/templates/deployment.yaml`** — mounts the Canvas-provisioned
+  `ibn-core-client-secret` as `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, and
+  `OIDC_AUDIENCE` when `canvas.identityConfig.enabled=true`.
+- **`helm/ibn-core/templates/component.yaml`** — adds the
+  `oda.tmforum.org/externalAuthentication` annotation declaring provider,
+  mode, validated claims, JWKS rotation support, and role-claim shape.
+- **`docs/compliance/UC007_CANVAS_CTK_RESULTS.md`** — new implementation
+  evidence record with a reserved CTK run table.
+- **`docs/compliance/ODA_CANVAS_CTK.md §7a`** — UC007 runtime wiring and
+  post-install verification steps.
+- **`docs/compliance/ODA_CANVAS_PUBLISHED_RESULTS.md`** — UC007 flipped to
+  🛠 (v2.3.0 implementation delivered, Canvas CTK execution pending);
+  revision 1.1 added.
+- **`src/API_AUTHENTICATION.md`** — dual-mode guide: API key (legacy) vs
+  Keycloak JWT (UC007).
+- **`docs/roadmap/canvas-uc/README.md`** — UC007 row flipped from ⬜ to
+  🛠 In implementation (v2.3.0).
+- **`docs/roadmap/canvas-uc/UC007-external-authentication.md`** — plan now
+  references merged implementation.
+- **`CLAUDE.md`** — Standards Implementation Map extended with UC007 row.
+
+### Changed
+
+- **`src/auth.ts`** — file header rewritten to truthfully describe the
+  API-key path and to point at `auth-jwt.ts` + `auth-router.ts` for UC007.
+  No behaviour change.
+- **`src/index.ts` + `src/tmf921/routes.ts`** — replaced direct
+  `authenticateApiKey` imports with `authenticate` from `auth-router`, so
+  route-protection behaviour is governed by `AUTH_MODE` at deploy time.
+- **`src/package.json`** — added `jose ^5.10.0` (Apache-2.0). Replaces any
+  future need for `jsonwebtoken`.
+
+### Rollback
+
+`--set auth.mode=apiKey --set canvas.identityConfig.enabled=false` restores
+pre-UC007 request-path behaviour without a rebuild. JWT middleware is not
+invoked when `AUTH_MODE=apiKey`. Helm chart values are backwards compatible.
+
+---
+
 ## [2.2.0] - 2026-03-29
 
 ### Added

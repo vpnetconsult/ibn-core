@@ -42,7 +42,8 @@ The Canvas operator owns Istio routing; ibn-core's own Istio templates would con
 | UC003 | Retrieve API endpoint | ✅ Derived | `component-operator` creates ExposedAPI sub-resource; `api-operator-istio` resolves it |
 | **UC004** | Publish Metrics | ✅ Declared | `spec.management.exposedAPIs[metrics]` — Prometheus at `/metrics:8080` |
 | **UC005** | Retrieve Observability data | ✅ Declared | Prometheus scrape + Istio Telemetry (Jaeger traces) |
-| UC006–UC015 | Advanced (events, auth flows) | ⬜ Out of scope v2.2.0 | See §5 |
+| **UC007** | External Auth Flow | 🛠 Declared (v2.3.0) — CTK pending | `oda.tmforum.org/externalAuthentication` annotation; Keycloak JWT validation via `src/auth-jwt.ts`. See §7 and [`UC007_CANVAS_CTK_RESULTS.md`](UC007_CANVAS_CTK_RESULTS.md). |
+| UC006, UC008–UC015 | Advanced (events, auth flows) | ⬜ Out of scope v2.2.0 | See §5 |
 
 ---
 
@@ -93,9 +94,10 @@ The `api-operator-istio` (or Kong/APISIX alternative) creates the route.
 
 | UC | Reason |
 |----|--------|
-| UC006 — Custom Observability | Requires Canvas-managed LangSmith/OpenLLMetry integration |
-| UC007–UC008 — External/Internal Auth | Keycloak flows managed by Canvas operator; no app code change needed |
-| UC009–UC010 — Authorization + Token Refresh | Delegated to `identityconfig-operator-keycloak` |
+| UC006 — Custom Observability | Planned for v2.3.0 — OpenTelemetry SDK + LangSmith backend. See [`../roadmap/canvas-uc/UC006-custom-observability.md`](../roadmap/canvas-uc/UC006-custom-observability.md). |
+| UC007 — External Auth Flow | **Delivered in v2.3.0** — see §7 below. |
+| UC008 — Internal Auth Flow | Planned post-UC007 — mTLS via Istio, reuses UC001 identity artefacts. |
+| UC009–UC010 — Authorization + Token Refresh | Consumes the role-claim surface UC007 exposes (`req.auth.roles`). Not yet scoped. |
 | UC011 — License Metrics | Out of scope for Apache 2.0 open core |
 | UC012–UC015 — Event Management | Requires Canvas EventHub CRD (`PublishedNotification`, `SubscribedNotification`) — planned for v3.0.0 CAMARA integration |
 
@@ -202,6 +204,78 @@ curl -sX POST http://localhost:8080/api/v1/intent \
   -d '{"customerId":"CUST-12345","intent":"I need internet for working from home"}' \
   | jq '{lifecycleStatus, reportState}'
 # Expected: {"lifecycleStatus":"completed","reportState":"fulfilled"}
+```
+
+---
+
+## 7a. UC007 — External Authentication Wiring (v2.3.0)
+
+v2.3.0 activates Keycloak-issued JWT validation at the Component level. The
+Canvas `identityconfig-operator-keycloak` provisions the realm, client, and
+client-secret per UC001; UC007 is the runtime consumption of those artefacts.
+
+**Component manifest annotation** (rendered from
+[`helm/ibn-core/templates/component.yaml`](../../helm/ibn-core/templates/component.yaml)):
+
+```yaml
+metadata:
+  annotations:
+    oda.tmforum.org/externalAuthentication: |
+      provider: keycloak
+      mode: "jwt"
+      identityBootstrap: identityconfig-operator-keycloak
+      clientSecretName: "ibn-core-client-secret"
+      tokenFormat: jwt-rs256
+      claimsValidated: [iss, aud, exp, nbf, iat]
+      jwksRotation: supported
+      challengeHeader: "WWW-Authenticate: Bearer"
+      roleClaims:
+        - realm_access.roles
+        - resource_access.<clientId>.roles
+```
+
+**Runtime configuration** (Helm values, see
+[`helm/ibn-core/values.yaml`](../../helm/ibn-core/values.yaml)):
+
+```yaml
+auth:
+  mode: jwt                # apiKey | jwt | both
+  jwt:
+    issuerUrl: "https://keycloak.canvas.svc/realms/canvas"
+canvas:
+  identityConfig:
+    enabled: true          # mount ibn-core-client-secret as OIDC_CLIENT_ID / OIDC_AUDIENCE
+```
+
+**Runtime code path:**
+
+- [`src/auth-router.ts`](../../src/auth-router.ts) — per-request dispatcher,
+  honours `AUTH_MODE`.
+- [`src/auth-jwt.ts`](../../src/auth-jwt.ts) — JWKS-backed validator using
+  `jose.createRemoteJWKSet` (cache 10 min, cooldown 30 s, clock tolerance 30 s).
+- [`src/auth.ts`](../../src/auth.ts) — legacy API-key path retained as the
+  dev/standalone fallback.
+
+**CTK execution record:** [`UC007_CANVAS_CTK_RESULTS.md`](UC007_CANVAS_CTK_RESULTS.md).
+
+### Verify UC007 post-install
+
+```bash
+# 1. Confirm the Secret is mounted (values from identityconfig-operator-keycloak)
+kubectl exec -n components deploy/ibn-core -- env | grep ^OIDC_
+# Expected: OIDC_CLIENT_ID, OIDC_AUDIENCE set; OIDC_CLIENT_SECRET present but not echoed.
+
+# 2. Unauthenticated → 401 with challenge
+curl -i http://<ibn-core-host>/api/v1/intent | head -n 5
+# Expected: HTTP/1.1 401 Unauthorized
+#           WWW-Authenticate: Bearer realm="ibn-core", error="invalid_request", ...
+
+# 3. Expired / bogus token → 401, never 500
+curl -i -H "Authorization: Bearer aa.bb.cc" http://<ibn-core-host>/api/v1/intent | head -n 5
+# Expected: HTTP/1.1 401 Unauthorized with error="invalid_token"
+
+# 4. Valid Keycloak token → 200
+#    (see UC007_CANVAS_CTK_RESULTS.md §4 for the client_credentials flow)
 ```
 
 ---

@@ -1,12 +1,24 @@
 /**
- * JWT Authentication Middleware
- * Implements NIST CSF 2.0 PR.AC-01 (Identity and Credential Management)
+ * Copyright 2026 Vpnet Cloud Solutions Sdn. Bhd.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE in the project root for license information.
  *
- * Security Features:
- * - JWT token validation with RS256 algorithm
- * - API key authentication fallback
- * - Rate limiting per authenticated user
- * - Audit logging of authentication attempts
+ * Implements RFC 9315 Intent-Based Networking
+ * https://www.rfc-editor.org/rfc/rfc9315
+ *
+ * API-Key Authentication Middleware — legacy / dev path.
+ *
+ * For ODA Canvas UC007 External Authentication (Keycloak JWT), see
+ * `auth-jwt.ts`. The `auth-router.ts` module dispatches between this file
+ * and `auth-jwt.ts` based on the AUTH_MODE environment variable.
+ *
+ * NIST CSF 2.0 PR.AC-01 — Identity and Credential Management.
+ *
+ * Security features:
+ *   - Timing-safe API-key comparison (CWE-208)
+ *   - Log-injection sanitisation (CWE-117)
+ *   - Rate limiting is applied upstream (src/index.ts express-rate-limit)
+ *   - Audit logging of every success/failure
  */
 
 import { Request, Response, NextFunction } from 'express';

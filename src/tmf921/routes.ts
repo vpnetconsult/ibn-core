@@ -15,7 +15,8 @@ import {
   IntentSpecificationUpdate
 } from './types';
 import { logger } from '../logger';
-import { authenticateApiKey, validateCustomerOwnership } from '../auth';
+import { validateCustomerOwnership } from '../auth';
+import { authenticate } from '../auth-router';
 import { filterInput } from '../response-filter';
 
 /**
@@ -62,7 +63,7 @@ export function createTMF921Router(intentService: TMF921IntentService): Router {
    */
   router.post(
     '/intent',
-    authenticateApiKey,
+    authenticate,
     validateCustomerOwnership,
     async (req: Request, res: Response) => {
       try {
@@ -129,7 +130,7 @@ export function createTMF921Router(intentService: TMF921IntentService): Router {
    */
   router.get(
     '/intent/:id',
-    authenticateApiKey,
+    authenticate,
     async (req: Request, res: Response) => {
       try {
         const { id } = req.params;
@@ -183,7 +184,7 @@ export function createTMF921Router(intentService: TMF921IntentService): Router {
    */
   router.get(
     '/intent',
-    authenticateApiKey,
+    authenticate,
     async (req: Request, res: Response) => {
       try {
         const customerId = (req as any).auth?.customerId;
@@ -231,7 +232,7 @@ export function createTMF921Router(intentService: TMF921IntentService): Router {
    */
   router.patch(
     '/intent/:id',
-    authenticateApiKey,
+    authenticate,
     async (req: Request, res: Response) => {
       try {
         const { id } = req.params;
@@ -302,7 +303,7 @@ export function createTMF921Router(intentService: TMF921IntentService): Router {
    */
   router.delete(
     '/intent/:id',
-    authenticateApiKey,
+    authenticate,
     async (req: Request, res: Response) => {
       try {
         const { id } = req.params;
@@ -362,7 +363,7 @@ export function createTMF921Router(intentService: TMF921IntentService): Router {
    */
   router.get(
     '/intent/:intentId/intentReport',
-    authenticateApiKey,
+    authenticate,
     async (req: Request, res: Response) => {
       try {
         const { intentId } = req.params;
@@ -430,7 +431,7 @@ export function createTMF921Router(intentService: TMF921IntentService): Router {
    */
   router.get(
     '/intent/:intentId/intentReport/:id',
-    authenticateApiKey,
+    authenticate,
     async (req: Request, res: Response) => {
       try {
         const { intentId, id } = req.params;
@@ -491,7 +492,7 @@ export function createTMF921Router(intentService: TMF921IntentService): Router {
    */
   router.delete(
     '/intent/:intentId/intentReport/:id',
-    authenticateApiKey,
+    authenticate,
     async (req: Request, res: Response) => {
       try {
         const { intentId, id } = req.params;
@@ -548,7 +549,7 @@ export function createTMF921Router(intentService: TMF921IntentService): Router {
    */
   router.post(
     '/intentSpecification',
-    authenticateApiKey,
+    authenticate,
     async (req: Request, res: Response) => {
       try {
         const { filtered, violations } = filterInput(req.body, 'tmf921_intent_spec_create');
@@ -600,7 +601,7 @@ export function createTMF921Router(intentService: TMF921IntentService): Router {
    */
   router.get(
     '/intentSpecification',
-    authenticateApiKey,
+    authenticate,
     async (req: Request, res: Response) => {
       try {
         const filters = {
@@ -639,7 +640,7 @@ export function createTMF921Router(intentService: TMF921IntentService): Router {
    */
   router.get(
     '/intentSpecification/:id',
-    authenticateApiKey,
+    authenticate,
     async (req: Request, res: Response) => {
       try {
         const { id } = req.params;
@@ -680,7 +681,7 @@ export function createTMF921Router(intentService: TMF921IntentService): Router {
    */
   router.patch(
     '/intentSpecification/:id',
-    authenticateApiKey,
+    authenticate,
     async (req: Request, res: Response) => {
       try {
         const { id } = req.params;
@@ -737,7 +738,7 @@ export function createTMF921Router(intentService: TMF921IntentService): Router {
    */
   router.delete(
     '/intentSpecification/:id',
-    authenticateApiKey,
+    authenticate,
     async (req: Request, res: Response) => {
       try {
         const { id } = req.params;
