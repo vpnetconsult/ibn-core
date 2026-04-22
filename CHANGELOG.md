@@ -103,7 +103,11 @@ Paper: supports Paper 2 empirical observability claims (AI-gateway audit
 - **`helm/ibn-core/values.yaml`** — new `observability.otel.*` block
   (`enabled`, `serviceName`, `endpoint`, `resourceAttributes`,
   `langsmith.{enabled,project,apiKeySecret.{name,key}}`). Default
-  `enabled=false` — flip on when a collector is reachable.
+  `enabled=false` — flip on when a collector is reachable. Default
+  endpoint is the **EU** LangSmith region
+  (`https://eu.api.smith.langchain.com/otel`); US-region operators
+  override via `--set observability.otel.endpoint=https://api.smith.langchain.com/otel`.
+  Region mismatch returns HTTP 403 (verified during smoke test).
 - **`helm/ibn-core/templates/configmap.yaml`** — carries `OTEL_ENABLED`,
   `OTEL_SERVICE_NAME`, `OTEL_SERVICE_VERSION`,
   `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_PROTOCOL`, optional

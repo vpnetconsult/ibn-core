@@ -108,8 +108,10 @@ spans and for AI-specific events. Do not replace Istio Telemetry — stack it.
   `OTEL_RESOURCE_ATTRIBUTES="oda.component.name=ibn-core,oda.component.version=2.3.0"`.
 - **LangSmith as the default backend (workaround to avoid blocking on a
   Canvas-managed collector).** Default `OTEL_EXPORTER_OTLP_ENDPOINT` to
-  `https://api.smith.langchain.com/otel/v1/traces`, and carry the
-  LangSmith API key + project via `OTEL_EXPORTER_OTLP_HEADERS=x-api-key=<key>,Langsmith-Project=ibn-core`.
+  `https://eu.api.smith.langchain.com/otel` (the Vpnet workspace is EU-
+  region; a `lsv2_sk_...` key issued against a region returns 403 on the
+  other region's endpoint), and carry the LangSmith API key + project
+  via `OTEL_EXPORTER_OTLP_HEADERS=x-api-key=<key>,Langsmith-Project=ibn-core`.
   The exporter stays vendor-neutral OTLP/HTTP — operators running a
   Canvas OTel collector override `OTEL_EXPORTER_OTLP_ENDPOINT` and
   `OTEL_EXPORTER_OTLP_HEADERS` via Helm without code changes.
@@ -306,3 +308,10 @@ the same OTLP/HTTP stream.
 *v1.0 → v1.1 delta: §9 moves LangSmith in-scope as default OTel backend;
 §4 Phase 1 specifies the LangSmith endpoint and env contract; §11 records
 maintainer approval.*
+
+*v1.1 → v1.1.1 patch (2026-04-22): default endpoint corrected to the EU
+region (`https://eu.api.smith.langchain.com/otel`) after the first smoke
+test returned HTTP 403 against the US endpoint with an EU-region key.
+First successful end-to-end trace ingested 2026-04-22: span
+`langsmith.smoke.test`, project `ibn-core`, visible at
+eu.smith.langchain.com.*

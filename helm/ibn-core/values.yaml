@@ -184,9 +184,14 @@ observability:
     enabled: false
     serviceName: ibn-core
     # OTLP/HTTP base URL. Exporter appends /v1/traces if absent.
-    # LangSmith default. For a Canvas OTel collector, set e.g.
-    #   http://otel-collector.canvas.svc.cluster.local:4318
-    endpoint: "https://api.smith.langchain.com/otel"
+    # LangSmith default. LangSmith has two regions; the key determines
+    # which one your account lives in. To switch regions or point at a
+    # Canvas OTel collector, override this value:
+    #   US LangSmith:   https://api.smith.langchain.com/otel
+    #   EU LangSmith:   https://eu.api.smith.langchain.com/otel  (default)
+    #   Canvas:         http://otel-collector.canvas.svc.cluster.local:4318
+    # A `lsv2_sk_...` key will 403 against the wrong region's endpoint.
+    endpoint: "https://eu.api.smith.langchain.com/otel"
     # Extra resource attributes passed through OTEL_RESOURCE_ATTRIBUTES.
     resourceAttributes: ""
     # LangSmith ingest contract — API key + project.
