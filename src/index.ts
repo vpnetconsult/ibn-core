@@ -1,3 +1,8 @@
+// Telemetry must load first — the OTel SDK's auto-instrumentation hooks
+// require() at init time. Importing after express/http would miss them.
+// UC006 — Custom Observability (RFC 9315 §5.2.1 monitoring layer).
+import './telemetry';
+
 import express, { Application, Request, Response } from 'express';
 import helmet from 'helmet';
 import compression from 'compression';

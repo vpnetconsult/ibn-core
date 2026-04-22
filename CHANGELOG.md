@@ -67,6 +67,73 @@ invoked when `AUTH_MODE=apiKey`. Helm chart values are backwards compatible.
 
 ---
 
+### Added — ODA Canvas UC006 Custom Observability (Phase 1 — LangSmith as default OTLP backend)
+
+Implements: RFC 9315 §5.2.1 (Monitoring) via OpenTelemetry spans.
+ODA Canvas: UC006 — `oda.tmforum.org/customObservability` annotation declares
+  OTLP/HTTP export surface, signal types, and backend rollback path.
+Paper: supports Paper 2 empirical observability claims (AI-gateway audit
+  trail, LLM trace correlation with MCP orchestration spans).
+
+- **`src/telemetry.ts`** (new) — OpenTelemetry SDK bootstrap with OTLP/HTTP
+  exporter. Vendor-neutral; default backend is LangSmith
+  (`https://api.smith.langchain.com/otel`) because no Canvas-managed
+  collector is reachable in our dev/demo environments. Operators override
+  `OTEL_EXPORTER_OTLP_ENDPOINT` via Helm to point at their own collector.
+  Two input modes for auth headers:
+  1. Standard `OTEL_EXPORTER_OTLP_HEADERS=k=v,k=v` (comma-separated, URL-
+     decoded values).
+  2. LangSmith convenience: `LANGSMITH_API_KEY` + `LANGSMITH_PROJECT` —
+     telemetry.ts synthesises the `x-api-key` / `Langsmith-Project`
+     header pair at boot. This exists because Kubernetes Secrets mount as
+     discrete env vars; composing a comma-separated header value at
+     manifest-render time would leak the key into the rendered
+     ConfigMap.
+  Boot-time log line redacts the API key to `<4-char prefix>…(<length>)`.
+- **`src/index.ts`** — `import './telemetry'` as the very first line so
+  auto-instrumentation hooks `require` before express/http load.
+- **`src/telemetry.test.ts`** (new) — header parser (9 edge cases) and
+  enabled-gate assertions. The happy-path SDK start is deliberately not
+  covered by Jest because NodeSDK installs global hooks that leak into
+  every subsequent test suite; it is covered by the UC006 plan §6
+  acceptance tests instead.
+- **`src/package.json`** — adds 6 OTel packages (`@opentelemetry/api`,
+  `sdk-node`, `auto-instrumentations-node`, `exporter-trace-otlp-http`,
+  `resources`, `semantic-conventions`). All Apache 2.0.
+- **`helm/ibn-core/values.yaml`** — new `observability.otel.*` block
+  (`enabled`, `serviceName`, `endpoint`, `resourceAttributes`,
+  `langsmith.{enabled,project,apiKeySecret.{name,key}}`). Default
+  `enabled=false` — flip on when a collector is reachable.
+- **`helm/ibn-core/templates/configmap.yaml`** — carries `OTEL_ENABLED`,
+  `OTEL_SERVICE_NAME`, `OTEL_SERVICE_VERSION`,
+  `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_PROTOCOL`, optional
+  `OTEL_RESOURCE_ATTRIBUTES`.
+- **`helm/ibn-core/templates/deployment.yaml`** — gated block wires the
+  LangSmith Secret (`apiKeySecret.{name,key}`) as `LANGSMITH_API_KEY`
+  and passes `LANGSMITH_PROJECT`. Block only renders when
+  `observability.otel.enabled=true` AND `langsmith.enabled=true`.
+- **`helm/ibn-core/templates/component.yaml`** — new
+  `oda.tmforum.org/customObservability` annotation declaring protocol,
+  endpoint, signals (traces), auto-instrumentation spans, default backend
+  (langsmith), override path, and rollback flag.
+- **`docs/roadmap/canvas-uc/UC006-custom-observability.md`** — v1.1:
+  plan approved, §9 moves LangSmith in-scope, §4 specifies the LangSmith
+  endpoint and env contract.
+
+### Not in this PR (follow-up)
+
+- Phase 2 — explicit `llm.translate` / `mcp.*` domain spans.
+- Phase 3 — AI-Gateway span events (DLP / tool-policy / prompt-injection).
+- Phase 5 — CTK run record (`docs/compliance/UC006_CANVAS_CTK_RESULTS.md`)
+  once a Canvas or LangSmith ingest run produces results.
+
+### Rollback
+
+- `helm upgrade ... --set observability.otel.enabled=false` shuts the
+  exporter down; `prom-client` metrics continue unchanged. Every new
+  Helm value defaults to off, so chart upgrades from v2.2.0 are
+  backwards-compatible without any override.
+
 ## [2.2.0] - 2026-03-29
 
 ### Added
