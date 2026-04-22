@@ -117,6 +117,30 @@ metadata:
         - realm_access.roles
         - resource_access.<clientId>.roles
 
+    # customObservability — ODA Canvas UC006
+    # OpenTelemetry OTLP/HTTP export. Vendor-neutral exporter; default
+    # backend is LangSmith because no Canvas-managed OTel collector is
+    # reachable in our dev/demo environments. Operators with a Canvas
+    # collector override `observability.otel.endpoint` + supply their own
+    # Secret in place of `observability.otel.langsmith.apiKeySecret`.
+    {{- if .Values.observability.otel.enabled }}
+    oda.tmforum.org/customObservability: |
+      protocol: otlp-http
+      endpoint: {{ .Values.observability.otel.endpoint | quote }}
+      serviceName: {{ .Values.observability.otel.serviceName | quote }}
+      signals:
+        - traces
+      spans:
+        - name: http.server.request
+          source: auto-instrumentation (@opentelemetry/instrumentation-http)
+        - name: express.handler
+          source: auto-instrumentation (@opentelemetry/instrumentation-express)
+      backend:
+        default: langsmith
+        override: set observability.otel.endpoint to a Canvas OTel collector URL
+      rollback: set observability.otel.enabled=false (chart-level feature flag)
+    {{- end }}
+
 spec:
   type: {{ .Values.component.name }}
   version: {{ .Values.component.version | quote }}

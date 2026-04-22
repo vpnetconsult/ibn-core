@@ -163,6 +163,20 @@ When modifying code, maintain traceability to these standards:
 | `GET /api/v1/intent/:id` | §4 P1 SSoT/SVoT | GET /intent/{id} |
 | `DELETE /api/v1/intent/:id` | §6 Lifecycle | DELETE /intent/{id} |
 | `src/auth-jwt.ts` + `src/auth-router.ts` | §4 P3 Autonomy (identity bootstrap consumption) | ODA Canvas UC007 — Keycloak JWT validation against `identityconfig-operator-keycloak` realm |
+| `src/telemetry.ts` | §5.2.1 Monitoring (OTel spans) | ODA Canvas UC006 — Custom Observability; default OTLP/HTTP backend is LangSmith, overridable to any Canvas collector |
+
+---
+
+## Telemetry Bootstrap Rule (UC006)
+
+`src/telemetry.ts` MUST remain the very first `import` in `src/index.ts`.
+The OTel SDK's auto-instrumentation hooks `require` at init time; any
+other import ordered before it (express, http, etc.) will be bound
+before the hooks install and will never emit spans.
+
+Do not add new entrypoints that skip this import. If you create a new
+process (worker, cron, script) that needs traces, its first line must
+also be `import './telemetry'`.
 
 ---
 

@@ -28,3 +28,13 @@ data:
   OIDC_JWKS_CACHE_MAX_AGE_MS: {{ .Values.auth.jwt.jwksCacheMaxAgeMs | quote }}
   OIDC_JWKS_COOLDOWN_MS: {{ .Values.auth.jwt.jwksCooldownMs | quote }}
   OIDC_CLOCK_TOLERANCE_SEC: {{ .Values.auth.jwt.clockToleranceSec | quote }}
+  # UC006 — Custom Observability (non-secret OTel config; headers carry
+  # the LangSmith API key and are wired via deployment envFrom Secret).
+  OTEL_ENABLED: {{ .Values.observability.otel.enabled | quote }}
+  OTEL_SERVICE_NAME: {{ .Values.observability.otel.serviceName | quote }}
+  OTEL_SERVICE_VERSION: {{ .Values.component.version | quote }}
+  OTEL_EXPORTER_OTLP_ENDPOINT: {{ .Values.observability.otel.endpoint | quote }}
+  OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+  {{- if .Values.observability.otel.resourceAttributes }}
+  OTEL_RESOURCE_ATTRIBUTES: {{ .Values.observability.otel.resourceAttributes | quote }}
+  {{- end }}

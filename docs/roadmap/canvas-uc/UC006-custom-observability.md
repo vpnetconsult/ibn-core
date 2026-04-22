@@ -3,14 +3,14 @@
 | Field | Value |
 |---|---|
 | UC | **UC006** — Custom Observability |
-| Current status | ⬜ Not covered (declared out of scope in v2.2.0) |
+| Current status | 🛠 Plan approved 2026-04-22 — Phase 1 implementation in progress on `feat/uc006-langsmith-observability` |
 | Target version | **v2.3.0** |
-| Canvas prerequisites | `observability-operator` (Canvas-side), OpenTelemetry Collector |
+| Canvas prerequisites | OTLP-compatible collector (LangSmith is the default; any operator-side OTel collector works with a single env override) |
 | Effort estimate | **M** (1–3 days) |
 | Depends on | UC004 (Prometheus) ✅ covered · UC005 (base tracing) ✅ covered |
 | Blocks | Paper 2 empirical observability claims · AI-Gateway audit trail |
 | Plan author | Vpnet Cloud Solutions Sdn. Bhd. |
-| Plan date | 2026-04-21 |
+| Plan date | 2026-04-21 · revised 2026-04-22 (§9 LangSmith moved in-scope) |
 
 ---
 
@@ -97,16 +97,27 @@ spans and for AI-specific events. Do not replace Istio Telemetry — stack it.
 
 ### Phase 1 — OTEL SDK + OTLP Exporter (G1, G2)
 
-- Add `@opentelemetry/sdk-node`, `@opentelemetry/exporter-trace-otlp-http`,
-  `@opentelemetry/exporter-metrics-otlp-http`, and
-  `@opentelemetry/instrumentation-http` + `-express`.
+- Add `@opentelemetry/api`, `@opentelemetry/sdk-node`,
+  `@opentelemetry/auto-instrumentations-node`,
+  `@opentelemetry/exporter-trace-otlp-http`, `@opentelemetry/resources`,
+  `@opentelemetry/semantic-conventions`.
 - Bootstrap in a new `src/telemetry.ts`; import before any other module in
   `src/index.ts` so auto-instrumentation can hook `require`.
 - Export endpoint configured via env: `OTEL_EXPORTER_OTLP_ENDPOINT`,
   `OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf`, `OTEL_SERVICE_NAME=ibn-core`,
   `OTEL_RESOURCE_ATTRIBUTES="oda.component.name=ibn-core,oda.component.version=2.3.0"`.
+- **LangSmith as the default backend (workaround to avoid blocking on a
+  Canvas-managed collector).** Default `OTEL_EXPORTER_OTLP_ENDPOINT` to
+  `https://eu.api.smith.langchain.com/otel` (the Vpnet workspace is EU-
+  region; a `lsv2_sk_...` key issued against a region returns 403 on the
+  other region's endpoint), and carry the LangSmith API key + project
+  via `OTEL_EXPORTER_OTLP_HEADERS=x-api-key=<key>,Langsmith-Project=ibn-core`.
+  The exporter stays vendor-neutral OTLP/HTTP — operators running a
+  Canvas OTel collector override `OTEL_EXPORTER_OTLP_ENDPOINT` and
+  `OTEL_EXPORTER_OTLP_HEADERS` via Helm without code changes.
 - Helm values: `observability.otel.enabled` (default false, flip to true
-  on Canvas).
+  on Canvas); `observability.otel.langsmith.{apiKeySecret,project}`;
+  `observability.otel.endpoint` (override for non-LangSmith collectors).
 
 ### Phase 2 — Domain Spans (G3, G4)
 
@@ -239,10 +250,15 @@ Nothing under `src/api/`, `src/store/`, `business-intent-agent/`,
   Canvas contract (EventHub CRDs) — not an observability signal.
 - **Log aggregation.** UC006 is about spans / metrics / AI-specific events;
   log shipping to an OpenSearch/Loki stack is Canvas-side infrastructure.
-- **LangSmith integration.** A separate plan will evaluate LangSmith vs.
-  self-hosted OTLP traces; UC006 just needs the OTLP surface.
 - **Multi-tenant trace segregation.** v2.3.0 emits traces with customer IDs
   hashed per DPIA; per-tenant trace isolation is an operator-side concern.
+
+**Previously out of scope, moved in scope on 2026-04-22:** LangSmith as
+the default OTLP backend. We keep the exporter vendor-neutral (standard
+OTLP/HTTP), but ship with the LangSmith endpoint + headers as the default
+because no Canvas-managed collector is reachable in our current dev /
+demo environments. Operators with a Canvas OTel collector override the
+two env vars; no code change required.
 
 ---
 
@@ -262,14 +278,16 @@ Nothing under `src/api/`, `src/store/`, `business-intent-agent/`,
 
 ## 11. Approval Gate
 
-This plan is a docs-only artefact. Merging this PR **authorises the plan**,
-not the implementation. A separate PR, in a branch named
-`feat/uc006-custom-observability`, will deliver §5–§8 against this plan.
+**Plan approved 2026-04-22** by the Vpnet Cloud Solutions maintainer.
+Implementation lands on `feat/uc006-langsmith-observability` (Phase 1 +
+Phase 4 minimal wiring first; Phase 2/3 domain spans + AI-Gateway events
+in a follow-up PR so each change stays reviewable).
 
-Sign-off required from:
-- Vpnet Cloud Solutions (maintainer) — architectural direction
-- Any operator partner currently running the Canvas — collector-endpoint
-  coordination
+Operator-partner coordination on the Canvas collector endpoint is **not
+blocking** because the default LangSmith backend is operator-independent.
+When an operator Canvas is available, they override
+`observability.otel.endpoint` via Helm and their OTel collector ingests
+the same OTLP/HTTP stream.
 
 ---
 
@@ -286,4 +304,14 @@ Sign-off required from:
 
 ---
 
-*Plan v1.0 — 2026-04-21 — Vpnet Cloud Solutions Sdn. Bhd. — Apache 2.0.*
+*Plan v1.1 — 2026-04-22 — Vpnet Cloud Solutions Sdn. Bhd. — Apache 2.0.*
+*v1.0 → v1.1 delta: §9 moves LangSmith in-scope as default OTel backend;
+§4 Phase 1 specifies the LangSmith endpoint and env contract; §11 records
+maintainer approval.*
+
+*v1.1 → v1.1.1 patch (2026-04-22): default endpoint corrected to the EU
+region (`https://eu.api.smith.langchain.com/otel`) after the first smoke
+test returned HTTP 403 against the US endpoint with an EU-region key.
+First successful end-to-end trace ingested 2026-04-22: span
+`langsmith.smoke.test`, project `ibn-core`, visible at
+eu.smith.langchain.com.*
