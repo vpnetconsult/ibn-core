@@ -19,7 +19,7 @@ under a separate PR once a plan is approved.
 | UC004 | Publish Metrics | ✅ Covered (v2.2.0) | — |
 | UC005 | Retrieve Observability Data | ✅ Covered (v2.2.0) | — |
 | UC006 | Custom Observability | ⬜ Planned | [UC006-custom-observability.md](UC006-custom-observability.md) |
-| UC007 | External Authentication | ⬜ Not yet planned | — |
+| UC007 | External Authentication | 🛠 In implementation (v2.3.0) | [UC007-external-authentication.md](UC007-external-authentication.md) |
 | UC008 | Internal Authentication | ⬜ Not yet planned | — |
 | UC009 | Authorization | ⬜ Not yet planned | — |
 | UC010 | Token Refresh | ⬜ Not yet planned | — |

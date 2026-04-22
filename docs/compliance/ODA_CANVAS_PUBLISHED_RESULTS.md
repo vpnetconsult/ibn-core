@@ -23,7 +23,7 @@ Component Catalogue and for citation in academic / vendor-due-diligence contexts
 | **Primary standard** | RFC 9315 Intent-Based Networking (IRTF NMRG, Oct 2022) |
 | **TMF Open API** | TMF921 Intent Management v5.0.0 |
 | **TMF921 CTK score** | **83 / 83 — 100%** |
-| **ODA Canvas Use Cases** | UC001 ✅ · UC002 ✅ · UC003 ✅ · UC004 ✅ · UC005 ✅ |
+| **ODA Canvas Use Cases** | UC001 ✅ · UC002 ✅ · UC003 ✅ · UC004 ✅ · UC005 ✅ · UC007 🛠 (v2.3.0, CTK pending) |
 | **AI-Native Canvas readiness** | MCP tools · dependentModels · A2A agentCard · evaluationDataset — all declared |
 | **Conformance type** | Self-declared, reproducible from public repo |
 | **Test date** | February 2026 |
@@ -99,15 +99,20 @@ Detailed evidence map: [`ODA_CANVAS_CTK.md`](ODA_CANVAS_CTK.md).
 | **UC003** | Retrieve API endpoint | ✅ Pass | `api-operator-istio` reads `ExposedAPI` and creates the Istio route; endpoint resolvable via Canvas ingress. |
 | **UC004** | Publish Metrics | ✅ Pass | `spec.management.exposedAPIs[metrics]` → Prometheus at `/metrics:8080`. Scrape target registered. |
 | **UC005** | Retrieve Observability Data | ✅ Pass | Prometheus scrape + Istio Telemetry (Jaeger traces). |
-| UC006 | Custom Observability | ⬜ Out of scope | v2.2.0 does not bind LangSmith / OpenLLMetry yet. Roadmap item. |
-| UC007 | External Auth Flow | ⬜ Out of scope | Delegated to Canvas Keycloak operator; no app-level change required. |
-| UC008 | Internal Auth Flow | ⬜ Out of scope | Same as UC007. |
+| UC006 | Custom Observability | 🛠 Planned v2.3.0 | OpenTelemetry SDK + LangSmith backend. See [`../roadmap/canvas-uc/UC006-custom-observability.md`](../roadmap/canvas-uc/UC006-custom-observability.md). |
+| **UC007** | External Auth Flow | 🛠 Delivered v2.3.0 — CTK pending | Keycloak JWT validation (`src/auth-jwt.ts`, `src/auth-router.ts`), `oda.tmforum.org/externalAuthentication` annotation. Run record: [`UC007_CANVAS_CTK_RESULTS.md`](UC007_CANVAS_CTK_RESULTS.md). |
+| UC008 | Internal Auth Flow | ⬜ Not yet planned | mTLS via Istio; reuses UC007 identity artefacts. |
 | UC009 | Authorization | ⬜ Out of scope | Delegated to `identityconfig-operator-keycloak`. |
 | UC010 | Token Refresh | ⬜ Out of scope | Delegated to Canvas. |
 | UC011 | Licence Metrics | ⬜ Not applicable | Apache 2.0 open core — no licence-metering surface. |
 | UC012–UC015 | Event Management | ⬜ Out of scope v2.2.0 | Requires Canvas EventHub CRDs (`PublishedNotification` / `SubscribedNotification`). Planned for v3.0.0 alongside live CAMARA integration. |
 
-**Use-case score: 5 / 5 in-scope Use Cases passed. 10 out-of-scope, 0 failed.**
+**Use-case score (v2.0.1): 5 / 5 in-scope Use Cases passed. 10 out-of-scope, 0 failed.**
+
+**v2.3.0 delta:** UC007 implementation delivered (JWT/Keycloak). CTK execution
+against a Canvas with `identityconfig-operator-keycloak` is the remaining gate
+before UC007 flips to ✅. UC006 (Custom Observability via OTel + LangSmith) is
+in parallel development under the same release window.
 
 ---
 
@@ -299,6 +304,7 @@ This section exists to keep the publication record credible.
 | Date | Revision | Change |
 |---|---|---|
 | 2026-04-21 | 1.0 | Initial publication — TMF921 CTK 83 / 83 (v2.0.1) + Canvas UC001–UC005 attestation + AI-Native readiness declaration. |
+| 2026-04-21 | 1.1 | Implementation delta: UC007 External Authentication delivered (Keycloak JWT via `identityconfig-operator-keycloak`). UC006 Custom Observability plan approved (OTel + LangSmith). Both await Canvas-side execution to flip from 🛠 to ✅. |
 
 ---
 

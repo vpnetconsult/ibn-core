@@ -162,6 +162,7 @@ When modifying code, maintain traceability to these standards:
 | Istio circuit breakers + HPA | §5.2.3 Compliance Actions | Handler triggers |
 | `GET /api/v1/intent/:id` | §4 P1 SSoT/SVoT | GET /intent/{id} |
 | `DELETE /api/v1/intent/:id` | §6 Lifecycle | DELETE /intent/{id} |
+| `src/auth-jwt.ts` + `src/auth-router.ts` | §4 P3 Autonomy (identity bootstrap consumption) | ODA Canvas UC007 — Keycloak JWT validation against `identityconfig-operator-keycloak` realm |
 
 ---
 

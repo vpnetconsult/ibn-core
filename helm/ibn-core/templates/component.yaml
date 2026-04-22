@@ -11,6 +11,10 @@
 #   UC001 — Identity Bootstrap   (security.controllerRole)
 #   UC002 — Expose API           (coreFunction.exposedAPIs → TMF921)
 #   UC004/UC005 — Observability  (management.exposedAPIs → Prometheus /metrics)
+#   UC007 — External Auth Flow   (oda.tmforum.org/externalAuthentication
+#                                 annotation; Keycloak JWT validation active
+#                                 when auth.mode=jwt|both and
+#                                 canvas.identityConfig.enabled=true)
 #
 # AI-Native Canvas forward-compatibility (annotations):
 #   dependentModels  — RFC 9315 §5.1.2 Claude Sonnet translation
@@ -89,6 +93,29 @@ metadata:
     # evaluationDataset — AI-Native Canvas §EvaluationDatasets
     # O2C canonical test is the primary evaluation entry for non-deterministic AI
     oda.tmforum.org/evaluationDataset: "docs/compliance/O2C_EVALUATION.md"
+
+    # externalAuthentication — ODA Canvas UC007
+    # Declares that this component validates Keycloak-issued Bearer tokens
+    # directly (RS256 against the realm JWKS) rather than relying solely on
+    # Canvas-side gateway enforcement. Active when auth.mode is jwt or both.
+    # See: docs/roadmap/canvas-uc/UC007-external-authentication.md
+    oda.tmforum.org/externalAuthentication: |
+      provider: keycloak
+      mode: {{ .Values.auth.mode | quote }}
+      identityBootstrap: identityconfig-operator-keycloak
+      clientSecretName: {{ .Values.canvas.identityConfig.clientSecretName | quote }}
+      tokenFormat: jwt-rs256
+      claimsValidated:
+        - iss
+        - aud
+        - exp
+        - nbf
+        - iat
+      jwksRotation: supported
+      challengeHeader: "WWW-Authenticate: Bearer"
+      roleClaims:
+        - realm_access.roles
+        - resource_access.<clientId>.roles
 
 spec:
   type: {{ .Values.component.name }}

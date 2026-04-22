@@ -131,6 +131,39 @@ odaApi:
 odaSecurity:
   controllerRole: ibn-core-role
 
+# -- UC007 — External Authentication (Keycloak JWT via Canvas identityconfig-operator)
+# See: docs/roadmap/canvas-uc/UC007-external-authentication.md
+#
+# auth.mode:
+#   apiKey → legacy API-key middleware only (pre-UC007 behaviour, default)
+#   jwt    → Keycloak-issued RS256 JWT validation only (UC007)
+#   both   → JWT if the Bearer looks like one, else API-key (migration mode)
+#
+# When canvas.identityConfig.enabled=true, the deployment mounts the Keycloak
+# client Secret created by identityconfig-operator-keycloak (UC001 output) and
+# exposes OIDC_CLIENT_ID / OIDC_CLIENT_SECRET / OIDC_AUDIENCE from it.
+auth:
+  mode: apiKey
+  jwt:
+    # Keycloak realm issuer URL, e.g. https://keycloak.canvas.svc/realms/canvas
+    # Leave empty when auth.mode=apiKey.
+    issuerUrl: ""
+    # Keycloak clientId for ibn-core. If canvas.identityConfig.enabled=true,
+    # this is read from the mounted client Secret and this value is ignored.
+    audience: ""
+    jwksCacheMaxAgeMs: "600000"
+    jwksCooldownMs: "30000"
+    clockToleranceSec: "30"
+
+canvas:
+  identityConfig:
+    # Flip to true on a Canvas that runs identityconfig-operator-keycloak and
+    # has already provisioned the Keycloak client Secret for this component.
+    enabled: false
+    # Secret name convention emitted by identityconfig-operator-keycloak.
+    # Must contain keys: clientId, clientSecret.
+    clientSecretName: ibn-core-client-secret
+
 # -- AI-Native Canvas annotations (forward-compatible; feeds component CRD metadata)
 # See: https://github.com/tmforum-oda/oda-canvas/blob/main/AI-Native-Canvas-design.md
 aiNative:

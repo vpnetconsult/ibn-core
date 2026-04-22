@@ -6,9 +6,23 @@ This document explains how to authenticate with the Business Intent Agent API.
 
 As of v1.1.0, all API endpoints (except `/health`, `/ready`, `/metrics`) require authentication to comply with NIST CSF 2.0 PR.AC-01 (Identity and Credential Management).
 
-## Authentication Method: API Key
+As of v2.3.0 (ODA Canvas UC007), the service supports two authentication
+methods, selectable at deploy time:
 
-The Business Intent Agent uses API key authentication with Bearer tokens.
+| Mode | Trigger | When to use |
+|---|---|---|
+| **API key** (`AUTH_MODE=apiKey`, default) | Legacy `Bearer <api-key>` validated against an in-memory store | Standalone deploys, dev/CI, TMF921 CTK runs |
+| **Keycloak JWT** (`AUTH_MODE=jwt`) | `Bearer <jwt>` validated against the Canvas Keycloak realm JWKS (RS256, `iss`/`aud`/`exp`/`nbf`/`iat`) | Canvas installs with `identityconfig-operator-keycloak` (UC001) provisioning the client Secret |
+| **Both** (`AUTH_MODE=both`) | JWT if the Bearer token is three dot-separated segments, else API key | Migration from API-key to JWT. Deprecated post-v3.0.0. |
+
+The router that picks between the two middlewares is
+[`src/auth-router.ts`](./auth-router.ts); the JWT validator is
+[`src/auth-jwt.ts`](./auth-jwt.ts); the legacy API-key middleware remains at
+[`src/auth.ts`](./auth.ts).
+
+## Authentication Method 1: API Key (legacy / dev)
+
+The Business Intent Agent supports API-key authentication with Bearer tokens.
 
 ### Authentication Header Format
 
@@ -135,6 +149,94 @@ API keys are scoped to a specific customer ID. Requests can only access data for
 - ❌ Invalid request: `{"customerId": "CUST-99999", "intent": "..."}` (returns 403 Forbidden)
 
 **Exception:** The development key `DEMO-CUSTOMER` can access any customer ID when `NODE_ENV=development`.
+
+## Authentication Method 2: Keycloak JWT (UC007, Canvas mode)
+
+On an ODA Canvas with `identityconfig-operator-keycloak` installed, set
+`auth.mode=jwt` and `canvas.identityConfig.enabled=true` in Helm values.
+At pod start, the Keycloak client Secret created by the operator is mounted
+as `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, and `OIDC_AUDIENCE`; the issuer
+URL comes from `auth.jwt.issuerUrl`.
+
+### Environment contract
+
+| Env var | Source | Required when |
+|---|---|---|
+| `AUTH_MODE` | ConfigMap (`apiKey` \| `jwt` \| `both`) | Always; defaults to `apiKey` |
+| `OIDC_ISSUER_URL` | ConfigMap (e.g. `https://keycloak.canvas.svc/realms/canvas`) | `AUTH_MODE` includes `jwt` |
+| `OIDC_AUDIENCE` | Secret `ibn-core-client-secret.clientId` (Canvas) or ConfigMap (standalone) | `AUTH_MODE` includes `jwt` |
+| `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET` | Secret `ibn-core-client-secret` (Canvas) | Canvas mode only |
+| `OIDC_JWKS_URL` | ConfigMap override — defaults to `<issuer>/protocol/openid-connect/certs` | Optional |
+| `OIDC_JWKS_CACHE_MAX_AGE_MS` | ConfigMap (default `600000`) | Optional |
+| `OIDC_JWKS_COOLDOWN_MS` | ConfigMap (default `30000`) | Optional |
+| `OIDC_CLOCK_TOLERANCE_SEC` | ConfigMap (default `30`) | Optional |
+
+### Claims validated
+
+| Claim | Check |
+|---|---|
+| `iss` | Must equal `OIDC_ISSUER_URL` |
+| `aud` | Must equal `OIDC_AUDIENCE` |
+| `exp` | Must be in the future (clock tolerance `OIDC_CLOCK_TOLERANCE_SEC`) |
+| `nbf` | If present, must not be in the future |
+| `iat` | Must not be in the future (clock tolerance) |
+| Signature | RS256 against a key published in the realm JWKS |
+
+### Roles surface (used by future UC009)
+
+After a successful JWT validation, `req.auth.roles` contains:
+
+- Each entry in `realm_access.roles` (unprefixed, e.g. `operator`).
+- Each entry in `resource_access[<OIDC_AUDIENCE>].roles`, prefixed with the
+  audience (e.g. `ibn-core:admin`).
+
+Roles scoped to a different Keycloak client are **not** included.
+
+### Example: obtain a token and call the API
+
+```bash
+ACCESS_TOKEN=$(curl -s \
+  -d "client_id=ibn-core" \
+  -d "client_secret=$OIDC_CLIENT_SECRET" \
+  -d "grant_type=client_credentials" \
+  https://keycloak.canvas.svc/realms/canvas/protocol/openid-connect/token \
+  | jq -r .access_token)
+
+curl -i \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  http://<ibn-core-host>/api/v1/intent
+```
+
+### Error responses (JWT)
+
+Every JWT 401 carries a `WWW-Authenticate: Bearer` challenge per RFC 6750.
+
+```
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Bearer realm="ibn-core", error="invalid_token",
+                        error_description="Token has expired"
+Content-Type: application/json
+
+{"error":"Unauthorized","message":"Token has expired"}
+```
+
+Observed `error` values: `invalid_request` (missing/malformed header),
+`invalid_token` (signature, expiry, claim, or JWKS match failure),
+`server_error` (auth validator misconfigured — `503`, not caller's fault).
+
+### Metric label set
+
+`auth_success_total{method="jwt"}` and `auth_success_total{method="api_key"}`
+distinguish modes in production. `auth_failure_total{reason}` reasons include
+`token_expired`, `signature_invalid`, `claim_invalid`, `jwks_no_match`,
+`algorithm_unsupported`, and the legacy `invalid_key` / `missing_header`
+reasons from the API-key path.
+
+### Rollback
+
+If a JWT deployment misbehaves, `helm upgrade ... --set auth.mode=apiKey`
+reverts the service to the pre-UC007 code path without a rebuild. The JWT
+middleware never runs when `AUTH_MODE=apiKey`.
 
 ## Security Best Practices
 
