@@ -1,79 +1,97 @@
-# Canvas Operator → community-operators — Submission Roadmap
+# OperatorHub — Submission Roadmap
 
-This folder holds **implementation plans** for publishing the ODA Canvas
-operators to the [community-operators][1] distribution channel (the canonical
-source that feeds [OperatorHub.io][2], OpenShift's embedded OperatorHub, and
-OKD).
+This folder holds **implementation plans** for publishing Kubernetes
+operators to the OLM distribution channels:
 
-Plans in this folder are **documentation only** — they propose a PR sequence
-against the upstream [`k8s-operatorhub/community-operators`][3] repo and/or
-[`tmforum-oda/oda-canvas`][4] repo. Implementation lands in the **upstream**
-repositories, not in ibn-core; ibn-core tracks the effort here because
-ibn-core is a **dependent consumer** of the Canvas (ibn-core ships as an ODA
-Component that the Canvas operators install and wire).
+- **[k8s-operatorhub/community-operators][1]** → OperatorHub.io listing
+  (the broad Kubernetes audience) and the OpenShift embedded catalogue.
+- **[redhat-openshift-ecosystem/community-operators-prod][2]** →
+  OpenShift OperatorHub listing (the OpenShift / OKD audience
+  specifically).
 
-## Why this matters for ibn-core
+The two repositories share bundle formats but are distinct catalogues;
+a Vpnet component that targets both surfaces needs the bundle in both
+repos.
 
-ibn-core declares itself an ODA Component (`oda.tmforum.org/v1alpha3`
-`Component` kind). That CRD is installed and watched by the Canvas's
-**Component Management operator** (TMFOP001). Today:
+Plans in this folder are **documentation only** — they propose PR
+sequences against upstream repos. Implementation lands as upstream PRs,
+not as ibn-core code changes.
 
-- Canvas operators ship **Helm-only** from `tmforum-oda/oda-canvas`.
-- Neither Canvas nor any TMFOPnnn operator is published on
-  community-operators or OperatorHub.io.
-- Operators using OLM (Operator Lifecycle Manager) — the default install
-  path on OpenShift and an increasingly common path on vanilla Kubernetes
-  — cannot install the Canvas through their cluster's operator catalogue.
+## Strategic direction
 
-This is a friction point for any customer who wants ibn-core on a Canvas
-they manage via OLM rather than Helm. Publishing the Canvas operators to
-community-operators removes that friction.
+**Canvas is consumed, not published.** ibn-core uses TM Forum ODA
+Canvas as its runtime substrate: Canvas operators (TMFOP001–011)
+install from `tmforum-oda/oda-canvas` via Helm, watch the
+`Component` CR that each ODA component (ibn-core included) emits, and
+handle identity registration, API exposure, observability wiring, and
+so on.
+
+**Vpnet's own components are published.** ibn-core, and later the
+operator-specific CAMARA adapters that live in the private repo, are
+packaged as OLM bundles and submitted to the community catalogues so
+customers can install them from within OpenShift's built-in
+OperatorHub UI.
+
+Division of responsibility:
+
+| Actor | Produces | Distributes via |
+|---|---|---|
+| TM Forum ODA-CP | Canvas operators TMFOP001–011 | Helm charts under `tmforum-oda/oda-canvas` (current state). Upstream publishing to community-operators is a TM Forum decision, tracked in [canvas-operators-upstream.md](canvas-operators-upstream.md) but **not a Vpnet deliverable**. |
+| Vpnet Cloud Solutions (this repo) | ibn-core as an OLM Helm-operator bundle | Dual submission to both community-operators catalogues — see [ibn-core-operatorhub-submission.md](ibn-core-operatorhub-submission.md). |
+
+This keeps the boundaries clean: we do not try to upstream someone
+else's work, and we do not fork the Canvas.
 
 ## Scope map
 
-| Phase | Target operator | Plan | Owner repo |
+| Phase | Component | Plan | Owner |
 |---|---|---|---|
-| P1 | TMFOP001 Component Management | [component-management-operatorhub-submission.md](component-management-operatorhub-submission.md) | upstream PR to [`k8s-operatorhub/community-operators`][3] |
-| P2 | TMFOP002 API Management + TMFOP003 Identity Config | follow-up plan (not yet drafted) | upstream PR to [`k8s-operatorhub/community-operators`][3] |
-| P3 | Remaining TMFOPnnn (004–011) | follow-up plan (not yet drafted) | upstream PR to [`k8s-operatorhub/community-operators`][3] |
+| **P1** | **ibn-core** (first Vpnet component) | [ibn-core-operatorhub-submission.md](ibn-core-operatorhub-submission.md) | Vpnet |
+| P2 | Future Vpnet components (CAMARA adapters, etc.) | not yet drafted | Vpnet |
+| — (aspirational) | TMFOP001 Component Management (the Canvas itself) | [canvas-operators-upstream.md](canvas-operators-upstream.md) | TM Forum (informational only — Vpnet does not own this) |
 
-## Scope exclusion — why ibn-core itself is NOT a candidate
+## Scope exclusion — why Canvas publishing is NOT a Vpnet deliverable
 
-ibn-core is a **workload**, not a Kubernetes operator. It does not watch
-CRDs or reconcile custom resources. It exposes a TMF921 API and is
-installed via Helm. `community-operators` accepts only OLM bundles of
-**Kubernetes operators** — ibn-core is out of scope.
-
-The ibn-core Helm chart can be listed on [ArtifactHub][5] (separate
-distribution channel, Helm-native). That's tracked separately if/when we
-decide to do it; it's not part of this roadmap.
+The earlier draft of this roadmap included a plan to publish the
+Canvas's TMFOP001 Component Management operator upstream. That plan
+was reclassified as **informational** — it describes what TM Forum
+could do, should they choose to, but Vpnet does not own that work.
+Customers can and do install the Canvas via the Helm path that the
+Canvas repo already provides. Publishing the Canvas upstream is a
+value-add for the broader TM Forum community, not a prerequisite for
+ibn-core's distribution.
 
 ## Conventions
 
-- **Upstream-first.** Every deliverable in a plan here lands in
-  `tmforum-oda/oda-canvas` or `k8s-operatorhub/community-operators`. We
-  do not fork.
-- **Traceability.** Each plan pins the exact upstream commit / tag / chart
-  version it converts to an OLM bundle.
-- **Licence check.** Every upstream source touched must be Apache 2.0 or
-  MIT (our repo's licence policy — see `CLAUDE.md`).
-- **DCO sign-off.** Every commit to community-operators must carry
-  `Signed-off-by:` (community-operators DCO requirement — not the same as
-  our `Co-Authored-By:` trailer).
+- **Upstream-first.** Every deliverable lands in
+  `k8s-operatorhub/community-operators` or
+  `redhat-openshift-ecosystem/community-operators-prod`. We do not
+  fork either repo.
+- **Helm-native.** ibn-core's Helm chart is the source of truth.
+  Bundle submissions wrap the chart using the Operator SDK
+  `helm-operator` pattern — we do not rewrite ibn-core as a Go or
+  Ansible operator.
+- **Licence.** All submissions must be Apache 2.0. ibn-core already
+  satisfies this (see `LICENSE` + `NOTICE` at repo root).
+- **Signed-off-by.** Both target repos require DCO on every commit.
+  This is in addition to the `Co-Authored-By:` trailer we use
+  internally.
+- **Plans are approval artefacts.** Landing a plan is not landing an
+  implementation. Acceptance criteria in each plan must be testable.
 
 ## References
 
-- [community-operators docs site][1]
-- [community-operators repo][3]
-- [OperatorHub.io][2]
-- [tmforum-oda/oda-canvas][4]
-- [Operator SDK bundle format][6]
-- [TM Forum ODA Canvas operator matrix — `source/operators/README.md`][7]
+| Source | Purpose |
+|---|---|
+| [k8s-operatorhub/community-operators][1] · [docs site][3] | OperatorHub.io catalogue — primary target |
+| [redhat-openshift-ecosystem/community-operators-prod][2] | OpenShift Community catalogue — secondary target |
+| [Operator SDK Helm-operator tutorial][4] | Chart-to-bundle wrapping path |
+| [OperatorHub.io][5] | User-facing listing surface |
+| [tmforum-oda/oda-canvas][6] | Canvas source — consumed, not published |
 
-[1]: https://k8s-operatorhub.github.io/community-operators/
-[2]: https://operatorhub.io/
-[3]: https://github.com/k8s-operatorhub/community-operators
-[4]: https://github.com/tmforum-oda/oda-canvas
-[5]: https://artifacthub.io/
-[6]: https://sdk.operatorframework.io/docs/olm-integration/generation/
-[7]: https://github.com/tmforum-oda/oda-canvas/tree/main/source/operators
+[1]: https://github.com/k8s-operatorhub/community-operators
+[2]: https://github.com/redhat-openshift-ecosystem/community-operators-prod
+[3]: https://k8s-operatorhub.github.io/community-operators/
+[4]: https://sdk.operatorframework.io/docs/building-operators/helm/tutorial/
+[5]: https://operatorhub.io/
+[6]: https://github.com/tmforum-oda/oda-canvas

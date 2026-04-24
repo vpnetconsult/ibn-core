@@ -1,16 +1,22 @@
-# TMFOP001 Component Management → community-operators — Submission Plan
+# Canvas Operators Upstream — Informational Reference (NOT a Vpnet deliverable)
 
 | Field | Value |
 |---|---|
-| Target upstream | [`k8s-operatorhub/community-operators`](https://github.com/k8s-operatorhub/community-operators) |
+| Document type | **Informational** — describes what TM Forum *could* publish upstream, should they choose to |
+| Vpnet ownership | **None.** Vpnet consumes the Canvas via its existing Helm distribution. This file exists only to record the shape of an upstream publication, not to commit Vpnet to executing it. |
+| Target upstream (hypothetical) | [`k8s-operatorhub/community-operators`](https://github.com/k8s-operatorhub/community-operators) |
 | Source upstream | [`tmforum-oda/oda-canvas`](https://github.com/tmforum-oda/oda-canvas) — `source/operators/TMFOP001-Component-Management` |
-| Canvas operator ID | **TMFOP001** — Component Management |
+| Canvas operator ID | **TMFOP001** — Component Management (first candidate of TMFOP001–011) |
 | Source licence | Apache 2.0 (verified — `tmforum-oda/oda-canvas/LICENSE`) |
-| Destination distribution | OperatorHub.io · OpenShift embedded · OKD |
-| Effort estimate | **L** (1–2 weeks across 3 PRs) |
 | Plan author | Vpnet Cloud Solutions Sdn. Bhd. |
 | Plan date | 2026-04-24 |
-| Status | ⬜ Proposed — awaiting TM Forum + Vpnet approval to act as upstream submitter |
+| Status | ⚪ Informational — Vpnet is not pursuing this work |
+
+> **Scope note.** The active Vpnet submission track is
+> [`ibn-core-operatorhub-submission.md`](ibn-core-operatorhub-submission.md) —
+> that plan publishes **ibn-core itself** as a helm-operator bundle
+> and treats the Canvas as a runtime dependency. Publishing the
+> Canvas upstream is orthogonal and is TM Forum's call, not ours.
 
 ---
 
