@@ -301,6 +301,7 @@ the same OTLP/HTTP stream.
 - [`AI_AGENT_ALIGNMENT_PLAN.md`](../../architecture/AI_AGENT_ALIGNMENT_PLAN.md) — §"Agent trajectory observability" gap informed this plan
 - [`src/metrics.ts`](../../../src/metrics.ts) — existing metrics surface
 - [`helm/ibn-core/templates/istio/telemetry.yaml`](../../../helm/ibn-core/templates/istio/telemetry.yaml) — existing Istio Telemetry
+- [`UC006-otel-operator-comparison.md`](UC006-otel-operator-comparison.md) — OpenTelemetry Operator vs. in-process SDK decision doc (hybrid recommended for Phase 4)
 
 ---
 
