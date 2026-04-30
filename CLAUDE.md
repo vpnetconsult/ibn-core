@@ -89,6 +89,85 @@ npm info <package-name> license
 
 ---
 
+## Agent-Native Development — How We Work on This Repo
+
+ibn-core is an AI-Native ODA component, and its development workflow is
+agent-native by design. "Agent-native development" means AI agents
+(Claude Code sessions, subagents, and — in production — the component
+itself) are first-class collaborators. The repo is structured so a
+fresh agent session gets productive without tribal knowledge.
+
+Everything below this section — repo layout, the `McpAdapter` seam,
+the Standards Implementation Map, the telemetry bootstrap rule,
+commit-message traceability — exists in the form it does to support
+this approach.
+
+### Principles
+
+1. **Context-first.** Every repo has `CLAUDE.md` (this file). Every
+   workstream has a plan under `docs/roadmap/`. Every conformance
+   claim has evidence under `docs/compliance/`. An agent joining cold
+   reads these before touching code.
+
+2. **Plans before PRs.** Non-trivial work starts as a plan doc in
+   `docs/roadmap/` — e.g. `canvas-uc/UC006-custom-observability.md`,
+   `operatorhub/ibn-core-operatorhub-submission.md`. Plans are the
+   unit of approval; PRs are the unit of implementation. This keeps
+   direction separate from mechanics.
+
+3. **Decision docs over tribal knowledge.** When two technically valid
+   paths exist, land a decision doc that records the choice and the
+   one-line rationale — e.g.
+   `docs/roadmap/canvas-uc/UC006-otel-operator-comparison.md`. Future
+   agents do not re-litigate settled questions.
+
+4. **Evidence as versioned artefacts.** CTK runs, smoke tests, and
+   conformance verifications land as Markdown under `docs/compliance/`,
+   dated and tied to a commit or tag. The doc IS the evidence —
+   screenshots and external dashboards are secondary.
+
+5. **Named architectural seams.** The most important boundaries are
+   called out explicitly in this file — `src/mcp/McpAdapter.ts`
+   (open-core seam), `src/telemetry.ts` (must be first import),
+   `docs/standards/` (cited vs. implemented). Editing a named seam
+   means reading its rule first.
+
+6. **Traceability in commit messages.** Every non-trivial commit cites
+   the RFC / TMF / Paper reference it touches (see "Paper Citation
+   Reference" below). `git log` becomes a reasoning trail a future
+   agent can reconstruct cold.
+
+7. **Meta-observability.** The product itself emits agent telemetry —
+   GenAI semantic conventions (`gen_ai.*`), RFC 9315 phase tags
+   (`rfc9315.phase`), AI-Gateway events (`ai_gateway.*`). Agent
+   behaviour in production is a measurable signal, not a black box.
+   The same telemetry pattern (`src/telemetry.ts` → OTLP → LangSmith
+   or a Canvas collector) is what lets us evaluate the agents we ship.
+
+8. **Parallel worktrees for parallel sessions.** `.claude/worktrees/`
+   isolates simultaneous agent sessions so two branches in flight do
+   not collide on the same working tree.
+
+### Enforceable rules
+
+- **A new feature without a plan doc is a red flag.** If you are
+  implementing something not covered by a `docs/roadmap/` file, pause
+  and write the plan first.
+- **A conformance claim without a `docs/compliance/` doc is not
+  verified.** The doc — with run ID, date, and evidence links — is
+  the claim.
+- **A fork in the road without a decision doc leaves a gap.** If two
+  valid technical paths exist for a non-trivial choice, write the
+  comparison before picking.
+- **A cross-file architectural rule not in `CLAUDE.md` will be
+  forgotten.** Add it here.
+- **Never delegate understanding.** When spawning a subagent, write a
+  self-contained prompt with file paths, line numbers, and the
+  specific question. Do not write "based on your findings, fix the
+  bug" — synthesis stays with the orchestrating agent.
+
+---
+
 ## Repository Structure
 
 ```
@@ -273,4 +352,6 @@ If this test fails after any change, do not commit.
 
 ---
 
-*Last updated: February 2026 (v2.0.1) — Vpnet Cloud Solutions Sdn. Bhd.*
+*Last updated: April 2026 — Vpnet Cloud Solutions Sdn. Bhd. · added
+"Agent-Native Development" methodology section; prior revision February
+2026 (v2.0.1).*

@@ -170,10 +170,12 @@ Phase 3 land.** Phase 1's scope is the ingest-path proof only:
 | 1 | OTel SDK + OTLP/HTTP exporter + Helm wiring + LangSmith default | ✅ merged in [#35](https://github.com/vpnetconsult/ibn-core/pull/35) |
 | 2 | Explicit `llm.translate` / `mcp.*` domain spans in `claude-client.ts` and `McpAdapter` | pending |
 | 3 | AI-Gateway span events (DLP / tool-policy / prompt-injection) on real policy modules | pending |
+| 4 | Route through an in-cluster OTel Collector managed by the OpenTelemetry Operator — see [`UC006-otel-operator-comparison.md`](../roadmap/canvas-uc/UC006-otel-operator-comparison.md) | decision recorded (hybrid), implementation pending |
 | 5 | Canvas CTK UC006 run — completes §4 table | pending |
 
-Phase 2 and 3 close UC006.05 on the CTK table; Phase 5 closes the
-remaining rows.
+Phase 2 and 3 close UC006.05 on the CTK table; Phase 4 moves the
+exporter onto a Canvas-compatible Collector (closing UC006.02 when a
+Canvas is reachable); Phase 5 closes the remaining rows.
 
 ---
 
