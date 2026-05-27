@@ -1,0 +1,206 @@
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [
+          { "key": "service.name", "value": { "stringValue": "ibn-core" } },
+          { "key": "service.version", "value": { "stringValue": "2.3.0" } },
+          { "key": "oda.component.name", "value": { "stringValue": "ibn-core" } },
+          { "key": "oda.component.version", "value": { "stringValue": "2.3.0" } }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": { "name": "ibn-core.uc006.harness", "version": "2.3.0" },
+          "spans": [
+            {
+              "traceId": "6c9bb6b3e3d983f9432df48419e7aef3",
+              "spanId": "a1b2c3d4e5f60718",
+              "name": "http.server.request POST /tmf-api/intentManagement/v5/intent",
+              "kind": 2,
+              "startTimeUnixNano": "1776849300000000000",
+              "endTimeUnixNano": "1776849300820000000",
+              "attributes": [
+                { "key": "http.method", "value": { "stringValue": "POST" } },
+                { "key": "http.route", "value": { "stringValue": "/tmf-api/intentManagement/v5/intent" } },
+                { "key": "http.status_code", "value": { "intValue": "201" } },
+                { "key": "net.peer.ip", "value": { "stringValue": "10.42.0.17" } },
+                { "key": "scenario", "value": { "stringValue": "B-dlp-redaction" } },
+                { "key": "run.id", "value": { "stringValue": "uc006-extensive-1776851841678" } }
+              ],
+              "status": { "code": 1 }
+            },
+            {
+              "traceId": "6c9bb6b3e3d983f9432df48419e7aef3",
+              "spanId": "b2c3d4e5f6071829",
+              "parentSpanId": "a1b2c3d4e5f60718",
+              "name": "intent.ingest",
+              "kind": 1,
+              "startTimeUnixNano": "1776849300002000000",
+              "endTimeUnixNano": "1776849300009000000",
+              "attributes": [
+                { "key": "rfc9315.phase", "value": { "stringValue": "5.1.1" } },
+                { "key": "intent.id", "value": { "stringValue": "intent-8a4b1d02" } },
+                { "key": "intent.customer_id", "value": { "stringValue": "CUST-12345" } },
+                { "key": "tmf921.version", "value": { "stringValue": "v5.0.0" } },
+                { "key": "dlp.redactions.count", "value": { "intValue": "2" } }
+              ],
+              "events": [
+                {
+                  "timeUnixNano": "1776849300004000000",
+                  "name": "ai_gateway.dlp.hit",
+                  "attributes": [
+                    { "key": "dlp.rule", "value": { "stringValue": "DLP-EMAIL-001" } },
+                    { "key": "dlp.match.type", "value": { "stringValue": "email" } },
+                    { "key": "dlp.span.start", "value": { "intValue": "42" } },
+                    { "key": "dlp.span.end", "value": { "intValue": "63" } },
+                    { "key": "dlp.action", "value": { "stringValue": "redact" } }
+                  ]
+                },
+                {
+                  "timeUnixNano": "1776849300005000000",
+                  "name": "ai_gateway.dlp.hit",
+                  "attributes": [
+                    { "key": "dlp.rule", "value": { "stringValue": "DLP-PHONE-002" } },
+                    { "key": "dlp.match.type", "value": { "stringValue": "phone-e164" } },
+                    { "key": "dlp.span.start", "value": { "intValue": "71" } },
+                    { "key": "dlp.span.end", "value": { "intValue": "84" } },
+                    { "key": "dlp.action", "value": { "stringValue": "redact" } }
+                  ]
+                }
+              ],
+              "status": { "code": 1 }
+            },
+            {
+              "traceId": "6c9bb6b3e3d983f9432df48419e7aef3",
+              "spanId": "c3d4e5f60718293a",
+              "parentSpanId": "a1b2c3d4e5f60718",
+              "name": "intent.translate",
+              "kind": 1,
+              "startTimeUnixNano": "1776849300011000000",
+              "endTimeUnixNano": "1776849300430000000",
+              "attributes": [
+                { "key": "rfc9315.phase", "value": { "stringValue": "5.1.2" } },
+                { "key": "gen_ai.system", "value": { "stringValue": "anthropic" } },
+                { "key": "gen_ai.request.model", "value": { "stringValue": "claude-sonnet-4-20250514" } },
+                { "key": "gen_ai.usage.input_tokens", "value": { "intValue": "298" } },
+                { "key": "gen_ai.usage.output_tokens", "value": { "intValue": "121" } },
+                { "key": "gen_ai.prompt.0.content", "value": { "stringValue": "[DEMO] I need internet at home, contact [REDACTED-EMAIL] / [REDACTED-PHONE]" } },
+                { "key": "gen_ai.completion.0.content", "value": { "stringValue": "[DEMO] {\"service\":\"broadband\",\"sla\":\"residential\"}" } }
+              ],
+              "status": { "code": 1 }
+            },
+            {
+              "traceId": "6c9bb6b3e3d983f9432df48419e7aef3",
+              "spanId": "d4e5f60718293a4b",
+              "parentSpanId": "a1b2c3d4e5f60718",
+              "name": "intent.orchestrate",
+              "kind": 1,
+              "startTimeUnixNano": "1776849300435000000",
+              "endTimeUnixNano": "1776849300760000000",
+              "attributes": [
+                { "key": "rfc9315.phase", "value": { "stringValue": "5.1.3" } },
+                { "key": "mcp.server.count", "value": { "intValue": "3" } }
+              ],
+              "status": { "code": 1 }
+            },
+            {
+              "traceId": "6c9bb6b3e3d983f9432df48419e7aef3",
+              "spanId": "e5f60718293a4b5c",
+              "parentSpanId": "d4e5f60718293a4b",
+              "name": "mcp.getProfile",
+              "kind": 3,
+              "startTimeUnixNano": "1776849300440000000",
+              "endTimeUnixNano": "1776849300520000000",
+              "attributes": [
+                { "key": "rpc.system", "value": { "stringValue": "mcp" } },
+                { "key": "mcp.server", "value": { "stringValue": "customer-data" } },
+                { "key": "mcp.tool", "value": { "stringValue": "customer.get_profile" } },
+                { "key": "mcp.request.id", "value": { "stringValue": "mcp-req-0541" } }
+              ],
+              "status": { "code": 1 }
+            },
+            {
+              "traceId": "6c9bb6b3e3d983f9432df48419e7aef3",
+              "spanId": "f60718293a4b5c6d",
+              "parentSpanId": "d4e5f60718293a4b",
+              "name": "mcp.query",
+              "kind": 3,
+              "startTimeUnixNano": "1776849300525000000",
+              "endTimeUnixNano": "1776849300600000000",
+              "attributes": [
+                { "key": "rpc.system", "value": { "stringValue": "mcp" } },
+                { "key": "mcp.server", "value": { "stringValue": "knowledge-graph" } },
+                { "key": "mcp.tool", "value": { "stringValue": "kg.query_coverage" } },
+                { "key": "mcp.request.id", "value": { "stringValue": "mcp-req-0542" } }
+              ],
+              "status": { "code": 1 }
+            },
+            {
+              "traceId": "6c9bb6b3e3d983f9432df48419e7aef3",
+              "spanId": "0718293a4b5c6d7e",
+              "parentSpanId": "d4e5f60718293a4b",
+              "name": "mcp.createOrder",
+              "kind": 3,
+              "startTimeUnixNano": "1776849300605000000",
+              "endTimeUnixNano": "1776849300700000000",
+              "attributes": [
+                { "key": "rpc.system", "value": { "stringValue": "mcp" } },
+                { "key": "mcp.server", "value": { "stringValue": "bss" } },
+                { "key": "mcp.tool", "value": { "stringValue": "bss.create_order" } },
+                { "key": "mcp.request.id", "value": { "stringValue": "mcp-req-0543" } }
+              ],
+              "status": { "code": 1 }
+            },
+            {
+              "traceId": "6c9bb6b3e3d983f9432df48419e7aef3",
+              "spanId": "18293a4b5c6d7e8f",
+              "parentSpanId": "d4e5f60718293a4b",
+              "name": "intent.translate.offer",
+              "kind": 1,
+              "startTimeUnixNano": "1776849300705000000",
+              "endTimeUnixNano": "1776849300755000000",
+              "attributes": [
+                { "key": "rfc9315.phase", "value": { "stringValue": "5.1.3" } },
+                { "key": "gen_ai.system", "value": { "stringValue": "anthropic" } },
+                { "key": "gen_ai.request.model", "value": { "stringValue": "claude-sonnet-4-20250514" } },
+                { "key": "gen_ai.usage.input_tokens", "value": { "intValue": "96" } },
+                { "key": "gen_ai.usage.output_tokens", "value": { "intValue": "54" } },
+                { "key": "gen_ai.completion.0.content", "value": { "stringValue": "[DEMO] Residential 300Mbps fibre, RM129/mo" } }
+              ],
+              "status": { "code": 1 }
+            },
+            {
+              "traceId": "6c9bb6b3e3d983f9432df48419e7aef3",
+              "spanId": "293a4b5c6d7e8f90",
+              "parentSpanId": "a1b2c3d4e5f60718",
+              "name": "intent.monitor",
+              "kind": 1,
+              "startTimeUnixNano": "1776849300765000000",
+              "endTimeUnixNano": "1776849300775000000",
+              "attributes": [
+                { "key": "rfc9315.phase", "value": { "stringValue": "5.2.1" } },
+                { "key": "intent.telemetry.source", "value": { "stringValue": "prometheus+otel" } }
+              ],
+              "status": { "code": 1 }
+            },
+            {
+              "traceId": "6c9bb6b3e3d983f9432df48419e7aef3",
+              "spanId": "3a4b5c6d7e8f9012",
+              "parentSpanId": "a1b2c3d4e5f60718",
+              "name": "intent.assess",
+              "kind": 1,
+              "startTimeUnixNano": "1776849300778000000",
+              "endTimeUnixNano": "1776849300800000000",
+              "attributes": [
+                { "key": "rfc9315.phase", "value": { "stringValue": "5.2.2" } },
+                { "key": "tmf921.reportState", "value": { "stringValue": "fulfilled" } }
+              ],
+              "status": { "code": 1 }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
