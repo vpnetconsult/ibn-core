@@ -139,6 +139,22 @@ Filter by tag `run.id=uc006-extensive-1776851841678`, or by the
 `scenario` tag (`A-happy-path`, `B-dlp-redaction`, `C-tool-policy-deny`,
 `D-prompt-injection-block`) to isolate individual scenarios.
 
+### 3.5 Sample trace artifacts (OTLP/JSON)
+
+The trace shape rendered by each scenario is captured as replayable
+OTLP/HTTP JSON alongside this document — the canonical reference
+payloads for the Phase 2/3 instrumentation work. Each file carries the
+resource attributes `telemetry.ts` sets (`service.name`,
+`service.version`, `oda.component.*`), the per-span attribute families
+from §3.2, and the AI-Gateway events from §3.3.
+
+| Scenario | File | Spans | Root status |
+|---|---|---|---|
+| A — happy path | [`uc006-sample-trace-A-happy-path.json`](./uc006-sample-trace-A-happy-path.json) | 10 | OK |
+| B — DLP redaction | [`uc006-sample-trace-B-dlp-redaction.json`](./uc006-sample-trace-B-dlp-redaction.json) | 10 | OK |
+| C — tool-policy deny | [`uc006-sample-trace-C-tool-policy-deny.json`](./uc006-sample-trace-C-tool-policy-deny.json) | 5 | ERROR |
+| D — prompt-injection block | [`uc006-sample-trace-D-prompt-injection-block.json`](./uc006-sample-trace-D-prompt-injection-block.json) | 2 | ERROR |
+
 ---
 
 ## 4. Canvas CTK Run Table (to be filled in)
