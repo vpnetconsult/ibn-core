@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>ibn-core as an ODA Canvas Component | Implementation View</title>
+<style>
+  :root{
+    --navy:#1f2a44; --ink:#0f172a; --muted:#475569; --line:#cbd5e1;
+    --bg:#f8fafc; --card:#ffffff; --teal:#0e7c86; --teal2:#14b8a6;
+    --ok:#15803d; --ok2:#22c55e; --err:#b91c1c; --warn:#b45309;
+    --chip:#eef2f7; --tmf:#1e40af;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  .wrap{max-width:1080px;margin:0 auto;padding:40px 28px 80px;}
+  header.hero{background:linear-gradient(135deg,#1e3a8a,#0e7c86 60%,#14b8a6);color:#fff;border-radius:14px;
+    padding:34px 36px;box-shadow:0 10px 30px rgba(15,23,42,.18);}
+  header.hero .kicker{text-transform:uppercase;letter-spacing:.14em;font-size:12px;opacity:.85;margin:0 0 8px;}
+  header.hero h1{margin:0 0 6px;font-size:30px;line-height:1.2;}
+  header.hero p{margin:8px 0 0;max-width:780px;opacity:.95;}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;}
+  .meta span{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);
+    padding:4px 10px;border-radius:999px;font-size:12.5px;}
+  .meta a{color:#fff;text-decoration:none;}
+  .meta a.dl{background:rgba(255,255,255,.28);font-weight:600;}
+  h2{font-size:21px;margin:46px 0 6px;color:var(--navy);border-left:5px solid var(--tmf);padding-left:12px;}
+  h3{font-size:16px;margin:26px 0 6px;color:var(--navy);}
+  .lead{color:var(--muted);margin:4px 0 18px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:16px 0;
+    box-shadow:0 1px 2px rgba(15,23,42,.04);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  @media(max-width:820px){.grid2,.grid3,.grid4{grid-template-columns:1fr;}}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;}
+  .kpi b{display:block;font-size:24px;color:var(--tmf);line-height:1.1;}
+  .kpi small{color:var(--muted);}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13.5px;}
+  th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);vertical-align:top;}
+  th{background:var(--chip);color:var(--navy);font-weight:650;}
+  code{background:var(--chip);padding:1px 6px;border-radius:5px;font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;}
+  pre{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px 16px;overflow:auto;font:12.5px/1.55 ui-monospace,Menlo,monospace;}
+  .tag{display:inline-block;font-size:11.5px;font-weight:650;padding:2px 8px;border-radius:6px;}
+  .t-ok{background:#dcfce7;color:var(--ok);}
+  .t-warn{background:#fef3c7;color:var(--warn);}
+  .t-info{background:#dbeafe;color:var(--tmf);}
+  .t-future{background:#e2e8f0;color:#475569;}
+  .callout{border-left:4px solid var(--teal);background:#f0fdfa;border-radius:0 10px 10px 0;padding:12px 16px;margin:14px 0;}
+  .callout.warn{border-color:#f59e0b;background:#fffbeb;}
+  figure{margin:16px 0;}
+  figure svg{width:100%;height:auto;display:block;background:var(--card);border:1px solid var(--line);border-radius:12px;}
+  figcaption{color:var(--muted);font-size:13px;margin-top:8px;text-align:center;}
+  ul li,ol li{margin:4px 0;}
+  .small{font-size:13px;color:var(--muted);}
+  footer{margin-top:54px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <p class="kicker">ODA Canvas · Implementation View</p>
+  <h1>ibn-core as an ODA Canvas Component</h1>
+  <p>How the Apache-2.0 ibn-core framework packages as a first-class
+  <strong>TM Forum ODA Canvas Component</strong> (v1alpha3) — registering its
+  TMF921 API, declaring its Canvas use-case bindings, and forward-declaring its
+  AI-native capabilities (LLMs, MCP, A2A) for an AI-Native Canvas.</p>
+  <div class="meta">
+    <span>TM Forum ODA Canvas</span>
+    <span><code>oda.tmforum.org/v1alpha3</code></span>
+    <span>Helm chart <code>ibn-core 2.2.0</code></span>
+    <span>RFC 9315 · TMF921 v5.0.0</span>
+    <span><a href="UC006_EXECUTIVE_SUMMARY.html">↔ Customer view</a></span>
+    <span><a href="UC006_ADVERSARIAL_RED_BLUE.html">↔ Red-blue view</a></span>
+    <span><a class="dl" download href="UC006_ODA_CANVAS_IMPLEMENTATION.html">⬇ Download (HTML)</a></span>
+  </div>
+</header>
+
+<!-- ============================ EXEC SUMMARY ============================ -->
+<h2>1 · Executive summary</h2>
+<p class="lead">ibn-core does not need a Canvas to run, but when deployed into one it surfaces as a
+typed, observable, governed component — and is forward-compatible with the AI-Native Canvas design.</p>
+
+<div class="card">
+<div class="grid3">
+  <div class="kpi"><b>v1alpha3</b><small>ODA Component CR registered by the chart</small></div>
+  <div class="kpi"><b>5+</b><small>Canvas UCs the chart binds to: UC001 · UC002 · UC004/5 · UC006 · UC007</small></div>
+  <div class="kpi"><b>4</b><small>AI-Native forward-compat annotations (<code>dependentModels</code>, <code>mcpInterfaces</code>, <code>agentCard</code>, <code>evaluationDataset</code>)</small></div>
+</div>
+<p class="small" style="margin-top:14px"><strong>The Canvas value proposition for ibn-core:</strong> identity bootstrap is delegated to a Canvas
+identity operator (Keycloak realm), API exposure to a Canvas API operator (TMF921 routes), classic and
+custom observability to Canvas observability operators (Prometheus + OTel/Canvas collector), and — when
+the AI-Native Canvas extensions land — the LLM dependency, MCP tool surface, and A2A agent card are
+discoverable via the same Component CR rather than via out-of-band metadata.</p>
+</div>
+
+<!-- ============================ CANVAS CONTEXT ============================ -->
+<h2>2 · Where ibn-core sits in the Canvas (C4 context)</h2>
+<figure>
+<svg viewBox="0 0 1040 540" role="img" aria-label="ODA Canvas context with ibn-core component">
+  <defs>
+    <marker id="a1" markerWidth="11" markerHeight="11" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#475569"/></marker>
+    <marker id="a2" markerWidth="11" markerHeight="11" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#0e7c86"/></marker>
+  </defs>
+  <!-- Canvas outer boundary -->
+  <rect x="22" y="36" width="996" height="430" rx="14" fill="none" stroke="#1e40af" stroke-width="2" stroke-dasharray="6 5"/>
+  <text x="42" y="60" fill="#1e40af" font-size="13" font-weight="700">TM Forum ODA Canvas (k8s cluster · oda.tmforum.org/v1alpha3)</text>
+
+  <!-- Canvas operators row (top) -->
+  <rect x="44" y="80" width="170" height="62" rx="9" fill="#dbeafe" stroke="#1e40af"/>
+  <text x="129" y="104" text-anchor="middle" font-size="12" font-weight="700" fill="#1e3a8a">Component operator</text>
+  <text x="129" y="122" text-anchor="middle" font-size="10" fill="#1e3a8a">reconciles Component CR</text>
+  <text x="129" y="135" text-anchor="middle" font-size="9.5" fill="#475569">UC core</text>
+
+  <rect x="226" y="80" width="170" height="62" rx="9" fill="#dbeafe" stroke="#1e40af"/>
+  <text x="311" y="104" text-anchor="middle" font-size="12" font-weight="700" fill="#1e3a8a">API operator</text>
+  <text x="311" y="122" text-anchor="middle" font-size="10" fill="#1e3a8a">exposedAPIs → routes</text>
+  <text x="311" y="135" text-anchor="middle" font-size="9.5" fill="#475569">UC002 Expose API</text>
+
+  <rect x="408" y="80" width="170" height="62" rx="9" fill="#dbeafe" stroke="#1e40af"/>
+  <text x="493" y="104" text-anchor="middle" font-size="12" font-weight="700" fill="#1e3a8a">Identity operator</text>
+  <text x="493" y="122" text-anchor="middle" font-size="10" fill="#1e3a8a">Keycloak realm + JWKS</text>
+  <text x="493" y="135" text-anchor="middle" font-size="9.5" fill="#475569">UC001 / UC007</text>
+
+  <rect x="590" y="80" width="170" height="62" rx="9" fill="#dbeafe" stroke="#1e40af"/>
+  <text x="675" y="104" text-anchor="middle" font-size="12" font-weight="700" fill="#1e3a8a">Observability ops</text>
+  <text x="675" y="122" text-anchor="middle" font-size="10" fill="#1e3a8a">Prometheus + OTel</text>
+  <text x="675" y="135" text-anchor="middle" font-size="9.5" fill="#475569">UC004/UC005 + UC006</text>
+
+  <rect x="772" y="80" width="220" height="62" rx="9" fill="#fef3c7" stroke="#b45309"/>
+  <text x="882" y="104" text-anchor="middle" font-size="12" font-weight="700" fill="#7c2d12">AI-Native Canvas (future)</text>
+  <text x="882" y="122" text-anchor="middle" font-size="10" fill="#7c2d12">dependentModels · mcp · A2A</text>
+  <text x="882" y="135" text-anchor="middle" font-size="9.5" fill="#475569">forward-compat annotations</text>
+
+  <!-- ibn-core component (centre) -->
+  <rect x="240" y="190" width="560" height="180" rx="12" fill="#ccfbf1" stroke="#0e7c86" stroke-width="2"/>
+  <text x="520" y="214" text-anchor="middle" font-size="13" font-weight="700" fill="#134e4a">ibn-core — ODA Component (Helm chart v2.2.0)</text>
+  <text x="520" y="232" text-anchor="middle" font-size="10.5" fill="#134e4a">apiVersion: oda.tmforum.org/v1alpha3 · kind: component</text>
+
+  <rect x="260" y="246" width="160" height="40" rx="7" fill="#fff" stroke="#0e7c86"/>
+  <text x="340" y="262" text-anchor="middle" font-size="11" font-weight="700" fill="#134e4a">TMF921 API (Hono/Express)</text>
+  <text x="340" y="278" text-anchor="middle" font-size="9.5" fill="#475569">/tmf-api/intentManagement</text>
+
+  <rect x="432" y="246" width="160" height="40" rx="7" fill="#fff" stroke="#0e7c86"/>
+  <text x="512" y="262" text-anchor="middle" font-size="11" font-weight="700" fill="#134e4a">IMF cycle runner</text>
+  <text x="512" y="278" text-anchor="middle" font-size="9.5" fill="#475569">RFC 9315 §5 phases</text>
+
+  <rect x="604" y="246" width="180" height="40" rx="7" fill="#fff" stroke="#0e7c86"/>
+  <text x="694" y="262" text-anchor="middle" font-size="11" font-weight="700" fill="#134e4a">AI Gateway (3 controls)</text>
+  <text x="694" y="278" text-anchor="middle" font-size="9.5" fill="#475569">injection · DLP · RBAC</text>
+
+  <rect x="260" y="298" width="170" height="40" rx="7" fill="#fff" stroke="#0e7c86"/>
+  <text x="345" y="314" text-anchor="middle" font-size="11" font-weight="700" fill="#134e4a">McpAdapter (open seam)</text>
+  <text x="345" y="330" text-anchor="middle" font-size="9.5" fill="#475569">orchestrate · status · caps</text>
+
+  <rect x="442" y="298" width="160" height="40" rx="7" fill="#fff" stroke="#0e7c86"/>
+  <text x="522" y="314" text-anchor="middle" font-size="11" font-weight="700" fill="#134e4a">telemetry.ts (OTel SDK)</text>
+  <text x="522" y="330" text-anchor="middle" font-size="9.5" fill="#475569">OTLP/HTTP exporter</text>
+
+  <rect x="614" y="298" width="170" height="40" rx="7" fill="#fff" stroke="#0e7c86"/>
+  <text x="699" y="314" text-anchor="middle" font-size="11" font-weight="700" fill="#134e4a">Redis (SSoT)</text>
+  <text x="699" y="330" text-anchor="middle" font-size="9.5" fill="#475569">intent state, idempotency</text>
+
+  <!-- Istio sidecars indicator -->
+  <text x="520" y="356" text-anchor="middle" font-size="9.5" fill="#0e7c86" font-style="italic">Istio sidecars · mTLS · authorization policies</text>
+
+  <!-- arrows from operators down into component -->
+  <line x1="311" y1="142" x2="340" y2="244" stroke="#1e40af" stroke-width="1.4" marker-end="url(#a1)"/>
+  <line x1="493" y1="142" x2="345" y2="296" stroke="#1e40af" stroke-width="1.4" marker-end="url(#a1)"/>
+  <line x1="675" y1="142" x2="522" y2="296" stroke="#1e40af" stroke-width="1.4" marker-end="url(#a1)"/>
+  <line x1="882" y1="142" x2="694" y2="244" stroke="#b45309" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#a1)"/>
+
+  <!-- external systems (below component) -->
+  <rect x="44" y="392" width="180" height="56" rx="9" fill="#ede9fe" stroke="#6d28d9"/>
+  <text x="134" y="416" text-anchor="middle" font-size="11.5" font-weight="700" fill="#4c1d95">Anthropic API</text>
+  <text x="134" y="432" text-anchor="middle" font-size="9.5" fill="#4c1d95">Claude Sonnet (LLM)</text>
+
+  <rect x="240" y="392" width="200" height="56" rx="9" fill="#fff" stroke="#0e7c86"/>
+  <text x="340" y="416" text-anchor="middle" font-size="11.5" font-weight="700" fill="#134e4a">MCP back-ends</text>
+  <text x="340" y="432" text-anchor="middle" font-size="9.5" fill="#134e4a">BSS · KG · customer-data</text>
+
+  <rect x="456" y="392" width="200" height="56" rx="9" fill="#fff" stroke="#1e40af"/>
+  <text x="556" y="416" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e3a8a">Operator CAMARA adapters</text>
+  <text x="556" y="432" text-anchor="middle" font-size="9.5" fill="#1e3a8a">private repo · per operator</text>
+
+  <rect x="672" y="392" width="180" height="56" rx="9" fill="#f1f5f9" stroke="#64748b"/>
+  <text x="762" y="416" text-anchor="middle" font-size="11.5" font-weight="700" fill="#334155">OTLP backend</text>
+  <text x="762" y="432" text-anchor="middle" font-size="9.5" fill="#334155">LangSmith / Canvas collector</text>
+
+  <rect x="868" y="392" width="124" height="56" rx="9" fill="#f1f5f9" stroke="#64748b"/>
+  <text x="930" y="416" text-anchor="middle" font-size="11.5" font-weight="700" fill="#334155">Prometheus</text>
+  <text x="930" y="432" text-anchor="middle" font-size="9.5" fill="#334155">/metrics</text>
+
+  <line x1="694" y1="338" x2="762" y2="390" stroke="#0e7c86" stroke-width="1.4" marker-end="url(#a2)"/>
+  <line x1="522" y1="338" x2="522" y2="390" stroke="#94a3b8" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#a1)"/>
+  <line x1="345" y1="338" x2="340" y2="390" stroke="#0e7c86" stroke-width="1.4" marker-end="url(#a2)"/>
+  <line x1="345" y1="338" x2="134" y2="390" stroke="#6d28d9" stroke-width="1.4" marker-end="url(#a1)"/>
+</svg>
+<figcaption>The Component CR is the contract. Canvas operators (top row) reconcile it; ibn-core
+(centre) provides the implementation; external systems (bottom row) sit outside the Canvas boundary
+or in a private operator-adapter repo.</figcaption>
+</figure>
+
+<!-- ============================ COMPONENT ANATOMY ============================ -->
+<h2>3 · ODA Component anatomy — the contract</h2>
+<p class="lead">The Helm chart renders one <code>oda.tmforum.org/v1alpha3 · kind: component</code>
+resource that declares everything Canvas operators need to bind to ibn-core.</p>
+
+<figure>
+<svg viewBox="0 0 1040 460" role="img" aria-label="ODA Component CR anatomy">
+  <!-- Outer CR -->
+  <rect x="20" y="24" width="1000" height="416" rx="12" fill="#fff" stroke="#1e40af" stroke-width="1.8"/>
+  <text x="40" y="48" font-size="13" font-weight="700" fill="#1e3a8a">apiVersion: oda.tmforum.org/v1alpha3 · kind: component · name: ibn-core</text>
+
+  <!-- metadata.annotations group -->
+  <rect x="40" y="64" width="470" height="190" rx="10" fill="#eef2f7"/>
+  <text x="56" y="86" font-size="12" font-weight="700" fill="#334155">metadata.annotations</text>
+  <text x="56" y="106" font-size="11" fill="#1e3a8a" font-family="ui-monospace,Menlo,monospace">oda.tmforum.org/componentVersion</text>
+  <text x="56" y="124" font-size="11" fill="#1e3a8a" font-family="ui-monospace,Menlo,monospace">oda.tmforum.org/domain</text>
+  <text x="56" y="142" font-size="11" fill="#7c2d12" font-family="ui-monospace,Menlo,monospace">oda.tmforum.org/dependentModels  ◀ AI-Native</text>
+  <text x="56" y="160" font-size="11" fill="#7c2d12" font-family="ui-monospace,Menlo,monospace">oda.tmforum.org/mcpInterfaces    ◀ AI-Native</text>
+  <text x="56" y="178" font-size="11" fill="#7c2d12" font-family="ui-monospace,Menlo,monospace">oda.tmforum.org/agentCard        ◀ AI-Native (A2A)</text>
+  <text x="56" y="196" font-size="11" fill="#7c2d12" font-family="ui-monospace,Menlo,monospace">oda.tmforum.org/evaluationDataset</text>
+  <text x="56" y="214" font-size="11" fill="#15803d" font-family="ui-monospace,Menlo,monospace">oda.tmforum.org/externalAuthentication  ◀ UC007</text>
+  <text x="56" y="232" font-size="11" fill="#15803d" font-family="ui-monospace,Menlo,monospace">oda.tmforum.org/customObservability     ◀ UC006</text>
+
+  <!-- spec sections -->
+  <rect x="530" y="64" width="470" height="86" rx="10" fill="#dbeafe"/>
+  <text x="546" y="86" font-size="12" font-weight="700" fill="#1e3a8a">spec.coreFunction</text>
+  <text x="546" y="106" font-size="11" fill="#1e3a8a" font-family="ui-monospace,Menlo,monospace">exposedAPIs[]:  TMF921 IntentManagement v5.0.0</text>
+  <text x="546" y="124" font-size="11" fill="#1e3a8a" font-family="ui-monospace,Menlo,monospace">                /tmf-api/intentManagement/v5</text>
+  <text x="546" y="142" font-size="11" fill="#475569">→ API operator routes &amp; exposes (UC002)</text>
+
+  <rect x="530" y="160" width="470" height="86" rx="10" fill="#dcfce7"/>
+  <text x="546" y="182" font-size="12" font-weight="700" fill="#14532d">spec.security</text>
+  <text x="546" y="202" font-size="11" fill="#14532d" font-family="ui-monospace,Menlo,monospace">controllerRole, secretsManagement</text>
+  <text x="546" y="220" font-size="11" fill="#14532d" font-family="ui-monospace,Menlo,monospace">externalAuth: keycloak realm JWKS</text>
+  <text x="546" y="238" font-size="11" fill="#475569">→ Identity operator (UC001 bootstrap, UC007 JWT)</text>
+
+  <rect x="40" y="262" width="470" height="80" rx="10" fill="#fef3c7"/>
+  <text x="56" y="284" font-size="12" font-weight="700" fill="#7c2d12">spec.management</text>
+  <text x="56" y="304" font-size="11" fill="#7c2d12" font-family="ui-monospace,Menlo,monospace">exposedAPIs[]:  Prometheus /metrics  (UC004/5)</text>
+  <text x="56" y="322" font-size="11" fill="#7c2d12" font-family="ui-monospace,Menlo,monospace">customObservability: OTLP/HTTP traces (UC006)</text>
+
+  <rect x="530" y="262" width="470" height="80" rx="10" fill="#f1f5f9"/>
+  <text x="546" y="284" font-size="12" font-weight="700" fill="#334155">spec.dependents (deployed by chart)</text>
+  <text x="546" y="304" font-size="11" fill="#334155" font-family="ui-monospace,Menlo,monospace">Deployment · Service · HPA · ServiceAccount</text>
+  <text x="546" y="322" font-size="11" fill="#334155" font-family="ui-monospace,Menlo,monospace">Istio (vs/gw/dr/peer-auth) · Redis · Secrets</text>
+
+  <!-- footer band -->
+  <rect x="40" y="354" width="960" height="70" rx="10" fill="#0f172a"/>
+  <text x="56" y="376" font-size="11.5" font-weight="700" fill="#fff">Forward-compat lane (annotations until spec lands):</text>
+  <text x="56" y="394" font-size="10" fill="#cbd5e1">dependentModels → AI Gateway can discover &amp; govern the LLM dep (Anthropic/Sonnet, with DLP+RBAC+injection guardrails)</text>
+  <text x="56" y="408" font-size="10" fill="#cbd5e1">mcpInterfaces → MCP-aware discovery (tools: orchestrate, getIntentStatus, getCapabilities, cancelIntent)</text>
+  <text x="56" y="422" font-size="10" fill="#cbd5e1">agentCard → A2A peer-agent contract · evaluationDataset → O2C canonical evaluation entry</text>
+</svg>
+<figcaption>Component CR layout. Blue annotations are standard v1alpha3; amber are AI-Native
+forward-compat; green are the Canvas UC bindings UC006/UC007 surface as annotations until spec fields
+exist.</figcaption>
+</figure>
+
+<!-- ============================ UC COVERAGE ============================ -->
+<h2>4 · Canvas use-case coverage</h2>
+<p class="lead">The Helm chart declares — and the running component implements — the following Canvas
+use cases. UC006 and UC007 were the headline deliveries in <code>v2.2.0/v2.3.0</code>.</p>
+
+<table>
+  <thead><tr><th>UC</th><th>Canvas use case</th><th>How ibn-core binds</th><th>Status</th><th>Evidence</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>UC001</td><td>Identity bootstrap</td>
+      <td>Component declares <code>security.controllerRole</code>; chart provisions the ServiceAccount + Keycloak realm-binding inputs.</td>
+      <td><span class="tag t-ok">implemented</span></td><td><code>templates/component.yaml</code> · <code>templates/rbac.yaml</code></td>
+    </tr>
+    <tr>
+      <td>UC002</td><td>Expose API</td>
+      <td><code>coreFunction.exposedAPIs[]</code> registers the TMF921 v5.0.0 IntentManagement API; Canvas API operator publishes routes.</td>
+      <td><span class="tag t-ok">implemented · 83/83 CTK</span></td><td><code>component.yaml</code> · <code>templates/istio/virtualservice.yaml</code></td>
+    </tr>
+    <tr>
+      <td>UC004 / UC005</td><td>Classic observability (metrics / logs)</td>
+      <td><code>management.exposedAPIs</code> publishes Prometheus <code>/metrics</code> on port 9090; pino structured logs.</td>
+      <td><span class="tag t-ok">implemented</span></td><td><code>src/metrics.ts</code> · <code>helm/.../templates/service.yaml</code></td>
+    </tr>
+    <tr>
+      <td>UC006</td><td>Custom observability (OTel traces)</td>
+      <td><code>customObservability</code> annotation + <code>src/telemetry.ts</code> ships OTLP/HTTP traces (LangSmith default; Canvas-collector overridable).</td>
+      <td><span class="tag t-ok">Phase 1 merged (#35)</span></td><td><a href="UC006_CANVAS_CTK_RESULTS.md">UC006_CANVAS_CTK_RESULTS</a></td>
+    </tr>
+    <tr>
+      <td>UC007</td><td>External authentication</td>
+      <td><code>externalAuthentication</code> annotation; <code>src/auth-jwt.ts</code> validates RS256 against a Keycloak realm JWKS.</td>
+      <td><span class="tag t-ok">implemented (#34)</span></td><td><code>src/auth-router.ts</code> · <code>src/auth-jwt.ts</code></td>
+    </tr>
+    <tr>
+      <td>—</td><td>AI-Native (dependent models / MCP / A2A)</td>
+      <td>Forward-compat annotations declare LLM dep, MCP tool surface, A2A agent card, evaluation dataset.</td>
+      <td><span class="tag t-warn">annotation-level</span></td><td>component.yaml annotations · <a href="https://github.com/tmforum-oda/oda-canvas/blob/main/AI-Native-Canvas-design.md">AI-Native Canvas design</a></td>
+    </tr>
+    <tr>
+      <td>UC008+</td><td>Compliance / lifecycle / federation</td>
+      <td>Roadmap.</td>
+      <td><span class="tag t-future">planned</span></td><td>—</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ============================ DEPLOYMENT / OPERATIONS ============================ -->
+<h2>5 · Deployment topology &amp; operations</h2>
+<figure>
+<svg viewBox="0 0 1040 420" role="img" aria-label="Helm chart structure and runtime topology">
+  <defs><marker id="b1" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#475569"/></marker></defs>
+
+  <!-- Chart structure (left) -->
+  <rect x="20" y="30" width="380" height="368" rx="10" fill="#fff" stroke="#cbd5e1"/>
+  <text x="40" y="54" font-size="13" font-weight="700" fill="#1e3a8a">helm/ibn-core/ (chart v2.2.0)</text>
+  <g font-family="ui-monospace,Menlo,monospace" font-size="11" fill="#334155">
+    <text x="40" y="80">Chart.yaml — annotations:</text>
+    <text x="60" y="96">  oda.tmforum.org/componentName: ibn-core</text>
+    <text x="60" y="112">  oda.tmforum.org/featureSet: TMF921</text>
+    <text x="60" y="128">  oda.tmforum.org/aiNative: "true"</text>
+    <text x="40" y="150">values.yaml</text>
+    <text x="60" y="166">  component.* · image.* · replicaCount: 2</text>
+    <text x="60" y="182">  odaApi.intentManagement.port: 8080</text>
+    <text x="60" y="198">  odaSecurity.* · auth.mode (apiKey|jwt|both)</text>
+    <text x="60" y="214">  observability.otel.{enabled,endpoint,headers}</text>
+    <text x="40" y="236">templates/</text>
+    <text x="60" y="252">  component.yaml      ← the ODA Component CR</text>
+    <text x="60" y="268">  deployment.yaml · service.yaml · hpa.yaml</text>
+    <text x="60" y="284">  configmap.yaml · secrets.yaml · rbac.yaml</text>
+    <text x="60" y="300">  redis-deployment.yaml · redis-service.yaml</text>
+    <text x="60" y="316">  istio/  gateway · virtualservice ·</text>
+    <text x="60" y="332">          destinationrule · peerauthentication ·</text>
+    <text x="60" y="348">          telemetry  (UC006 OTel wiring)</text>
+    <text x="60" y="370">  namespace.yaml · _helpers.tpl</text>
+  </g>
+
+  <!-- Runtime (right) -->
+  <rect x="416" y="30" width="600" height="368" rx="10" fill="#fff" stroke="#0e7c86"/>
+  <text x="436" y="54" font-size="13" font-weight="700" fill="#134e4a">Runtime in-cluster</text>
+
+  <rect x="436" y="74" width="260" height="64" rx="8" fill="#dbeafe" stroke="#1e40af"/>
+  <text x="566" y="96" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e3a8a">Component CR (ibn-core)</text>
+  <text x="566" y="112" text-anchor="middle" font-size="10" fill="#1e3a8a">applied by Canvas operators</text>
+  <text x="566" y="128" text-anchor="middle" font-size="10" fill="#475569">reconciled to the resources below</text>
+
+  <rect x="716" y="74" width="280" height="64" rx="8" fill="#ccfbf1" stroke="#0e7c86"/>
+  <text x="856" y="96" text-anchor="middle" font-size="11.5" font-weight="700" fill="#134e4a">Deployment (replicaCount: 2)</text>
+  <text x="856" y="112" text-anchor="middle" font-size="10" fill="#134e4a">HPA · pods with Istio sidecar</text>
+  <text x="856" y="128" text-anchor="middle" font-size="10" fill="#475569">env: OTEL_*, LANGSMITH_*, AUTH_*</text>
+
+  <rect x="436" y="156" width="260" height="56" rx="8" fill="#fef3c7" stroke="#b45309"/>
+  <text x="566" y="178" text-anchor="middle" font-size="11.5" font-weight="700" fill="#7c2d12">Istio mesh</text>
+  <text x="566" y="194" text-anchor="middle" font-size="10" fill="#7c2d12">mTLS PeerAuth · AuthorizationPolicy</text>
+  <text x="566" y="208" text-anchor="middle" font-size="10" fill="#7c2d12">VS routes intentManagement traffic</text>
+
+  <rect x="716" y="156" width="280" height="56" rx="8" fill="#f1f5f9" stroke="#64748b"/>
+  <text x="856" y="178" text-anchor="middle" font-size="11.5" font-weight="700" fill="#334155">Service + Gateway (ingress)</text>
+  <text x="856" y="194" text-anchor="middle" font-size="10" fill="#334155">TMF921 routes · /metrics</text>
+  <text x="856" y="208" text-anchor="middle" font-size="10" fill="#334155">TLS termination · per-route policy</text>
+
+  <rect x="436" y="230" width="260" height="56" rx="8" fill="#fff" stroke="#dc2626"/>
+  <text x="566" y="252" text-anchor="middle" font-size="11.5" font-weight="700" fill="#7f1d1d">Redis (SSoT)</text>
+  <text x="566" y="268" text-anchor="middle" font-size="10" fill="#7f1d1d">intent state, idempotency, SVoT</text>
+  <text x="566" y="282" text-anchor="middle" font-size="10" fill="#475569">deployed as chart sub-component</text>
+
+  <rect x="716" y="230" width="280" height="56" rx="8" fill="#ede9fe" stroke="#6d28d9"/>
+  <text x="856" y="252" text-anchor="middle" font-size="11.5" font-weight="700" fill="#4c1d95">Secrets (k8s)</text>
+  <text x="856" y="268" text-anchor="middle" font-size="10" fill="#4c1d95">anthropic · langsmith · keycloak</text>
+  <text x="856" y="282" text-anchor="middle" font-size="10" fill="#475569">injected as envFrom in pods</text>
+
+  <rect x="436" y="304" width="560" height="80" rx="8" fill="#0f172a"/>
+  <text x="716" y="326" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">Telemetry sinks</text>
+  <text x="716" y="346" text-anchor="middle" font-size="10" fill="#cbd5e1">Prometheus scrapes /metrics (UC004/5)</text>
+  <text x="716" y="362" text-anchor="middle" font-size="10" fill="#cbd5e1">OTLP/HTTP traces → LangSmith EU (default) or Canvas collector (UC006)</text>
+  <text x="716" y="378" text-anchor="middle" font-size="10" fill="#fde68a">metrics auto-export hard-disabled in telemetry.ts (issue #42 fix)</text>
+
+  <line x1="696" y1="106" x2="714" y2="106" stroke="#475569" stroke-width="1.4" marker-end="url(#b1)"/>
+</svg>
+<figcaption>Left: the Helm chart files. Right: the in-cluster shape the Canvas operators produce when
+they reconcile the Component CR. The chart is operator-installable today; AI-Native-specific operators
+(when they land) will additionally consume the annotation forward-compat lane.</figcaption>
+</figure>
+
+<!-- ============================ AI-NATIVE ============================ -->
+<h2>6 · AI-Native Canvas — forward-compat lane</h2>
+<p class="lead">Until the AI-Native Canvas spec formalises these fields, ibn-core declares them as
+annotations on the Component CR. When the spec lands, they migrate to first-class spec fields without
+breaking deployments.</p>
+
+<div class="grid2">
+  <div class="card">
+    <h3><code>dependentModels</code> · LLM declaration</h3>
+    <p class="small">Declares the external LLM dependency (Anthropic Claude Sonnet) and the guardrails
+    in front of it. Lets a Canvas AI Gateway discover and govern model usage at the component level
+    rather than via out-of-band documentation.</p>
+<pre>- provider: anthropic
+  model: claude-sonnet-4-…
+  useCase: "RFC 9315 NL intent translation (§5.1.2)"
+  guardrails: { dlp, toolPolicy, promptInjection }</pre>
+  </div>
+  <div class="card">
+    <h3><code>mcpInterfaces</code> · MCP discovery</h3>
+    <p class="small">Lists the tools the McpAdapter exposes (the open-core seam to operator adapters).
+    Makes the component MCP-aware to Canvas-side tool registries.</p>
+<pre>- name: intentOrchestration
+  protocol: mcp · port: 8080
+  tools: [orchestrate, getIntentStatus,
+          getCapabilities, cancelIntent]</pre>
+  </div>
+  <div class="card">
+    <h3><code>agentCard</code> · A2A peer contract</h3>
+    <p class="small">Identifies ibn-core as an A2A agent with named capabilities and an endpoint —
+    so peer agents can discover and invoke it through Canvas-mediated agent-to-agent flows.</p>
+<pre>name: ibn-core Intent Agent
+capabilities: [intentIngestion, intentTranslation,
+               intentOrchestration, complianceMonitoring]
+a2aEndpoint: /api/v1/intent/probe</pre>
+  </div>
+  <div class="card">
+    <h3><code>evaluationDataset</code> · O2C canonical</h3>
+    <p class="small">Points Canvas evaluation tooling at the canonical Order-to-Cash evaluation set —
+    the regression bar for non-deterministic AI behaviour in this component.</p>
+<pre>oda.tmforum.org/evaluationDataset:
+  "docs/compliance/O2C_EVALUATION.md"</pre>
+  </div>
+</div>
+
+<!-- ============================ EVIDENCE ============================ -->
+<h2>7 · Evidence &amp; honest caveats</h2>
+<div class="callout">
+<strong>What's verified today.</strong> Helm chart v2.2.0 packages and applies as a Canvas Component CR
+on any cluster with the <code>oda.tmforum.org/v1alpha3</code> CRD installed (via the canvas-oda umbrella
+chart). UC006 ingest path verified end-to-end against LangSmith EU. UC007 JWT validation against a
+Keycloak realm JWKS verified in #34. UC004/5 metrics and UC002 API exposure pass their respective CTKs.
+</div>
+<div class="callout warn">
+<strong>What's still pending.</strong>
+<ul style="margin:6px 0">
+  <li><strong>UC006 CTK against a Canvas-managed collector</strong> — current Phase-1 evidence is against
+    LangSmith EU. The CTK run table in <code>UC006_CANVAS_CTK_RESULTS.md</code> §4 is filled in once a
+    Canvas with a managed OTel collector becomes reachable from our environment.</li>
+  <li><strong>AI-Native Canvas spec fields</strong> are not yet first-class — the dependentModels /
+    mcpInterfaces / agentCard / evaluationDataset annotations migrate to spec when TM Forum publishes
+    the schema. No deployment break expected.</li>
+  <li><strong>CI status checks</strong> on `main` are billing-locked at the GitHub account level; merges
+    proceed via a temporary <code>enforce_admins</code> toggle (audited, immediately restored).</li>
+</ul>
+</div>
+
+<footer>
+  <p><strong>ibn-core</strong> — ODA Canvas implementation view. References: TM Forum ODA Canvas,
+  Component v1alpha3, AI-Native Canvas design (forward-compat), TMF921 v5.0.0, RFC 9315.
+  © 2026 Vpnet Cloud Solutions Sdn. Bhd. — Apache License 2.0. Standalone document; all diagrams inline SVG.</p>
+</footer>
+
+</div>
+</body>
+</html>
