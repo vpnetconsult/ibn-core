@@ -10,7 +10,13 @@
  *
  * Signal surface: spans only in Phase 1. Metrics continue to flow through
  * prom-client until a Canvas-side OTel metric backend is available; we do
- * not want to fork the metric path until there is a second consumer.
+ * not want to fork the metric path until there is a second consumer. The
+ * NodeSDK would otherwise auto-create an OTLP metrics exporter from
+ * OTEL_EXPORTER_OTLP_ENDPOINT that inherits no auth headers (we set them
+ * only on the trace exporter) and 401-spams every export interval against
+ * backends like LangSmith. startTelemetry() hard-disables it via
+ * OTEL_METRICS_EXPORTER=none unless an operator explicitly overrides.
+ * See issue #42.
  *
  * Exporter: vendor-neutral OTLP/HTTP (protobuf). The default endpoint and
  * headers point at LangSmith because no Canvas-managed collector is yet
@@ -145,6 +151,16 @@ export function startTelemetry(): void {
     headers,
   });
 
+  // Hard-disable OTLP metrics. Phase 1 ships spans only; metrics continue
+  // via prom-client. Without this, NodeSDK auto-creates a
+  // PeriodicExportingMetricReader from OTEL_EXPORTER_OTLP_ENDPOINT that
+  // inherits no auth headers and 401-spams against LangSmith. See #42.
+  // An operator wiring an authenticated metrics backend can override by
+  // setting OTEL_METRICS_EXPORTER (e.g. to "otlp") in the deployment env.
+  if (!process.env.OTEL_METRICS_EXPORTER) {
+    process.env.OTEL_METRICS_EXPORTER = 'none';
+  }
+
   sdk = new NodeSDK({
     resource,
     traceExporter,
@@ -172,6 +188,7 @@ export function startTelemetry(): void {
         endpoint: tracesUrl,
         headers: redactHeaders(headers),
         backend: tracesUrl.includes('smith.langchain.com') ? 'langsmith' : 'otlp-http',
+        metricsExporter: process.env.OTEL_METRICS_EXPORTER,
       })
     );
   } catch (err) {
