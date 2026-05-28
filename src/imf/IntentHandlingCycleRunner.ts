@@ -17,6 +17,21 @@ import {
   PhaseOutcome,
 } from './IntentHandlingCycle';
 import { IntentAnalysis, CustomerProfile, SelectedOffer, IntentHandlingContext } from './IntentHandlingContext';
+import { SessionContext } from '../provenance/types';
+
+/**
+ * Optional runtime context the caller can supply to `run()`. Maps 1:1 onto
+ * SessionContext fields; missing fields fall back to sensible defaults
+ * derived from the cycle identity (customerId, intentId). Threading this
+ * through is what lets the IMF path attribute MCP calls to the requester
+ * for provenance and tool-policy decisions — see issue #40.
+ */
+export interface IntentHandlingRuntimeContext {
+  sessionId?: string;
+  userId?: string;
+  apiKeyName?: string;
+  correlationId?: string;
+}
 
 export interface IntentHandlingResult {
   /** Fully-enriched context after the cycle completes */
@@ -60,6 +75,7 @@ export class IntentHandlingCycleRunner {
     intentId: string,
     customerId: string,
     intentText: string,
+    runtimeContext?: IntentHandlingRuntimeContext,
   ): Promise<IntentHandlingResult> {
     const trace: IntentHandlingStep[] = [];
 
@@ -71,9 +87,21 @@ export class IntentHandlingCycleRunner {
       retriesRemaining: this.maxRetries,
     };
 
+    // Build the SessionContext threaded into every MCP call so provenance
+    // and tool-policy decisions can attribute actions to the requester.
+    // Defaults derive from cycle identity when the caller did not supply
+    // an authenticated session (e.g. internal/system invocations).
+    const session: SessionContext = {
+      sessionId:     runtimeContext?.sessionId ?? `intent-${intentId}`,
+      userId:        runtimeContext?.userId ?? customerId,
+      apiKeyName:    runtimeContext?.apiKeyName ?? 'system',
+      intentId,
+      correlationId: runtimeContext?.correlationId,
+    };
+
     // RFC 9315 §5.1.1 — INGESTING
     ctx = await this.runPhase(IntentHandlingPhase.INGESTING, ctx, trace,
-      () => this.ingest(ctx),
+      () => this.ingest(ctx, session),
     );
 
     // RFC 9315 §5.1.2 — TRANSLATING
@@ -87,7 +115,7 @@ export class IntentHandlingCycleRunner {
     while (continueLoop) {
       // §5.1.3
       ctx = await this.runPhase(IntentHandlingPhase.ORCHESTRATING, ctx, trace,
-        () => this.orchestrate(ctx),
+        () => this.orchestrate(ctx, session),
       );
 
       // §5.2.1
@@ -132,7 +160,10 @@ export class IntentHandlingCycleRunner {
    * Fetch the requester context and validate that no raw PII will reach the
    * translation or orchestration phases.
    */
-  private async ingest(ctx: IntentHandlingContext): Promise<IntentHandlingContext> {
+  private async ingest(
+    ctx: IntentHandlingContext,
+    session: SessionContext,
+  ): Promise<IntentHandlingContext> {
     logger.info(
       { customerId: ctx.customerId },
       'RFC 9315 §5.1.1 — ingesting intent, fetching requester context',
@@ -141,6 +172,8 @@ export class IntentHandlingCycleRunner {
     const rawProfile = await this.mcpClients.customerData.call(
       'get_customer_profile',
       { customer_id: ctx.customerId },
+      session,
+      'RFC 9315 §5.1.1 INGESTING — fetch requester profile for PII masking',
     );
 
     const maskedProfile = maskCustomerProfile(rawProfile);
@@ -190,7 +223,10 @@ export class IntentHandlingCycleRunner {
    * Submit the translated requirements to network resources and obtain a
    * fulfilment commitment (selected offer and binding quote).
    */
-  private async orchestrate(ctx: IntentHandlingContext): Promise<IntentHandlingContext> {
+  private async orchestrate(
+    ctx: IntentHandlingContext,
+    session: SessionContext,
+  ): Promise<IntentHandlingContext> {
     const analysis: IntentAnalysis = ctx.intentAnalysis ?? {};
     const profile: CustomerProfile = ctx.customerProfile ?? {};
 
@@ -205,6 +241,8 @@ export class IntentHandlingCycleRunner {
         intent: analysis.tags,
         customer_segment: profile.segment,
       },
+      session,
+      'RFC 9315 §5.1.3 ORCHESTRATING — search BSS catalog by intent tags + segment',
     );
 
     logger.info(
@@ -215,6 +253,8 @@ export class IntentHandlingCycleRunner {
     const availableBundles = await this.mcpClients.knowledgeGraph.call(
       'find_related_products',
       { base_products: analysis.product_types },
+      session,
+      'RFC 9315 §5.1.3 ORCHESTRATING — knowledge-graph: resolve bundles for product types',
     );
 
     logger.info('RFC 9315 §5.1.3 — orchestrating: generating fulfilment offer');
@@ -238,6 +278,8 @@ export class IntentHandlingCycleRunner {
         products:    selectedOffer.selected_products,
         discounts:   selectedOffer.recommended_discounts,
       },
+      session,
+      'RFC 9315 §5.1.3 ORCHESTRATING — BSS: generate quote for selected products',
     );
 
     return { ...ctx, availableProducts, availableBundles, selectedOffer, quote };
