@@ -54,7 +54,7 @@ export class IntentProcessor {
     const startTime = Date.now();
 
     try {
-      const result = await this.cycleRunner.run(intentId, customerId, intent);
+      const result = await this.cycleRunner.run(intentId, customerId, intent, context);
       const ctx = result.context;
       const processingTime = Date.now() - startTime;
 
