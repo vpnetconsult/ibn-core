@@ -362,4 +362,55 @@ Paper: supports Paper 2 §X cross-organisational discovery empirical claim
 
 ---
 
-*Plan doc — Vpnet Cloud Solutions Sdn. Bhd., 2026-06-03. Implementation lands in a separate PR after this plan is approved.*
+## 11. Security Architecture Viewpoint (ARB C1 — added 2026-06-03)
+
+This section closes condition **C1** of the [ARB review](../compliance/arb-reviews/erc-8004-discovery-2026-06-03/) (Approved with Conditions, reconciled 2026-06-03 against the live MITRE ATT&CK MCP). The full threat overlay, coverage matrix, risk register, and Navigator JSON are in [`docs/compliance/arb-reviews/erc-8004-discovery-2026-06-03/`](../compliance/arb-reviews/erc-8004-discovery-2026-06-03/) — this section is the cross-reference required by the plan, not a re-statement.
+
+### 11.1 Threat overlay (summary)
+
+- **In-scope ATT&CK tactics (8):** TA0043 Reconnaissance, TA0042 Resource Development (advisory), TA0001 Initial Access, TA0002 Execution, TA0003 Persistence, TA0006 Credential Access (Phase 2), TA0011 C2 (Phase 2 RPC), TA0040 Impact.
+- **17 prioritised techniques** weighted across four threat profiles (telecom-infrastructure, DeFi/crypto-key, generic enterprise, academic/supply-chain).
+- **Highest-impact technique: T1565.001 Stored Data Manipulation** (Phase 2) — leaked owner key calls `setAgentURI(maliciousURL)`, redirecting all on-chain discovery.
+
+### 11.2 Designed-in mitigations (M-series, canonical per live ATT&CK)
+
+| Concern | Technique | Mitigation(s) | Where it lives |
+|---|---|---|---|
+| Public route DoS (Phase 1) | **T1499** Endpoint DoS | **M1037** Filter Network Traffic | `wellKnownLimiter` in `src/index.ts` (C2) |
+| Route-level intrusion (Phase 1) | **T1190** Exploit Public-Facing Application | **M1051** Update Software (Dependabot), **M1050** Exploit Protection (Helmet), **M1016** Vulnerability Scanning (CodeQL) | Existing CI + `src/index.ts:33` |
+| Owner key file (Phase 2) | **T1552.001** Credentials in Files | **M1022** Restrict File and Directory Permissions, **M1027** Password Policies, **M1047** Audit | K8s Secret + RBAC (C3) |
+| Cloud-account theft (Phase 2) | **T1078.004** Valid Accounts: Cloud Accounts | **M1018** User Account Management, **M1026** Privileged Account Management, **M1036** Account Use Policies | Deploy ServiceAccount scoping (C3) |
+| On-chain tokenURI redirect (Phase 2) | **T1565.001** Stored Data Manipulation | **M1022**, **M1041** Encrypt Sensitive Information | On-chain monitor + CI pin (C4) |
+
+### 11.3 Emitted detection data components (DS-series)
+
+| Detection target | Data Source / Component | How it is emitted |
+|---|---|---|
+| Route anomalies, 4xx/5xx spikes (T1190) | **DS0015** Application Log Content | `logger.error(...)` on the well-known route → `src/telemetry.ts` → OTLP (C5) |
+| Rate-limit rejections (T1499) | **DS0029** Network Traffic Flow / Content | `wellKnownLimiter` 429 responses + Prometheus `/metrics` |
+| Owner-key file access (Phase 2, T1552.001) | **DS0022** File Access | K8s audit log on the Secret |
+| Cloud-account auth (Phase 2, T1078.004) | **DS0002** User Account Authentication + **DS0028** Logon Session | K8s API server audit log |
+| On-chain `tokenURI` change (Phase 2, T1565.001) | **DS0022** File modification (key-side) + on-chain event polling (DS0029-style network observation) | `scripts/verify-registration.ts` (C4) |
+
+### 11.4 ARB conditions traced into this PR
+
+- **C1** — closed by this §11.
+- **C2** — closed by the dedicated `wellKnownLimiter` in `src/index.ts` + `src/discovery/agent-registration.integration.test.ts:"C2 — dedicated rate limiter rejects after configured max"`.
+- **C5** — closed by the structured `logger.error(...)` on 5xx + `src/discovery/agent-registration.integration.test.ts:"C5 — structured error log emitted on 5xx"`.
+- **C3**, **C4** — Phase 2 work; tracked open in [`action-register.md`](../compliance/arb-reviews/erc-8004-discovery-2026-06-03/action-register.md).
+
+### 11.5 Risk register reference
+
+See ARB review §6 + §11.3 (post-reconciliation). Two risks sit at residual 6 (T1190 detection on the new route; Phase 2 owner-key custody composite); both close via the conditions above. No risk above 6; no Executive Risk Committee escalation.
+
+---
+
+## 12. Phase 1 implementation log (added during impl PR)
+
+| Date | Commit | Change |
+|---|---|---|
+| 2026-06-03 | this PR | Phase 1 implementation: `src/discovery/`, `src/config/agent-public.yaml`, route wiring with C2 limiter + C5 logging, unit + integration tests, `ERC-8004-mapping.md`, NOTICE + CLAUDE.md amendments. Closes C1 (via §11 above), C2, C5. |
+
+---
+
+*Plan doc — Vpnet Cloud Solutions Sdn. Bhd., 2026-06-03. §11 added 2026-06-03 as ARB C1 closure; §12 added during Phase 1 implementation PR.*

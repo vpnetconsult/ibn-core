@@ -23,6 +23,11 @@ spec:
         prefix: /ready
     - uri:
         prefix: /metrics
+    # ERC-8004 v1 off-chain registration file (plan §4.4, RFC 9315 §4 P5).
+    # Public, unauthenticated by spec; rate-limited at the app via
+    # wellKnownLimiter (ARB condition C2).
+    - uri:
+        exact: /.well-known/agent-registration.json
     route:
     - destination:
         host: business-intent-agent-service.intent-platform.svc.cluster.local

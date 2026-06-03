@@ -243,6 +243,7 @@ When modifying code, maintain traceability to these standards:
 | `DELETE /api/v1/intent/:id` | §6 Lifecycle | DELETE /intent/{id} |
 | `src/auth-jwt.ts` + `src/auth-router.ts` | §4 P3 Autonomy (identity bootstrap consumption) | ODA Canvas UC007 — Keycloak JWT validation against `identityconfig-operator-keycloak` realm |
 | `src/telemetry.ts` | §5.2.1 Monitoring (OTel spans) | ODA Canvas UC006 — Custom Observability; default OTLP/HTTP backend is LangSmith, overridable to any Canvas collector |
+| `src/discovery/AgentRegistration.ts` + `GET /.well-known/agent-registration.json` | §4 P5 Capability Exposure (agent-communication-endpoint surface — distinct from `McpAdapter.getCapabilities()` which is the network-service-capability surface) | ERC-8004 v1 registration file; advertises `/tmf-api/intentManagement/v5` |
 
 ---
 
@@ -290,6 +291,16 @@ also be `import './telemetry'`.
 ### MCP Protocol (Anthropic) — MIT
 - Licence: MIT (compatible with Apache 2.0)
 - Use: Implement freely
+
+### ERC-8004 (Trustless Agents) — CC0
+- Licence: CC0 (public domain dedication)
+- Use: Implement freely; cite the EIP by URL in NOTICE
+- v1 registration file shape is ibn-core's source of truth for discovery; see `docs/standards/ERC-8004-mapping.md`
+
+### ChaosChain Trustless Agents Reference Implementation — APACHE 2.0
+- Licence: Apache 2.0
+- Use: Reuse the deployed Identity Registry contract on Base Sepolia (Phase 2); pin the address in `config/erc-8004.yaml`
+- Retain NOTICE attribution
 
 ---
 

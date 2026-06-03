@@ -1,0 +1,39 @@
+# ibn-core public agent-registration source of truth.
+#
+# Consumed by src/discovery/AgentRegistration.ts to build the ERC-8004 v1
+# registration file served at GET /.well-known/agent-registration.json.
+#
+# Rules (plan §4.2, §R4):
+#   - Curated. Never derived from runtime service discovery.
+#   - Honest. Only list endpoints that actually answer in production.
+#   - Reviewed at PR time. Adding an endpoint here is an architectural
+#     decision, not a config tweak.
+
+name: ibn-core
+description: >-
+  RFC 9315 Intent-Based Networking framework with TMF921 v5 conformance.
+  Open-core under Apache 2.0.
+
+# ERC-721 thumbnail used by ERC-8004 readers. GitHub avatar placeholder
+# per plan §6.2 O1; swap to a project asset when one exists. GitHub serves
+# the org's current avatar at /<org>.png with a stable URL.
+image: https://github.com/vpnetconsult.png
+
+services:
+  - name: TMF921
+    endpoint: https://ibn-core.vpnet.cloud/tmf-api/intentManagement/v5
+    version: 5.0.0
+  - name: web
+    endpoint: https://github.com/vpnetconsult/ibn-core
+
+# x402 (payment proof) — no payment story yet.
+x402Support: false
+
+# Operational status. Flip to false during planned outages.
+active: true
+
+# Trust models ibn-core actually emits feedback under.
+# 'reputation' = TMF921 IntentReport.reportState (plan §D3).
+# 'crypto-economic' / 'tee-attestation' would be lies — no stake/TEE infra.
+supportedTrust:
+  - reputation
