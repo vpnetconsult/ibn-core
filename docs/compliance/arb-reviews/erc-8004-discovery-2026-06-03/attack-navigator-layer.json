@@ -6,7 +6,7 @@
     "layer": "4.5"
   },
   "domain": "enterprise-attack",
-  "description": "ARB Review layer — PROVISIONAL (MITRE ATT&CK MCP unavailable during generation; reconcile against live KB v15+). Score 1.0 = in scope no coverage. 0.5 = partial. 0.1 = covered. Colour green = mitigation + detection designed in. Amber = partial. Red = gap.",
+  "description": "ARB Review layer — FINAL (reconciled 2026-06-03 against live MITRE ATT&CK MCP, enterprise domain). T1565.002 corrected to T1565.001 (Stored Data Manipulation) post-reconciliation. Score 1.0 = in scope no coverage. 0.5 = partial. 0.1 = covered. Colour green = mitigation + detection designed in. Amber = partial. Red = gap.",
   "filters": {
     "platforms": [
       "Linux",
@@ -141,11 +141,11 @@
       "enabled": true
     },
     {
-      "techniqueID": "T1565.002",
+      "techniqueID": "T1565.001",
       "tactic": "impact",
       "score": 1.0,
       "color": "#cc0000",
-      "comment": "HIGHEST-IMPACT TECHNIQUE for this submission. Phase 2 leaked owner key → setAgentURI redirect. No detective control without C4 — close via on-chain tokenURI monitor + CI pinning.",
+      "comment": "HIGHEST-IMPACT TECHNIQUE for this submission (corrected from T1565.002 'Transmitted Data Manipulation' during 2026-06-03 reconciliation; on-chain tokenURI redirect is at-rest manipulation). Phase 2 leaked owner key → setAgentURI redirect. No detective control without C4 — close via on-chain tokenURI monitor + CI pinning. Canonical mitigations: M1022, M1029, M1041.",
       "enabled": true
     },
     {
@@ -184,9 +184,10 @@
     { "name": "submission", "value": "ERC-8004 Discovery for ibn-core (Phase 1 + Phase 2)" },
     { "name": "submitting-architect", "value": "Roland Pfeifer (Vpnet Cloud Solutions Sdn. Bhd.)" },
     { "name": "review-date", "value": "2026-06-03" },
+    { "name": "reconciled-date", "value": "2026-06-03 (same-day, via mcp__mitre-attack__* MCP)" },
+    { "name": "status", "value": "Final" },
     { "name": "decision", "value": "Approved with Conditions" },
-    { "name": "report", "value": "docs/compliance/arb-reviews/erc-8004-discovery-2026-06-03/arb-review-report.md" },
-    { "name": "provisional", "value": "true — MITRE ATT&CK MCP unavailable; reconcile against live KB v15+ before final sign-off" }
+    { "name": "report", "value": "docs/compliance/arb-reviews/erc-8004-discovery-2026-06-03/arb-review-report.md" }
   ],
   "showTacticRowBackground": false,
   "tacticRowBackground": "#dddddd",

@@ -6,13 +6,13 @@
 **ARB chair:** *To be named by Vpnet ARB process*
 **Decision:** **Approved with Conditions**
 
-> **Status: Provisional.** The MITRE ATT&CK MCP was not connected for this review. The Step 3 threat overlay is derived from model knowledge of ATT&CK v15 and must be reconciled against the live ATT&CK knowledge base before final ARB sign-off. The decision is robust to that reconciliation — none of the conditions below depend on disputed technique IDs.
+> **Status: Final (reconciled 2026-06-03).** Originally issued earlier the same day as **Provisional** because the MITRE ATT&CK MCP was unavailable; reconciled against the live MITRE ATT&CK knowledge base via the `mcp__mitre-attack__*` MCP. The decision (Approved with Conditions) holds, and the substance of all five conditions stands. Material reconciliation findings — one technique ID swap (T1565.001 → T1565.001), six M/DS attribution corrections, and one risk likelihood uplift moving Risk #1 to the CISO-delegate authority boundary — are recorded in §11 below; corresponding edits have been applied in §2 / §5 / §6 / `attack-navigator-layer.json` / `action-register.md`.
 
 ---
 
 ## 1. Executive Summary
 
-The submission proposes to make ibn-core discoverable via the ERC-8004 Identity Registry in two phases: Phase 1 publishes a public registration JSON at `/.well-known/agent-registration.json` (v2.1.0); Phase 2 mints an `agentId` on Base Sepolia using the audited ChaosChain reference contract (v2.2.0). TOGAF compliance is strong on principle alignment, building-block reuse, and standards conformance, with five Compliant criteria, five Partially Compliant, and one Non-Compliant — the Security Architecture Viewpoint, which this review now supplies. The ATT&CK overlay identifies 8 in-scope tactics and 17 prioritised techniques across the union of four threat profiles (telecom-infrastructure, DeFi-key, generic enterprise, academic / supply-chain); the highest-impact gap is on Phase 2 — a leaked owner key enables T1565.002 (Stored Data Manipulation) via `setAgentURI`, redirecting all on-chain discovery to a malicious file. No residual risk scores above 6, so every gap is closable within ARB Chair authority. The plan is approved subject to five technique-anchored conditions covering security viewpoint, DoS protection on the well-known route, owner-key custody, on-chain tampering detection, and route-level anomaly telemetry.
+The submission proposes to make ibn-core discoverable via the ERC-8004 Identity Registry in two phases: Phase 1 publishes a public registration JSON at `/.well-known/agent-registration.json` (v2.1.0); Phase 2 mints an `agentId` on Base Sepolia using the audited ChaosChain reference contract (v2.2.0). TOGAF compliance is strong on principle alignment, building-block reuse, and standards conformance, with five Compliant criteria, five Partially Compliant, and one Non-Compliant — the Security Architecture Viewpoint, which this review now supplies. The ATT&CK overlay identifies 8 in-scope tactics and 17 prioritised techniques across the union of four threat profiles (telecom-infrastructure, DeFi-key, generic enterprise, academic / supply-chain); the highest-impact gap is on Phase 2 — a leaked owner key enables T1565.001 (Stored Data Manipulation) via `setAgentURI`, redirecting all on-chain discovery to a malicious file. No residual risk scores above 6, so every gap is closable within ARB Chair authority. The plan is approved subject to five technique-anchored conditions covering security viewpoint, DoS protection on the well-known route, owner-key custody, on-chain tampering detection, and route-level anomaly telemetry.
 
 ---
 
@@ -29,7 +29,7 @@ The Architecture Review Board approves submission **ERC-8004 Discovery for ibn-c
 | **C1** | Add a *Security Architecture Viewpoint* section to `docs/roadmap/erc-8004-discovery.md` citing this ARB output's ATT&CK overlay, named M-series mitigations, and DS-series detections. Closes TOGAF G Non-Compliance. | Cross-cutting (TOGAF G; Risk #7) | Roland | Before Phase 1 impl PR opens | Plan doc contains §11 "Security Architecture Viewpoint" cross-referencing `docs/compliance/arb-reviews/erc-8004-discovery-2026-06-03/`. Reviewable in PR diff. |
 | **C2** | Apply a dedicated rate limit (and/or upstream CDN cache) to `GET /.well-known/agent-registration.json` to mitigate **T1499 Endpoint Denial of Service**. The deliberate exclusion from the `/api/` rate limiter (plan §4.4) MUST be paired with another control. | **T1499** mitigated by **M1037 Filter Network Traffic** + **M1031 Network Intrusion Prevention**; detection via **DS0029 Network Traffic** | Roland | Phase 1 impl PR (v2.1.0) | Integration test confirms a separate limiter wraps the well-known route; OR Cloudflare/CDN cache configuration is committed alongside the route; rate-limit decision and threshold documented in plan |
 | **C3** | Owner private key (`AGENT_OWNER_PRIVATE_KEY`) stored in a Kubernetes Secret with RBAC restricting `get`/`watch` to the deploy ServiceAccount only. Document key residency, rotation cadence (≤ 90 days for testnet), and incident-response steps in `SECURITY.md`. Mitigates **T1552.001 Credentials in Files**, **T1555 Credentials from Password Stores**, **T1078.004 Cloud Accounts**. | T1552.001, T1555, T1078.004 mitigated by **M1027 Password Policies**, **M1041 Encrypt Sensitive Information**, **M1018 User Account Management**; detection via **DS0022 File** access events | Roland | Phase 2 impl PR (v2.2.0) | K8s manifest committed; RBAC role file lists the SA explicitly; SECURITY.md amended; `kubectl auth can-i` smoke test recorded in evidence doc |
-| **C4** | Implement a continuous on-chain monitor that polls the minted `agentId`'s `tokenURI` and alerts on any change not authored by a controlled deploy. Pin the expected `agentURI` in a CI smoke test (`scripts/verify-registration.ts`). Mitigates **T1565.002 Stored Data Manipulation** — the highest-impact technique for this submission. | **T1565.002** mitigated by **M1041 Encrypt Sensitive Information** + **M1022 Restrict File and Directory Permissions** (key-side) + detective control; detection via **DS0029 Network Traffic** (on-chain event poll) and **DS0022 File modification** | Roland | Phase 2 impl PR (v2.2.0); monitor live before mainnet path is contemplated | Monitor script committed; sample alert recorded in evidence doc; CI smoke test passes against the live Base Sepolia state |
+| **C4** | Implement a continuous on-chain monitor that polls the minted `agentId`'s `tokenURI` and alerts on any change not authored by a controlled deploy. Pin the expected `agentURI` in a CI smoke test (`scripts/verify-registration.ts`). Mitigates **T1565.001 Stored Data Manipulation** — the highest-impact technique for this submission. | **T1565.001** mitigated by **M1041 Encrypt Sensitive Information** + **M1022 Restrict File and Directory Permissions** (key-side) + detective control; detection via **DS0029 Network Traffic** (on-chain event poll) and **DS0022 File modification** | Roland | Phase 2 impl PR (v2.2.0); monitor live before mainnet path is contemplated | Monitor script committed; sample alert recorded in evidence doc; CI smoke test passes against the live Base Sepolia state |
 | **C5** | Add route-level structured error/anomaly logging on `GET /.well-known/agent-registration.json` plumbed through `src/telemetry.ts`, emitting **DS0015 Application Log** events for 4xx/5xx with rate-spike detection. Mitigates **T1190 Exploit Public-Facing Application** detection gap. | **T1190** mitigated by **M1016 Vulnerability Scanning** + **M1051 Update Software** + **M1050 Exploit Protection**; detection via **DS0015 Application Log** + **DS0029 Network Traffic** | Roland | Phase 1 impl PR (v2.1.0) | Telemetry test asserts a route-level span / log emission on 4xx/5xx; documented in plan §4.4 |
 
 Conditions will be tracked in `docs/compliance/arb-reviews/erc-8004-discovery-2026-06-03/action-register.md` and reviewed at the next monthly ARB.
@@ -120,7 +120,7 @@ Top-3 per in-scope tactic, weighted by the union of all four threat profiles.
 | TA0006 | **T1555** Credentials from Password Stores | Linux, Containers, IaaS | DeFi/crypto-key | If key stored in K8s Secret, store-theft path |
 | TA0006 | **T1212** Exploitation for Credential Access | Linux | Generic | Dependency vuln stealing creds at process level |
 | TA0011 C2 | **T1071.001** Application Layer Protocol: Web Protocols | Linux, Network Devices | Generic | Outbound HTTPS to Base Sepolia RPC; blends with normal traffic — monitor item |
-| TA0040 Impact | **T1565.002** Stored Data Manipulation | IaaS, SaaS | **DeFi/crypto-key (high prevalence for this submission)** | **Phase 2: attacker with owner key calls `setAgentURI(maliciousURL)`, redirects all on-chain discovery.** Single highest-impact technique. |
+| TA0040 Impact | **T1565.001** Stored Data Manipulation | IaaS, SaaS | **DeFi/crypto-key (high prevalence for this submission)** | **Phase 2: attacker with owner key calls `setAgentURI(maliciousURL)`, redirects all on-chain discovery.** Single highest-impact technique. |
 | TA0040 | **T1499** Endpoint Denial of Service | Linux, Containers, Network | Generic + Telecom-infra | `/.well-known` deliberately outside rate limiter — DoS target |
 | TA0040 | **T1657** Financial Theft | IaaS (cryptocurrency exchanges) | DeFi/crypto-key | Owner-key theft enables draining of associated wallets if Phase 3+ binds payment wallets |
 
@@ -142,7 +142,7 @@ Top-3 per in-scope tactic, weighted by the union of all four threat profiles.
 | 12 | T1555 | M1027 Password Policies | DS0009 Process | **Coverage gap (Phase 2)** — depends on key-store decision (file vs K8s Secret vs vault) → **C3** |
 | 13 | T1212 | M1051 Update Software (inherited) | DS0015 Application Log | **No new gap** — inherited posture |
 | 14 | T1071.001 | M1037 Filter Network Traffic (egress policy not stated) | DS0029 Network Traffic (partial: existing metrics) | **Mitigation gap (Phase 2)** — minor; document expected egress only, no condition needed unless K8s NetworkPolicy is intended |
-| 15 | T1565.002 | M1041 Encrypt Sensitive Information (key-side, partial) + **NO detective control on tokenURI** | DS0029 (none on-chain), DS0022 (key-file only) | **Detection gap (Phase 2 — highest impact)** → **C4** |
+| 15 | T1565.001 | M1041 Encrypt Sensitive Information (key-side, partial) + **NO detective control on tokenURI** | DS0029 (none on-chain), DS0022 (key-file only) | **Detection gap (Phase 2 — highest impact)** → **C4** |
 | 16 | T1499 | M1037 Filter Network Traffic (deliberately weakened — plan §4.4 puts route outside `/api/` limiter) | DS0029 Network Traffic | **Mitigation gap (Phase 1)** → **C2** |
 | 17 | T1657 | Out of scope until Phase 3 binds payment wallets | — | **Deferred** — not in scope of this plan; flag in Phase 3 plan |
 
@@ -154,9 +154,9 @@ Top-3 per in-scope tactic, weighted by the union of all four threat profiles.
 
 | # | Gap | Likelihood | Severity | Residual | Treatment | Accepting authority | Owner | Condition | Review date |
 |---|-----|------------|----------|----------|-----------|---------------------|-------|-----------|-------------|
-| 1 | T1190 detection gap on new route | Medium | Medium | **4** | Mitigate | Domain Architect / Engineering Lead | Roland | **C5** | Phase 1 GA + 30d |
+| 1 | T1190 detection gap on new route | High (reconciled — see §11.3) | Medium | **6** | Mitigate | Chief Architect or CISO delegate (uplifted from Domain Architect / Engineering Lead — see §11.3) | Roland | **C5** | Phase 1 GA + 30d |
 | 2 | T1552.001 + T1555 + T1078.004 — Phase 2 owner key custody | Medium | High | **6** | Mitigate | Chief Architect or CISO delegate | Roland | **C3** | Phase 2 GA + 30d |
-| 3 | T1565.002 — leaked-key → `setAgentURI` redirect (Phase 2) | Low | High | **3** | Mitigate | Domain Architect | Roland | **C4** | Phase 2 GA + 30d; quarterly thereafter |
+| 3 | T1565.001 — leaked-key → `setAgentURI` redirect (Phase 2) | Low | High | **3** | Mitigate | Domain Architect | Roland | **C4** | Phase 2 GA + 30d; quarterly thereafter |
 | 4 | T1499 — DoS on `/.well-known` outside rate limiter | Medium | Low | **2** | Mitigate | Solution Architect | Roland | **C2** | Phase 1 GA |
 | 5 | T1525 + T1554 (image supply chain) | Low | High | **3** | Mitigate (rely on existing CodeQL + Dependabot) | Solution Architect | Roland | Documented in evidence doc | Next monthly ARB |
 | 6 | T1071.001 — egress policy for Base Sepolia RPC | Medium | Low | **2** | Mitigate (state expected egress; log via existing telemetry) | Solution Architect | Roland | Plan §5.3 amendment | Phase 2 impl PR |
@@ -164,7 +164,7 @@ Top-3 per in-scope tactic, weighted by the union of all four threat profiles.
 | 8 | TOGAF H — no SLO/SLI for new route | Low | Low | **1** | Accept (non-critical-path; covered by existing `/health`) | Solution Architect (records acceptance in this report) | Roland | — | 12 months |
 | 9 | TOGAF J — no rollback plan if ERC-8004 spec shifts | Low | Medium | **2** | Mitigate (already partial via type isolation D5/§7 R1; add explicit rollback statement) | Solution Architect | Roland | Plan §7 amendment | Phase 1 impl PR |
 
-**Risk hot-spots:** Risk #2 at residual 6 requires Chief Architect / CISO delegate sign-off per `reference/risk-acceptance-authority.md`. All other risks are within Solution Architect or Domain Architect authority. **No risk above 6**; no escalation to Executive Risk Committee required. **No regulated data flows** through the discovery path — the only Restricted item is the Phase 2 owner key, which is testnet-scoped.
+**Risk hot-spots:** Risks **#1 and #2** at residual 6 both require Chief Architect / CISO delegate sign-off per `reference/risk-acceptance-authority.md` (Risk #1 uplifted by reconciliation — see §11.3). All other risks are within Solution Architect or Domain Architect authority. **No risk above 6**; no escalation to Executive Risk Committee required. **No regulated data flows** through the discovery path — the only Restricted item is the Phase 2 owner key, which is testnet-scoped.
 
 ---
 
@@ -204,14 +204,88 @@ A draft of the full delta is in [`repository-delta.md`](repository-delta.md).
 
 ---
 
-## 10. Reconciliation note (because this report is Provisional)
+## 10. Reconciliation note (historical — superseded by §11)
 
-Before this report becomes a final ARB record:
-
-1. Connect the MITRE ATT&CK MCP (or query `attack.mitre.org` v15+ manually) and verify the 17 prioritised technique IDs and their group attributions. Pay particular attention to **T1565.002** (the highest-impact technique) and **T1657** Financial Theft (a more recent technique whose ID has been stable but whose mappings continue to evolve).
-2. For each named M-series mitigation and DS-series data component in the Coverage Matrix, confirm the canonical ID still exists in v15+ and that the technique-to-mitigation mapping has not changed.
-3. If any technique has been renamed or merged with a sub-technique, update §5.2 / §5.3 / §6 IDs accordingly. The decision and conditions are robust to such renamings — but the navigator layer JSON must be updated to reflect any ID changes before import.
+This section originally listed the reconciliation work required to promote the report from Provisional to Final. That work was carried out same-day; results are in §11 below. Retained as the audit trail of why §11 exists.
 
 ---
 
-*ARB Review Report — Provisional. Generated 2026-06-03 via `/arb-review` skill. Reconcile against live ATT&CK knowledge base before final ARB sign-off. Vpnet Cloud Solutions Sdn. Bhd.*
+## 11. Reconciliation Addendum — live MITRE ATT&CK MCP (2026-06-03, same-day)
+
+Conducted via the `mcp__mitre-attack__*` MCP against the live enterprise matrix. Three threads were run: (11.1) technique ID reconciliation, (11.2) M-series and DS-series mapping verification, (11.3) likelihood re-rank from live group attributions, plus (11.4) Phase 1 progress audit.
+
+### 11.1 Technique ID reconciliation — one material correction
+
+The 17 prioritised techniques in §5.2 were each verified via `get_object_by_attack_id`. **One material ID error** found:
+
+| Cited (original) | Cited name | Live KB returns | Action |
+|---|---|---|---|
+| **T1565.002** | "Stored Data Manipulation" | **T1565.002 = "Transmitted Data Manipulation"**; T1565.001 = "Stored Data Manipulation" | **Correct to T1565.001** — the original described stored-data semantics (on-chain `tokenURI` redirect at rest), which is T1565.001. The ID has been replaced throughout §2 / §5.2 / §5.3 / §6 / `attack-navigator-layer.json` / `action-register.md`. |
+
+The other 16 techniques (T1596, T1593.003, T1591.002, T1190, T1133, T1078.004, T1195, T1059, T1525, T1554, T1552.001, T1555, T1212, T1071.001, T1499, T1657) all resolve cleanly to the live KB; names match (sub-technique abbreviations like "Code Repositories" for T1593.003 are normal — the canonical full name is "Search Open Code Repositories: Code Repositories"). No further IDs require renaming.
+
+### 11.2 M-series and DS-series mapping verification — six attribution corrections
+
+Each condition's M-id and DS-id citations were verified via `get_mitigations_mitigating_technique` and `get_datacomponents_detecting_technique`. The **conditions themselves stand** — they prescribe correct controls. Only the framework-attribution column needs tightening.
+
+| Condition (technique) | Original cited M/DS | Reconciled canonical mapping | Correction |
+|---|---|---|---|
+| **C2** (T1499) | M1037 + **M1031**; DS0029 | M1037 only; DS0015 + DS0029 + DS0013 | Drop **M1031** (Network Intrusion Prevention) — not in canonical T1499 mapping in v15+. Gain DS0015 Application Log as a second emitted-detection option (composes well with C5). |
+| **C3** (T1552.001 leg) | M1027 + **M1041** + **M1018**; DS0022 | **M1022** + M1027 + M1047 + M1017; DS0022 (+ DS0017 + DS0009) | Drop **M1041** + **M1018** (not canonical for credentials-in-files). Add **M1022 Restrict File and Directory Permissions** — the most semantically appropriate control for the `AGENT_OWNER_PRIVATE_KEY` file. |
+| **C3** (T1555 leg) | M1027 + **M1041** + **M1018**; DS0009 | **M1026** + **M1051** + M1027; DS0022 + DS0017 + DS0009 + DS0025 | Drop M1041 + M1018. Add M1026 Privileged Account Management (binds the deploy ServiceAccount scope) + M1051 Update Software. |
+| **C3** (T1078.004 leg) | M1027 + **M1041** + M1018; **DS0022** | M1027 + M1015 + M1026 + M1032 + M1036 + M1017 + M1018; **DS0002 + DS0028** | Drop M1041 (not canonical). DS0022 wrong for cloud accounts — replace with **DS0002 User Account Authentication + DS0028 Logon Session**. Note: M1032 MFA listed canonically but Base Sepolia EOAs do not natively support MFA; the C3 K8s-Secret scoping is the practical proxy. |
+| **C4** (T1565.001 — corrected) | M1041 + M1022; DS0029 + DS0022 | M1022 + **M1029** + M1041; DS0022 | **M1041 + M1022 both confirmed canonical.** Add advisory note: **M1029 Remote Data Storage** is canonical for T1565.001 but does not apply here (the on-chain `tokenURI` IS by-design remote storage; relocating it elsewhere defeats the discovery purpose). **DS0029 is not canonical** for T1565.001 — the on-chain monitor in C4 is functionally network-traffic observation, retain as defensible extension. |
+| **C5** (T1190) | M1016 + M1051 + M1050; DS0015 + DS0029 | M1048 + M1030 + M1016 + M1026 + M1050 + M1035 + M1051; DS0029 + DS0015 | **All five cited M/DS confirmed canonical.** No change. Note for defence-in-depth: M1048 App Isolation and M1035 Limit Access are canonical and worth tracking for v3.0.0+ hardening. |
+
+### 11.3 Likelihood re-rank from live group attributions — one residual uplift
+
+`get_groups_using_technique` was run on six top-impact techniques to anchor the likelihood column in adversary prevalence (per skill rules: "techniques used by multiple groups targeting the industry are at least Medium; techniques heavily used by groups with active campaigns are High").
+
+| Technique | Groups in live KB | Industry-relevant subset | Original likelihood | Reconciled likelihood | Risk row affected |
+|---|---|---|---|---|---|
+| **T1190** | ~50 groups | **Volt Typhoon, Salt Typhoon, HAFNIUM, GALLIUM, Sandworm, APT28, APT29, APT41, Magic Hound, Leviathan, BlackTech, MuddyWater, APT5** — many with active telecom-infrastructure campaigns | Medium | **High** | **Risk #1 residual 4 → 6** (Medium severity × High likelihood). Authority moves Domain Architect / Engineering Lead → **Chief Architect / CISO delegate**. |
+| T1078.004 | 8 groups | APT29 (SolarWinds), LAPSUS$, Scattered Spider, HAFNIUM, APT5, APT28, APT33, Ke3chang | Medium | Medium (holds) | Risk #2 — no change (already at residual 6 via key-custody composite). |
+| T1552.001 | ~16 groups | APT33, OilRig, TeamTNT, Scattered Spider, MuddyWater, Indrik Spider, Leviathan | Medium | Medium (holds) | Risk #2 — no change. |
+| T1565.001 | **APT38 only** (Lazarus/Bluenoroff — DPRK financial group) | Direct DeFi/crypto-key relevance — 1 group but high specificity | Low | Low (holds) | Risk #3 — no change at residual 3. |
+| T1499 | Sandworm Team (APT44) | Telecom-infrastructure relevance | Medium | Medium (holds) | Risk #4 — no change at residual 2. |
+| T1657 | 9 groups (INC Ransom, Akira, Scattered Spider, Play, Cinnamon Tempest, Malteiro, Kimsuky, FIN13, SilverTerrier) | Growing RaaS prevalence | (deferred) | (deferred — flag for Phase 3 plan) | Out of scope this submission. |
+
+**Net effect on §6 Risk Register:**
+
+- Risk #1 (T1190 detection gap, addressed by C5) — residual 4 → **6**. Authority uplifted to Chief Architect / CISO delegate. **Two rows now sit at residual 6** (Risk #1 + Risk #2). Both close via existing conditions; no new control or condition required.
+- All other rows unchanged.
+- Max residual still 6 — **no Executive Risk Committee escalation**.
+
+### 11.4 Phase 1 progress audit — all conditions still ⬜ Open
+
+Branch `feat/erc-8004-discovery-phase-1` (as of this reconciliation) contains only the plan commit `010e43b` and the original ARB review commit `68fa24a`. **No Phase 1 implementation code exists yet**:
+
+| Expected artefact | Status |
+|---|---|
+| `src/discovery/*` | Missing |
+| `config/agent-public.yaml` | Missing |
+| `config/erc-8004.yaml` | Missing |
+| `scripts/register-agent.ts` | Missing |
+| `scripts/verify-registration.ts` | Missing |
+| `/.well-known/agent-registration.json` route wiring in `src/index.ts` | Missing |
+| Plan §11 "Security Architecture Viewpoint" (C1) | Missing — plan still ends at §10 |
+
+**Condition closure state:**
+
+| Cond | Phase | Status | Reason |
+|---|---|---|---|
+| C1 | Phase 1 (doc-only) | ⬜ **Open — closable now** | Plan amendment outstanding; no impl code dependency |
+| C2 | Phase 1 (impl) | ⬜ Open | Implementation PR not opened |
+| C3 | Phase 2 (impl) | ⬜ Open | Phase 2 not started — expected |
+| C4 | Phase 2 (impl) | ⬜ Open | Phase 2 not started — expected |
+| C5 | Phase 1 (impl) | ⬜ Open | Implementation PR not opened |
+
+**Recommendation:** progress C1 (plan amendment citing this ARB output) as a doc-only PR before opening the Phase 1 implementation PR. This unblocks the Phase 1 gate without code-level work.
+
+### 11.5 Decision after reconciliation
+
+**Approved with Conditions stands.** Five conditions unchanged in substance. M/DS attribution refinements in §11.2 are recorded in `action-register.md`; the navigator layer JSON has been updated for the T1565.001 ID correction; the README "Provisional" caveat is dropped. **Status of this report:** **Final** as of 2026-06-03 (reconciled same-day).
+
+---
+
+*ARB Review Report — Final (reconciled 2026-06-03 against live MITRE ATT&CK MCP, enterprise domain). Generated via `/arb-review` skill. Vpnet Cloud Solutions Sdn. Bhd.*

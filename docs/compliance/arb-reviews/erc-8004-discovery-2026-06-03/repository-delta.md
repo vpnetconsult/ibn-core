@@ -107,16 +107,16 @@ Vpnet Cloud Solutions Sdn. Bhd. operates a single small-org Architecture Reposit
 
 ---
 
-## 8. Provisional reconciliation tasks (because the ARB review is Provisional)
+## 8. Reconciliation tasks — CLOSED 2026-06-03 (same-day)
 
-Before the entries above become *final* Architecture Repository updates:
+The reconciliation tasks originally listed here were carried out the same day via the live MITRE ATT&CK MCP. Outcome:
 
-1. Reconcile `attack-navigator-layer.json` IDs against live MITRE ATT&CK v15+ — see report §10 reconciliation note.
-2. Verify the **T1565.002** mapping (the highest-impact technique) is current — the v15 description should still cover the `setAgentURI` redirect scenario.
-3. If any technique ID has shifted in v15+, regenerate the navigator layer JSON and update the conditions C2–C5 ATT&CK references in the action register.
+1. ✅ `attack-navigator-layer.json` IDs reconciled — one correction (T1565.002 → T1565.001) applied.
+2. ✅ Highest-impact technique verified — T1565.001 "Stored Data Manipulation" is the canonical ID for the `setAgentURI` at-rest redirect scenario; the previously cited T1565.002 is "Transmitted Data Manipulation" which did not match the threat narrative.
+3. ✅ Navigator layer JSON regenerated and C4's ATT&CK reference updated in `action-register.md`. C2, C3, C5 received M/DS attribution refinements (see report §11.2); the conditions themselves are unchanged in substance.
 
-The decision and conditions are robust to such reconciliation — the substance of the gaps does not depend on disputed IDs.
+Full reconciliation report: [`arb-review-report.md`](arb-review-report.md) §11.
 
 ---
 
-*Repository Delta — generated 2026-06-03 via `/arb-review` skill. Vpnet Cloud Solutions Sdn. Bhd.*
+*Repository Delta — generated 2026-06-03 via `/arb-review` skill; reconciliation §8 closed same-day. Vpnet Cloud Solutions Sdn. Bhd.*
