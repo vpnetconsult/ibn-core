@@ -5,8 +5,8 @@
   "recipe": "my-operator",
   "recipe_path": ".arckit/recipes/my-operator.yaml",
   "started_at": "2026-06-05T12:42:14Z",
-  "last_wave_completed": 0,
-  "current_wave": 1,
+  "last_wave_completed": 1,
+  "current_wave": 2,
   "targets": {
     "PRIN": {
       "status": "complete",
@@ -16,11 +16,38 @@
       "line_count": 683,
       "skill": "arckit:principles",
       "topic": null,
-      "agent_summary": "17 enterprise architecture principles across 5 categories, telco/AI-native open-core context. 3 NON-NEGOTIABLE: Standards Conformance (RFC 9315 + TMF921), Security by Design (zero-trust agent identity, PDPA), Open-Core/Proprietary Seam Integrity. Classification PUBLIC, status DRAFT.",
+      "agent_summary": "17 enterprise architecture principles, telco/AI-native open-core. 3 NON-NEGOTIABLE: Standards Conformance, Security by Design, Open-Core Seam Integrity.",
       "input_hashes": {}
+    },
+    "REQ": {
+      "status": "complete",
+      "path": "projects/001-ibn-core-my/ARC-001-REQ-v1.0.md",
+      "built_at": "2026-06-05T12:49:33Z",
+      "wave": 1,
+      "line_count": 1647,
+      "skill": "arckit:requirements",
+      "topic": null,
+      "agent_summary": "49 requirements (6 BR, 13 FR, 23 NFR, 4 INT, 3 data). AI IN SCOPE (FR-002 LLM translation, FR-003 autonomous MCP orchestration, FR-007 agent-role identity, FR-011 agent telemetry). 2 conflicts resolved.",
+      "input_hashes": {
+        "PRIN": "616a008300a859257f173d299d85a5619ae3039c05549f2bf49adc15b08157f5"
+      }
+    },
+    "STKE": {
+      "status": "complete",
+      "path": "projects/001-ibn-core-my/ARC-001-STKE-v1.0.md",
+      "built_at": "2026-06-05T12:49:33Z",
+      "wave": 1,
+      "line_count": 1106,
+      "skill": "arckit:stakeholders",
+      "topic": null,
+      "agent_summary": "16 stakeholders (7 internal, 9 external). Top by influence: Lead Architect/CTO, SI Delivery Lead, Operator Network Eng. 12 drivers, 5 SMART goals, MCMC/JPDP/NACSA regulatory triad. 3 conflicts, 3 synergies.",
+      "input_hashes": {
+        "PRIN": "616a008300a859257f173d299d85a5619ae3039c05549f2bf49adc15b08157f5"
+      }
     }
   },
   "waves": [
-    {"n": 0, "targets": ["PRIN"], "status": "complete", "completed_at": "2026-06-05T12:42:14Z"}
+    {"n": 0, "targets": ["PRIN"], "status": "complete", "completed_at": "2026-06-05T12:42:14Z"},
+    {"n": 1, "targets": ["REQ", "STKE"], "status": "complete", "completed_at": "2026-06-05T12:49:33Z"}
   ]
 }
