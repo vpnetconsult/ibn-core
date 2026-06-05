@@ -5,78 +5,21 @@
   "recipe": "my-operator",
   "recipe_path": ".arckit/recipes/my-operator.yaml",
   "started_at": "2026-06-05T12:42:14Z",
-  "last_wave_completed": 2,
-  "current_wave": 3,
+  "last_wave_completed": 3,
+  "current_wave": 4,
   "targets": {
-    "PRIN": {
-      "status": "complete",
-      "path": "projects/000-global/ARC-000-PRIN-v1.0.md",
-      "built_at": "2026-06-05T12:42:14Z",
-      "wave": 0,
-      "line_count": 683,
-      "skill": "arckit:principles",
-      "topic": null,
-      "agent_summary": "17 enterprise architecture principles, telco/AI-native open-core. 3 NON-NEGOTIABLE.",
-      "input_hashes": {}
-    },
-    "REQ": {
-      "status": "complete",
-      "path": "projects/001-ibn-core-my/ARC-001-REQ-v1.0.md",
-      "built_at": "2026-06-05T12:49:33Z",
-      "wave": 1,
-      "line_count": 1647,
-      "skill": "arckit:requirements",
-      "topic": null,
-      "agent_summary": "49 requirements (6 BR, 13 FR, 23 NFR, 4 INT, 3 data). AI IN SCOPE. 2 conflicts resolved.",
-      "input_hashes": {
-        "PRIN": "616a008300a859257f173d299d85a5619ae3039c05549f2bf49adc15b08157f5"
-      }
-    },
-    "STKE": {
-      "status": "complete",
-      "path": "projects/001-ibn-core-my/ARC-001-STKE-v1.0.md",
-      "built_at": "2026-06-05T12:49:33Z",
-      "wave": 1,
-      "line_count": 1106,
-      "skill": "arckit:stakeholders",
-      "topic": null,
-      "agent_summary": "16 stakeholders. MCMC/JPDP/NACSA regulatory triad. 12 drivers, 5 SMART goals, 3 conflicts.",
-      "input_hashes": {
-        "PRIN": "616a008300a859257f173d299d85a5619ae3039c05549f2bf49adc15b08157f5"
-      }
-    },
-    "MY_MYDIGITAL": {
-      "status": "complete",
-      "path": "projects/001-ibn-core-my/ARC-001-MYDIG-v1.0.md",
-      "built_at": "2026-06-05T13:06:40Z",
-      "wave": 2,
-      "line_count": 162,
-      "skill": "arckit:my-mydigital",
-      "topic": null,
-      "agent_summary": "MyDIGITAL alignment as commercial-enabler (not public-sector obligation): Thrust 2 (economic competitiveness via autonomous fulfilment), Thrust 3 (5G infra activation), Thrust 4 + National AI agenda (RFC 9315/agentic-AI capability, responsible AI). NOTE: arckit:my-mydigital is a slash command not a Skill; worker executed command process directly.",
-      "input_hashes": {
-        "PRIN": "616a008300a859257f173d299d85a5619ae3039c05549f2bf49adc15b08157f5",
-        "REQ": "94bd39eb3f3844b2405d37931c83964adba323ec1f56534af8b7c17513a932f8"
-      }
-    },
-    "ADR-002": {
-      "status": "complete",
-      "path": "projects/001-ibn-core-my/decisions/ARC-001-ADR-001-v1.0.md",
-      "built_at": "2026-06-05T13:06:40Z",
-      "wave": 2,
-      "line_count": 659,
-      "skill": "arckit:adr",
-      "topic": "Operator identity — Keycloak / CAMARA / auth-jwt integration and assurance level",
-      "agent_summary": "Decision: Keycloak central commercial IdP + constrained agent realm role (client-credentials, least privilege) + CAMARA-native egress auth vaulted; two-tier JWT assurance (elevated for network-mutating ops). Chose Option 1 of 4 (rejected CAMARA-native-primary and federated-operator-IdP). Hook allocated file sequence ADR-001.",
-      "input_hashes": {
-        "PRIN": "616a008300a859257f173d299d85a5619ae3039c05549f2bf49adc15b08157f5",
-        "REQ": "94bd39eb3f3844b2405d37931c83964adba323ec1f56534af8b7c17513a932f8"
-      }
-    }
+    "PRIN": {"status": "complete", "path": "projects/000-global/ARC-000-PRIN-v1.0.md", "built_at": "2026-06-05T12:42:14Z", "wave": 0, "line_count": 683, "skill": "arckit:principles", "topic": null, "agent_summary": "17 enterprise architecture principles, telco/AI-native open-core. 3 NON-NEGOTIABLE.", "input_hashes": {}},
+    "REQ": {"status": "complete", "path": "projects/001-ibn-core-my/ARC-001-REQ-v1.0.md", "built_at": "2026-06-05T12:49:33Z", "wave": 1, "line_count": 1647, "skill": "arckit:requirements", "topic": null, "agent_summary": "49 requirements. AI IN SCOPE. 2 conflicts resolved.", "input_hashes": {"PRIN": "616a008300a859257f173d299d85a5619ae3039c05549f2bf49adc15b08157f5"}},
+    "STKE": {"status": "complete", "path": "projects/001-ibn-core-my/ARC-001-STKE-v1.0.md", "built_at": "2026-06-05T12:49:33Z", "wave": 1, "line_count": 1106, "skill": "arckit:stakeholders", "topic": null, "agent_summary": "16 stakeholders. MCMC/JPDP/NACSA triad. 12 drivers, 5 SMART goals.", "input_hashes": {"PRIN": "616a008300a859257f173d299d85a5619ae3039c05549f2bf49adc15b08157f5"}},
+    "MY_MYDIGITAL": {"status": "complete", "path": "projects/001-ibn-core-my/ARC-001-MYDIG-v1.0.md", "built_at": "2026-06-05T13:06:40Z", "wave": 2, "line_count": 162, "skill": "arckit:my-mydigital", "topic": null, "agent_summary": "MyDIGITAL alignment as commercial-enabler. arckit:my-* are slash commands; command-fallback used.", "input_hashes": {"PRIN": "616a008300a859257f173d299d85a5619ae3039c05549f2bf49adc15b08157f5", "REQ": "94bd39eb3f3844b2405d37931c83964adba323ec1f56534af8b7c17513a932f8"}},
+    "ADR-002": {"status": "complete", "path": "projects/001-ibn-core-my/decisions/ARC-001-ADR-001-v1.0.md", "built_at": "2026-06-05T13:06:40Z", "wave": 2, "line_count": 659, "skill": "arckit:adr", "topic": "Operator identity — Keycloak / CAMARA / auth-jwt integration and assurance level", "agent_summary": "Keycloak central IdP + constrained agent role + vaulted CAMARA egress; two-tier JWT assurance. File seq ADR-001.", "input_hashes": {"PRIN": "616a008300a859257f173d299d85a5619ae3039c05549f2bf49adc15b08157f5", "REQ": "94bd39eb3f3844b2405d37931c83964adba323ec1f56534af8b7c17513a932f8"}},
+    "MY_CLASSIFICATION": {"status": "complete", "path": "projects/001-ibn-core-my/ARC-001-MYCLAS-v1.0.md", "built_at": "2026-06-05T13:40:49Z", "wave": 3, "line_count": 186, "skill": "arckit:my-classification", "topic": null, "agent_summary": "4-tier commercial classification (PUBLIC/INTERNAL/CONFIDENTIAL/RESTRICTED), 10 datasets. Arahan Keselamatan explicitly NOT binding (comparator only); PDPA 2010 binds personal data. Command-fallback.", "input_hashes": {"REQ": "94bd39eb3f3844b2405d37931c83964adba323ec1f56534af8b7c17513a932f8", "MY_MYDIGITAL": "f3bc978e365f2d0f6c5a990680309834f440b58e50650d8d2e89d51b8a30d3c3"}},
+    "STRATEGY": {"status": "complete", "path": "projects/000-global/ARC-000-STRAT-v1.0.md", "built_at": "2026-06-05T13:40:49Z", "wave": 3, "line_count": 768, "skill": "arckit:strategy", "topic": null, "agent_summary": "4 pillars: Standards Leadership (TMF921 CTK), Trusted Autonomous AI, Open-Core Integrity + reference engagement, Data Protection/Security/Regulatory. Mapped to outcomes O-1..O-4.", "input_hashes": {"PRIN": "616a008300a859257f173d299d85a5619ae3039c05549f2bf49adc15b08157f5", "STKE": "76fc0c223fb73c38b64ea81968fceb0bc95fc5882c2e9b23c63dab3cdcaffd6c", "MY_MYDIGITAL": "f3bc978e365f2d0f6c5a990680309834f440b58e50650d8d2e89d51b8a30d3c3"}}
   },
   "waves": [
     {"n": 0, "targets": ["PRIN"], "status": "complete", "completed_at": "2026-06-05T12:42:14Z"},
     {"n": 1, "targets": ["REQ", "STKE"], "status": "complete", "completed_at": "2026-06-05T12:49:33Z"},
-    {"n": 2, "targets": ["MY_MYDIGITAL", "ADR-002"], "status": "complete", "completed_at": "2026-06-05T13:06:40Z"}
+    {"n": 2, "targets": ["MY_MYDIGITAL", "ADR-002"], "status": "complete", "completed_at": "2026-06-05T13:06:40Z"},
+    {"n": 3, "targets": ["MY_CLASSIFICATION", "STRATEGY"], "status": "complete", "completed_at": "2026-06-05T13:40:49Z"}
   ]
 }
