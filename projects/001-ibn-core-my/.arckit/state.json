@@ -7,6 +7,12 @@
   "started_at": "2026-06-05T12:42:14Z",
   "last_wave_completed": 10,
   "current_wave": 11,
+  "build_complete": true,
+  "completed_at": "2026-06-05T18:55:38Z",
+  "post_build_hooks": {
+    "health": {"status": "complete", "report": "docs/health.json", "verdict": "healthy", "findings": {"high": 1, "medium": 1, "low": 0}},
+    "pages": {"status": "complete", "site": "docs/index.html", "artefacts_indexed": 21, "graph": "21 nodes / 142 edges"}
+  },
   "targets": {
     "PRIN": {"status": "complete", "path": "projects/000-global/ARC-000-PRIN-v1.0.md", "built_at": "2026-06-05T12:42:14Z", "wave": 0, "line_count": 683, "skill": "arckit:principles", "topic": null, "agent_summary": "17 enterprise architecture principles, telco/AI-native open-core. 3 NON-NEGOTIABLE.", "input_hashes": {}},
     "REQ": {"status": "complete", "path": "projects/001-ibn-core-my/ARC-001-REQ-v1.0.md", "built_at": "2026-06-05T12:49:33Z", "wave": 1, "line_count": 1647, "skill": "arckit:requirements", "topic": null, "agent_summary": "49 requirements. AI IN SCOPE. 2 conflicts resolved.", "input_hashes": {"PRIN": "616a008300a859257f173d299d85a5619ae3039c05549f2bf49adc15b08157f5"}},
