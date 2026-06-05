@@ -1,0 +1,194 @@
+# ArcKit build recipe — Malaysia Operator / SI engagement (commercial baseline)
+#
+# Derived from `my-federal` (arckit-my 5.11.0) for a COMMERCIAL operator/SI
+# subject rather than a public-sector entity. Drops the six govt-subject
+# overlays (MyGovEA, ePerolehan, MyGDX, National Archives digital records,
+# MyDigital ID, rakyat-centric service review) and reframes two targets:
+#   - ADR-002  → operator identity (Keycloak / CAMARA / auth-jwt), not MyDigital ID
+#   - MY_CLASSIFICATION → commercial data-sensitivity tiers, not Arahan Keselamatan
+#
+# Retains the four Malaysia overlays that genuinely apply to a Malaysian telco:
+#   - MY_PDPA           (operators are PDPA data users)
+#   - MY_AI_GOVERNANCE  (AIGE — ibn-core is AI-native)
+#   - MY_CYBER          (NACSA NCII — telecommunications is a designated sector)
+#   - MY_CLOUD_FIRST    (MCMC data residency reasoning)
+#   - MY_MYDIGITAL      (national blueprint positioning)
+#
+# Project-override recipe (precedence #1). Canonical `my-federal` is left
+# untouched for genuine public-sector projects.
+#
+# Community-contributed (Vpnet Cloud Solutions). Decision-support only — not
+# legal advice; validate with qualified Malaysian counsel and the relevant
+# regulator (JPDP, NACSA, MCMC).
+
+recipe: my-operator
+schema_version: 1
+description: >
+  Malaysia Operator / SI — commercial telco governance suite. Core ArcKit
+  architecture governance plus the four Malaysia overlays that apply to a
+  commercial Malaysian operator (PDPA, AIGE AI governance, NACSA NCII,
+  MyGovCloud/MCMC residency) and MyDIGITAL positioning. Excludes
+  public-sector-only overlays.
+
+defaults:
+  version: "1.0"
+
+optional_targets:
+  AIP:
+    description: AI Playbook (universal reference, useful where AI is in scope)
+    default: true
+  ATRS:
+    description: Algorithmic Transparency Recording Standard (recommended for higher-risk AI)
+    default: false
+
+post_build_hooks:
+  - skill: arckit:health
+    args: ""
+  - skill: arckit:pages
+    args: ""
+
+targets:
+
+  # --- Foundation --------------------------------------------------------
+  - id: PRIN
+    skill: arckit:principles
+    args: ""
+    output: { project: "000-global", type: PRIN }
+    deps: []
+
+  - id: REQ
+    skill: arckit:requirements
+    args: "{NAME}"
+    output: { project: "{P}-{NAME}", type: REQ }
+    deps: [PRIN]
+
+  - id: STKE
+    skill: arckit:stakeholders
+    args: "{NAME}"
+    output: { project: "{P}-{NAME}", type: STKE }
+    deps: [PRIN]
+
+  # --- National alignment (positioning) ----------------------------------
+  - id: MY_MYDIGITAL
+    skill: arckit:my-mydigital
+    args: "{P}"
+    output: { project: "{P}-{NAME}", type: MYDIG }
+    deps: [PRIN, REQ]
+
+  # --- Data classification & privacy -------------------------------------
+  # MY_CLASSIFICATION reframed: commercial data-sensitivity tiers
+  # (subscriber / network data), not Arahan Keselamatan govt classification.
+  - id: MY_CLASSIFICATION
+    skill: arckit:my-classification
+    args: "{P}"
+    output: { project: "{P}-{NAME}", type: MYCLAS }
+    deps: [REQ, MY_MYDIGITAL]
+
+  - id: MY_PDPA
+    skill: arckit:my-pdpa
+    args: "{P}"
+    output: { project: "{P}-{NAME}", type: PDPA }
+    deps: [REQ, MY_CLASSIFICATION]
+
+  # --- Cloud residency ---------------------------------------------------
+  - id: MY_CLOUD_FIRST
+    skill: arckit:my-cloud-first
+    args: "{P}"
+    output: { project: "{P}-{NAME}", type: MCRES }
+    deps: [MY_CLASSIFICATION]
+
+  # --- ADRs --------------------------------------------------------------
+  - id: ADR-001
+    skill: arckit:adr
+    topic: "Cloud platform and MyGovCloud placement (PDSA private / public CSP / hybrid)"
+    args: "{P} {TOPIC}"
+    output: { project: "{P}-{NAME}", type: ADR, subfolder: decisions, multi_instance: true }
+    deps: [PRIN, REQ, MY_CLOUD_FIRST]
+
+  - id: ADR-002
+    skill: arckit:adr
+    topic: "Operator identity — Keycloak / CAMARA / auth-jwt integration and assurance level"
+    args: "{P} {TOPIC}"
+    output: { project: "{P}-{NAME}", type: ADR, subfolder: decisions, multi_instance: true }
+    deps: [PRIN, REQ]
+
+  - id: ADR-003
+    skill: arckit:adr
+    topic: "Data residency per commercial data-sensitivity classification"
+    args: "{P} {TOPIC}"
+    output: { project: "{P}-{NAME}", type: ADR, subfolder: decisions, multi_instance: true }
+    deps: [PRIN, REQ, MY_CLASSIFICATION, MY_CLOUD_FIRST]
+
+  # --- Strategy + risk + assurance ---------------------------------------
+  - id: STRATEGY
+    skill: arckit:strategy
+    args: ""
+    output: { project: "000-global", type: STRAT }
+    deps: [PRIN, STKE, MY_MYDIGITAL]
+
+  - id: RISK
+    skill: arckit:risk
+    args: "{P}"
+    output: { project: "{P}-{NAME}", type: RISK }
+    deps: [REQ, STKE, "ADR-*", PRIN]
+
+  - id: HLD
+    skill: arckit:hld-review
+    args: "{P}"
+    output: { project: "{P}-{NAME}", type: HLD }
+    deps: [REQ, "ADR-*", PRIN]
+
+  - id: SOBC
+    skill: arckit:sobc
+    args: "{P}"
+    output: { project: "{P}-{NAME}", type: SOBC }
+    deps: [REQ, STKE, RISK]
+
+  - id: SBD
+    skill: arckit:secure
+    args: "{P}"
+    output: { project: "{P}-{NAME}", type: SBD }
+    deps: [RISK, REQ, "ADR-*"]
+
+  - id: DPIA
+    skill: arckit:dpia
+    args: "{P} scope=full-system"
+    output: { project: "{P}-{NAME}", type: DPIA }
+    deps: [REQ, STKE, RISK, MY_PDPA]
+
+  # --- Cyber: NACSA NCII Statement of Applicability ----------------------
+  - id: MY_CYBER
+    skill: arckit:my-cyber-security
+    args: "{P}"
+    output: { project: "{P}-{NAME}", type: NCII }
+    deps: [REQ, "ADR-*", RISK, SBD, MY_CLASSIFICATION]
+
+  # --- AI governance -----------------------------------------------------
+  - id: MY_AI_GOVERNANCE
+    skill: arckit:my-ai-governance
+    args: "{P}"
+    output: { project: "{P}-{NAME}", type: AIGE }
+    deps: [REQ, "ADR-*", RISK, MY_MYDIGITAL]
+
+  - id: AIP
+    skill: arckit:ai-playbook
+    args: "{P} ai-mode=auto-detect-from-REQ-FRs"
+    output: { project: "{P}-{NAME}", type: AIP }
+    deps: [DPIA, RISK, REQ, MY_AI_GOVERNANCE]
+
+  # --- Operational -------------------------------------------------------
+  - id: OPS
+    skill: arckit:operationalize
+    args: "{P}"
+    output: { project: "{P}-{NAME}", type: OPS }
+    deps: [HLD, RISK, MY_CYBER]
+
+  # --- Cross-cutting last ------------------------------------------------
+  - id: TRACE
+    skill: arckit:traceability
+    args: "{P}"
+    output: { project: "{P}-{NAME}", type: TRACE }
+    deps:
+      [REQ, STKE, "ADR-*", RISK, HLD, DPIA, SBD,
+       MY_MYDIGITAL, MY_CLASSIFICATION, MY_PDPA,
+       MY_CLOUD_FIRST, MY_CYBER, MY_AI_GOVERNANCE, OPS]

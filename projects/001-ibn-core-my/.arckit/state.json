@@ -1,0 +1,26 @@
+{
+  "state_format_version": "0.4",
+  "project_id": "001",
+  "project_name": "001-ibn-core-my",
+  "recipe": "my-operator",
+  "recipe_path": ".arckit/recipes/my-operator.yaml",
+  "started_at": "2026-06-05T12:42:14Z",
+  "last_wave_completed": 0,
+  "current_wave": 1,
+  "targets": {
+    "PRIN": {
+      "status": "complete",
+      "path": "projects/000-global/ARC-000-PRIN-v1.0.md",
+      "built_at": "2026-06-05T12:42:14Z",
+      "wave": 0,
+      "line_count": 683,
+      "skill": "arckit:principles",
+      "topic": null,
+      "agent_summary": "17 enterprise architecture principles across 5 categories, telco/AI-native open-core context. 3 NON-NEGOTIABLE: Standards Conformance (RFC 9315 + TMF921), Security by Design (zero-trust agent identity, PDPA), Open-Core/Proprietary Seam Integrity. Classification PUBLIC, status DRAFT.",
+      "input_hashes": {}
+    }
+  },
+  "waves": [
+    {"n": 0, "targets": ["PRIN"], "status": "complete", "completed_at": "2026-06-05T12:42:14Z"}
+  ]
+}
