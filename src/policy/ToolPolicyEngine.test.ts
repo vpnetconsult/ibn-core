@@ -8,6 +8,7 @@
  */
 
 import { ToolPolicyEngine } from './ToolPolicyEngine';
+import { CYCLE_SERVICE_IDENTITY } from '../imf/IntentHandlingCycleRunner';
 
 // Each test gets its own engine instance so built-in policies are not
 // contaminated by registerRole() calls in other tests.
@@ -44,6 +45,22 @@ describe('ToolPolicyEngine.resolveRole()', () => {
 
   it('should default to "customer" for an empty string', () => {
     expect(makeEngine().resolveRole('')).toBe('customer');
+  });
+
+  // Regression for the O2C break: the autonomous IMF cycle's service identity
+  // must resolve to the `agent` role so its orchestration MCP calls
+  // (search_product_catalog, etc.) are permitted. PR #44 ran the cycle as
+  // 'system' → 'customer' and denied them. Pinning the constant→role mapping
+  // here means a future rename of CYCLE_SERVICE_IDENTITY cannot silently
+  // re-break the canonical Order-to-Cash flow.
+  it('should resolve the IMF cycle service identity to "agent"', () => {
+    expect(makeEngine().resolveRole(CYCLE_SERVICE_IDENTITY)).toBe('agent');
+  });
+
+  it('should permit search_product_catalog for the IMF cycle service identity', () => {
+    const result = makeEngine().checkAccess(CYCLE_SERVICE_IDENTITY, 'search_product_catalog');
+    expect(result.permitted).toBe(true);
+    expect(result.role).toBe('agent');
   });
 });
 

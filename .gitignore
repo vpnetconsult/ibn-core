@@ -68,3 +68,6 @@ encryption/*.tar.gz.enc
 .claude/
 .specify/
 
+# ArcKit generated docs site — synced plugin command/role guides (regenerable via /arckit:pages)
+docs/guides/
+

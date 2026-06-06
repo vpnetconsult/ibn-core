@@ -20,6 +20,22 @@ import { IntentAnalysis, CustomerProfile, SelectedOffer, IntentHandlingContext }
 import { SessionContext } from '../provenance/types';
 
 /**
+ * Service identity used for the autonomous IMF cycle's own MCP calls when no
+ * authenticated caller session is supplied.
+ *
+ * The cycle IS the "agent acting on behalf of the customer (intent lifecycle)"
+ * principal, so its orchestration tools (search_product_catalog, generate_quote,
+ * submit_order, …) must run under the `agent` role. ToolPolicyEngine resolves
+ * roles by name substring, so this constant deliberately contains "agent" to map
+ * to that role; it also reads clearly in provenance/SIEM logs (vs. an ambiguous
+ * 'system'). Do NOT use the caller's API-key name here — a customer-tier caller
+ * must not lend its identity to the cycle's privileged orchestration calls.
+ *
+ * RFC 9315 §5.1.3 Orchestration · ToolPolicyEngine paper §4.1/§4.5.
+ */
+export const CYCLE_SERVICE_IDENTITY = 'ibn-core-agent';
+
+/**
  * Optional runtime context the caller can supply to `run()`. Maps 1:1 onto
  * SessionContext fields; missing fields fall back to sensible defaults
  * derived from the cycle identity (customerId, intentId). Threading this
@@ -94,7 +110,7 @@ export class IntentHandlingCycleRunner {
     const session: SessionContext = {
       sessionId:     runtimeContext?.sessionId ?? `intent-${intentId}`,
       userId:        runtimeContext?.userId ?? customerId,
-      apiKeyName:    runtimeContext?.apiKeyName ?? 'system',
+      apiKeyName:    runtimeContext?.apiKeyName ?? CYCLE_SERVICE_IDENTITY,
       intentId,
       correlationId: runtimeContext?.correlationId,
     };
