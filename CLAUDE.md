@@ -150,6 +150,17 @@ this approach.
 
 ### Enforceable rules
 
+- **ArcKit governs all new work (standard process from June 2026).**
+  Every new feature, fix, or workstream goes through the ArcKit
+  `/arckit:*` governance flow — at minimum a requirements artifact and
+  an ADR for any non-trivial decision — created **before or alongside**
+  the code, not after. `/arckit:requirements`, `/arckit:adr`,
+  `/arckit:risk`, and `/arckit:traceability` are the artifacts that
+  satisfy the plan-doc, decision-doc, and conformance rules below. A raw
+  code branch with no governing ArcKit artifact is the exception that
+  needs justifying, not the norm. This rule is **forward-looking** —
+  existing in-flight branches may be retro-fitted but are not required
+  to be.
 - **A new feature without a plan doc is a red flag.** If you are
   implementing something not covered by a `docs/roadmap/` file, pause
   and write the plan first.
@@ -352,6 +363,7 @@ If this test fails after any change, do not commit.
 
 ---
 
-*Last updated: April 2026 — Vpnet Cloud Solutions Sdn. Bhd. · added
-"Agent-Native Development" methodology section; prior revision February
-2026 (v2.0.1).*
+*Last updated: June 2026 — Vpnet Cloud Solutions Sdn. Bhd. · ArcKit made
+the standard governance process for all new work (forward-looking);
+prior revision April 2026 (added "Agent-Native Development" methodology
+section); February 2026 (v2.0.1).*
