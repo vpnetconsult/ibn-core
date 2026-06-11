@@ -71,3 +71,5 @@ encryption/*.tar.gz.enc
 # ArcKit generated docs site — synced plugin command/role guides (regenerable via /arckit:pages)
 docs/guides/
 
+# ArcKit session-local state (telemetry, session memory) — not governance artifacts
+.arckit/memory/
