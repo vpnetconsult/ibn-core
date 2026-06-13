@@ -1,0 +1,24 @@
+{
+  "//": "ibn-core library build (ADDITIVE). Compiles lib/index.ts + its transitive src/ closure to ./dist for git-installable consumption. Does NOT affect the app build (src/tsconfig.json).",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022"],
+    "outDir": "./dist",
+    "rootDir": ".",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "declaration": true,
+    "declarationMap": false,
+    "sourceMap": false,
+    "removeComments": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  },
+  "include": ["lib/index.ts"],
+  "exclude": ["node_modules", "dist", "src/dist", "src/node_modules", "**/*.test.ts"]
+}

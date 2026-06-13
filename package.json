@@ -1,0 +1,44 @@
+{
+  "name": "ibn-core",
+  "version": "2.1.1",
+  "description": "RFC 9315 Intent-Based Networking framework — curated IMF reuse surface (library entry). The business-intent-agent application lives in src/.",
+  "license": "Apache-2.0",
+  "author": "Vpnet Cloud Solutions Sdn. Bhd.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vpnetconsult/ibn-core.git"
+  },
+  "main": "./dist/lib/index.js",
+  "types": "./dist/lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/lib/index.d.ts",
+      "require": "./dist/lib/index.js",
+      "default": "./dist/lib/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build:lib": "tsc -p tsconfig.lib.json",
+    "prepare": "tsc -p tsconfig.lib.json"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.2",
+    "axios": "^1.15.2",
+    "pino": "^10.1.0",
+    "prom-client": "^15.1.3",
+    "uuid": "^11.1.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.0.3",
+    "@types/uuid": "^10.0.0",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
