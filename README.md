@@ -6,7 +6,7 @@
 
 *Natural-language business intents → network resources, autonomously.*
 
-[![Version](https://img.shields.io/badge/version-v2.2.0-6272a4?style=flat-square)](https://github.com/vpnetconsult/ibn-core/releases/tag/v2.2.0)
+[![Version](https://img.shields.io/badge/version-v2.1.0-6272a4?style=flat-square)](https://github.com/vpnetconsult/ibn-core/releases/tag/v2.1.0)
 [![License](https://img.shields.io/badge/license-Apache%202.0-50fa7b?style=flat-square)](LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/vpnetconsult/ibn-core/security-audit.yml?branch=main&label=CI&style=flat-square)](https://github.com/vpnetconsult/ibn-core/actions)
 [![GHCR](https://img.shields.io/badge/ghcr.io-business--intent--agent-8be9fd?style=flat-square&logo=docker&logoColor=white)](https://github.com/vpnetconsult/ibn-core/pkgs/container/business-intent-agent)

@@ -314,11 +314,12 @@ also be `import './telemetry'`.
 | `v1.4.3` | `306fa01` | O2C verification fixes — MCP auth, TMF921 response shape, Istio TLS egress. Paper 1 cited release. |
 | `v2.0.0` | `9a61c19` | RFC 9315 §4 P1+P2 closed. Redis SSoT + ProbeIntent. Paper 1 v2.0 implementation complete. |
 | `v2.0.1` | `960a611` | 100% TMF921 CTK conformance (83/83). IntentReport projection fix + CTK seed runbook. |
+| `v2.1.0` | `3cb103b` | Ericsson AI-agent / IMF layer. RFC 9315 §5 cycle runner, 8-level agent taxonomy, IMF KnowledgeStore + closed control loop, SemanticToolRegistry, ConflictArbiter + SharedStatePlane + IntentHierarchy. The reuse surface consumed by resource-intent-agent (Project 004, ADR-004 / ADR-009). Annotated tag `2c694ba`. |
 
 **Rule:** Never rewrite or force-push these tags. They are cited in academic publications.
 
 Future tags follow semver:
-- `v2.0.1` — 100% TMF921 CTK conformance (83/83), IntentReport fix
+- `v2.2.0` — planned, untagged; candidate scope competing for this number: ERC-8004 discovery Phase 2 (Base Sepolia mint) and the AI-agent MCP-server + trajectory-observability phases (`docs/architecture/AI_AGENT_ALIGNMENT_PLAN.md`) — scope/sequence TBD
 - `v3.0.0` — Live CAMARA integration with operator sandbox
 - `v4.0.0` — Multi-operator federation
 
