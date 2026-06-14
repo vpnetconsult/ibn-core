@@ -5,42 +5,35 @@
  *
  * Implements RFC 9315 Intent-Based Networking
  * https://www.rfc-editor.org/rfc/rfc9315
+ *
+ * BSS intent-handling runner — now a thin instantiation of the layer-agnostic
+ * RFC 9315 core (Project 005, ARC-005-ROAD Phase 1). The phase BODIES live in
+ * BssPhaseStrategy; the phase SEQUENCE / §5.2.3 loop / trace live in the
+ * domain-neutral IntentCycleRunner. Public API is unchanged — this class
+ * remains the BSS entrypoint and the reuse-surface export, preserving TMF921
+ * CTK behaviour (Gate B re-verifies on the CTK harness).
  */
 
 import { ClaudeClient } from '../claude-client';
 import { MCPClient } from '../mcp-client';
 import { logger } from '../logger';
-import { maskCustomerProfile, validateNoRawPII, redactForLogs } from '../pii-masking';
-import {
-  IntentHandlingPhase,
-  IntentHandlingStep,
-  PhaseOutcome,
-} from './IntentHandlingCycle';
-import { IntentAnalysis, CustomerProfile, SelectedOffer, IntentHandlingContext } from './IntentHandlingContext';
+import { IntentHandlingStep } from './IntentHandlingCycle';
+import { IntentHandlingContext } from './IntentHandlingContext';
 import { SessionContext } from '../provenance/types';
+import { IntentCycleRunner } from './core/IntentCycleRunner';
+import { BssPhaseStrategy, BssMcpClients } from './BssPhaseStrategy';
 
 /**
  * Service identity used for the autonomous IMF cycle's own MCP calls when no
- * authenticated caller session is supplied.
- *
- * The cycle IS the "agent acting on behalf of the customer (intent lifecycle)"
- * principal, so its orchestration tools (search_product_catalog, generate_quote,
- * submit_order, …) must run under the `agent` role. ToolPolicyEngine resolves
- * roles by name substring, so this constant deliberately contains "agent" to map
- * to that role; it also reads clearly in provenance/SIEM logs (vs. an ambiguous
- * 'system'). Do NOT use the caller's API-key name here — a customer-tier caller
- * must not lend its identity to the cycle's privileged orchestration calls.
- *
- * RFC 9315 §5.1.3 Orchestration · ToolPolicyEngine paper §4.1/§4.5.
+ * authenticated caller session is supplied. See BssPhaseStrategy for how it is
+ * threaded into MCP calls. RFC 9315 §5.1.3 · ToolPolicyEngine paper §4.1/§4.5.
  */
 export const CYCLE_SERVICE_IDENTITY = 'ibn-core-agent';
 
 /**
  * Optional runtime context the caller can supply to `run()`. Maps 1:1 onto
- * SessionContext fields; missing fields fall back to sensible defaults
- * derived from the cycle identity (customerId, intentId). Threading this
- * through is what lets the IMF path attribute MCP calls to the requester
- * for provenance and tool-policy decisions — see issue #40.
+ * SessionContext fields; missing fields fall back to defaults derived from the
+ * cycle identity (customerId, intentId). See issue #40.
  */
 export interface IntentHandlingRuntimeContext {
   sessionId?: string;
@@ -52,38 +45,25 @@ export interface IntentHandlingRuntimeContext {
 export interface IntentHandlingResult {
   /** Fully-enriched context after the cycle completes */
   context: IntentHandlingContext;
-  /**
-   * Ordered trace of every phase executed during this cycle run.
-   * Constitutes the handling trajectory for RFC 9315 §5.2.1 monitoring.
-   */
+  /** Ordered trace of every phase executed (RFC 9315 §5.2.1 monitoring). */
   handlingTrace: IntentHandlingStep[];
   /** Final report state — convenience accessor into context.reportState */
   reportState: string;
 }
 
 /**
- * IntentHandlingCycleRunner executes the six-phase RFC 9315 §5 intent
- * handling cycle.
- *
- * Phase sequence:
+ * IntentHandlingCycleRunner executes the six-phase RFC 9315 §5 intent handling
+ * cycle for the business domain by composing the layer-agnostic core with the
+ * BSS PhaseStrategy.
  *
  *   INGESTING → TRANSLATING → ORCHESTRATING → MONITORING → ASSESSING
  *                                  ↑                              |
  *                                  └─── ACTING (if not fulfilled) ┘
- *
- * If ASSESSING determines the intent is not fulfilled and retriesRemaining > 0,
- * ACTING decrements the retry budget and re-enters ORCHESTRATING (RFC 9315
- * §5.2.3 corrective action). The cycle exits when the intent is fulfilled or
- * the retry budget is exhausted.
  */
 export class IntentHandlingCycleRunner {
   constructor(
     private readonly claude: ClaudeClient,
-    private readonly mcpClients: {
-      bss: MCPClient;
-      knowledgeGraph: MCPClient;
-      customerData: MCPClient;
-    },
+    private readonly mcpClients: BssMcpClients,
     private readonly maxRetries: number = 1,
   ) {}
 
@@ -93,9 +73,7 @@ export class IntentHandlingCycleRunner {
     intentText: string,
     runtimeContext?: IntentHandlingRuntimeContext,
   ): Promise<IntentHandlingResult> {
-    const trace: IntentHandlingStep[] = [];
-
-    let ctx: IntentHandlingContext = {
+    const initial: IntentHandlingContext = {
       intentId,
       customerId,
       intentText,
@@ -103,298 +81,25 @@ export class IntentHandlingCycleRunner {
       retriesRemaining: this.maxRetries,
     };
 
-    // Build the SessionContext threaded into every MCP call so provenance
-    // and tool-policy decisions can attribute actions to the requester.
-    // Defaults derive from cycle identity when the caller did not supply
-    // an authenticated session (e.g. internal/system invocations).
+    // SessionContext threaded into every MCP call for provenance / tool-policy.
+    // Defaults derive from cycle identity for internal/system invocations.
     const session: SessionContext = {
-      sessionId:     runtimeContext?.sessionId ?? `intent-${intentId}`,
-      userId:        runtimeContext?.userId ?? customerId,
-      apiKeyName:    runtimeContext?.apiKeyName ?? CYCLE_SERVICE_IDENTITY,
+      sessionId: runtimeContext?.sessionId ?? `intent-${intentId}`,
+      userId: runtimeContext?.userId ?? customerId,
+      apiKeyName: runtimeContext?.apiKeyName ?? CYCLE_SERVICE_IDENTITY,
       intentId,
       correlationId: runtimeContext?.correlationId,
     };
 
-    // RFC 9315 §5.1.1 — INGESTING
-    ctx = await this.runPhase(IntentHandlingPhase.INGESTING, ctx, trace,
-      () => this.ingest(ctx, session),
-    );
+    const strategy = new BssPhaseStrategy(this.claude, this.mcpClients, session);
+    const core = new IntentCycleRunner<IntentHandlingContext>(strategy, { log: logger });
 
-    // RFC 9315 §5.1.2 — TRANSLATING
-    ctx = await this.runPhase(IntentHandlingPhase.TRANSLATING, ctx, trace,
-      () => this.translate(ctx),
-    );
-
-    // RFC 9315 §5.1.3 → §5.2.3 loop
-    // ORCHESTRATING → MONITORING → ASSESSING; repeat via ACTING if not fulfilled
-    let continueLoop = true;
-    while (continueLoop) {
-      // §5.1.3
-      ctx = await this.runPhase(IntentHandlingPhase.ORCHESTRATING, ctx, trace,
-        () => this.orchestrate(ctx, session),
-      );
-
-      // §5.2.1
-      ctx = await this.runPhase(IntentHandlingPhase.MONITORING, ctx, trace,
-        () => this.monitor(ctx),
-      );
-
-      // §5.2.2
-      ctx = await this.runPhase(IntentHandlingPhase.ASSESSING, ctx, trace,
-        () => this.assess(ctx),
-      );
-
-      if (ctx.reportState === 'fulfilled' || ctx.retriesRemaining <= 0) {
-        continueLoop = false;
-      } else {
-        // §5.2.3 — corrective action: consume one retry and re-orchestrate
-        const actStart = this.startStep(IntentHandlingPhase.ACTING);
-        ctx = { ...ctx, retriesRemaining: ctx.retriesRemaining - 1 };
-        this.endStep(actStart, trace, 'retrying',
-          `Corrective action: re-entering orchestration (${ctx.retriesRemaining} retries remaining)`,
-        );
-        logger.warn(
-          { intentId, retriesRemaining: ctx.retriesRemaining },
-          'RFC 9315 §5.2.3 — corrective action: re-entering ORCHESTRATING phase',
-        );
-      }
-    }
+    const { state, trace } = await core.run(initial);
 
     return {
-      context: ctx,
+      context: state,
       handlingTrace: trace,
-      reportState: ctx.reportState ?? 'inProgress',
+      reportState: state.reportState ?? 'inProgress',
     };
-  }
-
-  // ---------------------------------------------------------------------------
-  // Phase implementations
-  // ---------------------------------------------------------------------------
-
-  /**
-   * RFC 9315 §5.1.1 — INGESTING
-   * Fetch the requester context and validate that no raw PII will reach the
-   * translation or orchestration phases.
-   */
-  private async ingest(
-    ctx: IntentHandlingContext,
-    session: SessionContext,
-  ): Promise<IntentHandlingContext> {
-    logger.info(
-      { customerId: ctx.customerId },
-      'RFC 9315 §5.1.1 — ingesting intent, fetching requester context',
-    );
-
-    const rawProfile = await this.mcpClients.customerData.call(
-      'get_customer_profile',
-      { customer_id: ctx.customerId },
-      session,
-      'RFC 9315 §5.1.1 INGESTING — fetch requester profile for PII masking',
-    );
-
-    const maskedProfile = maskCustomerProfile(rawProfile);
-    const validation = validateNoRawPII(maskedProfile);
-
-    if (!validation.valid) {
-      logger.error(
-        { violations: validation.violations },
-        'PII validation failed during INGESTING phase',
-      );
-      throw new Error(`PII validation failed: ${validation.violations.join(', ')}`);
-    }
-
-    logger.debug(
-      { originalProfile: redactForLogs(rawProfile), maskedProfile },
-      'Requester profile masked for intent handling cycle',
-    );
-
-    return {
-      ...ctx,
-      customerProfile: maskedProfile,
-      rawCustomerProfile: rawProfile,
-    };
-  }
-
-  /**
-   * RFC 9315 §5.1.2 — TRANSLATING
-   * Resolve the natural-language intent expression into structured,
-   * network-actionable requirements using the AI translation service.
-   */
-  private async translate(ctx: IntentHandlingContext): Promise<IntentHandlingContext> {
-    logger.info(
-      { intentText: ctx.intentText },
-      'RFC 9315 §5.1.2 — translating intent expression',
-    );
-
-    const intentAnalysis = await this.claude.analyzeIntent(
-      ctx.intentText,
-      ctx.customerProfile,
-    );
-
-    return { ...ctx, intentAnalysis };
-  }
-
-  /**
-   * RFC 9315 §5.1.3 — ORCHESTRATING
-   * Submit the translated requirements to network resources and obtain a
-   * fulfilment commitment (selected offer and binding quote).
-   */
-  private async orchestrate(
-    ctx: IntentHandlingContext,
-    session: SessionContext,
-  ): Promise<IntentHandlingContext> {
-    const analysis: IntentAnalysis = ctx.intentAnalysis ?? {};
-    const profile: CustomerProfile = ctx.customerProfile ?? {};
-
-    logger.info(
-      { tags: analysis.tags },
-      'RFC 9315 §5.1.3 — orchestrating: searching product catalog',
-    );
-
-    const availableProducts = await this.mcpClients.bss.call(
-      'search_product_catalog',
-      {
-        intent: analysis.tags,
-        customer_segment: profile.segment,
-      },
-      session,
-      'RFC 9315 §5.1.3 ORCHESTRATING — search BSS catalog by intent tags + segment',
-    );
-
-    logger.info(
-      { productTypes: analysis.product_types },
-      'RFC 9315 §5.1.3 — orchestrating: resolving bundles',
-    );
-
-    const availableBundles = await this.mcpClients.knowledgeGraph.call(
-      'find_related_products',
-      { base_products: analysis.product_types },
-      session,
-      'RFC 9315 §5.1.3 ORCHESTRATING — knowledge-graph: resolve bundles for product types',
-    );
-
-    logger.info('RFC 9315 §5.1.3 — orchestrating: generating fulfilment offer');
-
-    const selectedOffer: SelectedOffer = await this.claude.generateOffer({
-      intent:    analysis,
-      customer:  profile,
-      products:  availableProducts,
-      bundles:   availableBundles,
-    });
-
-    logger.info(
-      { products: selectedOffer.selected_products },
-      'RFC 9315 §5.1.3 — orchestrating: generating quote',
-    );
-
-    const quote = await this.mcpClients.bss.call(
-      'generate_quote',
-      {
-        customer_id: ctx.customerId,
-        products:    selectedOffer.selected_products,
-        discounts:   selectedOffer.recommended_discounts,
-      },
-      session,
-      'RFC 9315 §5.1.3 ORCHESTRATING — BSS: generate quote for selected products',
-    );
-
-    return { ...ctx, availableProducts, availableBundles, selectedOffer, quote };
-  }
-
-  /**
-   * RFC 9315 §5.2.1 — MONITORING
-   * Observe the live fulfilment state of the orchestrated resources.
-   * Derives an initial reportState from the orchestration output; a live
-   * network deployment would query the network adapter here.
-   */
-  private async monitor(ctx: IntentHandlingContext): Promise<IntentHandlingContext> {
-    logger.info(
-      { intentId: ctx.intentId },
-      'RFC 9315 §5.2.1 — monitoring fulfilment state',
-    );
-
-    const offer: SelectedOffer = ctx.selectedOffer ?? {};
-    const reportState: IntentHandlingContext['reportState'] =
-      (offer.selected_products?.length ?? 0) > 0 ? 'inProgress' : 'notFulfillable';
-
-    return { ...ctx, reportState };
-  }
-
-  /**
-   * RFC 9315 §5.2.2 — ASSESSING
-   * Evaluate compliance: determine whether the observed fulfilment state
-   * satisfies the original intent expectations.
-   */
-  private async assess(ctx: IntentHandlingContext): Promise<IntentHandlingContext> {
-    logger.info(
-      { intentId: ctx.intentId, reportState: ctx.reportState },
-      'RFC 9315 §5.2.2 — assessing compliance against intent expectations',
-    );
-
-    const offer: SelectedOffer = ctx.selectedOffer ?? {};
-    const quote = ctx.quote;
-
-    const fulfilled =
-      quote != null &&
-      Array.isArray(offer.selected_products) &&
-      offer.selected_products.length > 0;
-
-    return {
-      ...ctx,
-      reportState: fulfilled ? 'fulfilled' : 'notFulfillable',
-    };
-  }
-
-  // ---------------------------------------------------------------------------
-  // Trace helpers
-  // ---------------------------------------------------------------------------
-
-  private startStep(phase: IntentHandlingPhase): {
-    phase: IntentHandlingPhase;
-    t0: number;
-    startedAt: string;
-  } {
-    return { phase, t0: Date.now(), startedAt: new Date().toISOString() };
-  }
-
-  private endStep(
-    start: { phase: IntentHandlingPhase; t0: number; startedAt: string },
-    trace: IntentHandlingStep[],
-    outcome: PhaseOutcome,
-    detail?: string,
-  ): void {
-    trace.push({
-      phase:     start.phase,
-      startedAt: start.startedAt,
-      durationMs: Date.now() - start.t0,
-      outcome,
-      detail,
-    });
-  }
-
-  /**
-   * Execute a single phase function, record it in the trace, and propagate
-   * any error after marking the step as failed.
-   */
-  private async runPhase(
-    phase: IntentHandlingPhase,
-    ctx: IntentHandlingContext,
-    trace: IntentHandlingStep[],
-    fn: () => Promise<IntentHandlingContext>,
-  ): Promise<IntentHandlingContext> {
-    const start = this.startStep(phase);
-    try {
-      const next = await fn();
-      this.endStep(start, trace, 'completed');
-      return next;
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
-      this.endStep(start, trace, 'failed', message);
-      logger.error(
-        { phase, intentId: ctx.intentId, error: message },
-        'Intent handling phase failed',
-      );
-      throw err;
-    }
   }
 }
