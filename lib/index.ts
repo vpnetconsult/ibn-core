@@ -19,3 +19,22 @@ export { SharedStatePlane } from '../src/imf/SharedStatePlane';
 export { IntentHierarchy } from '../src/imf/IntentHierarchy';
 export { KnowledgeStore } from '../src/imf/KnowledgeStore';
 export { SemanticToolRegistry } from '../src/mcp/SemanticToolRegistry';
+
+// ── Layer-agnostic RFC 9315 core (Project 005, ARC-005-ADR-001) ──────────────
+// The "two peers, one core" surface: any intent domain (business, resource,
+// future service/slice) instantiates IntentCycleRunner with its own
+// PhaseStrategy adapter set. The phase enums/step types are re-exported so
+// consumers stop mirroring them locally (closes 004 dashboard D6 / FR-010).
+export { IntentCycleRunner } from '../src/imf/core/IntentCycleRunner';
+export type { CycleResult, IntentCycleOptions } from '../src/imf/core/IntentCycleRunner';
+export type {
+  PhaseStrategy,
+  CycleState,
+  SafetyGovernor,
+  ProposedChange,
+  AdmitDecision,
+  CycleLogger,
+} from '../src/imf/core/PhaseStrategy';
+export { PERMISSIVE_GOVERNOR } from '../src/imf/core/PhaseStrategy';
+export { IntentHandlingPhase } from '../src/imf/IntentHandlingCycle';
+export type { IntentHandlingStep, PhaseOutcome } from '../src/imf/IntentHandlingCycle';
