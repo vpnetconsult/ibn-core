@@ -10,10 +10,17 @@
  * consumed by downstream agents (e.g. resource-intent-agent, Project 004, ADR-004/ADR-009).
  *
  * ADDITIVE: this entry is independent of the business-intent-agent application
- * (src/index.ts) and its build. It re-exports ONLY the six reuse components —
- * nothing else from src/ leaks through this surface.
+ * (src/index.ts) and its build. Nothing else from src/ leaks through this surface.
+ *
+ * SDK-FREE (Project 004 dashboard D4 / Project 005 slim-entry): this entry pulls
+ * NO LLM dependency. The BSS-concrete `IntentHandlingCycleRunner` is deliberately
+ * NOT re-exported here — it imports `claude-client` (→ @anthropic-ai/sdk) and is
+ * the business-intent-agent's own runner, reached via src/, not the reuse surface.
+ * Post-ADR-012 every downstream peer (resource, future service/slice) instantiates
+ * the layer-agnostic `IntentCycleRunner` with its own PhaseStrategy instead, so the
+ * heavy LLM closure no longer rides along with the coordination-plane reuse. A
+ * future `ibn-core/bss` subpath can re-expose the BSS runner if ever needed.
  */
-export { IntentHandlingCycleRunner } from '../src/imf/IntentHandlingCycleRunner';
 export { ConflictArbiter } from '../src/imf/ConflictArbiter';
 export { SharedStatePlane } from '../src/imf/SharedStatePlane';
 export { IntentHierarchy } from '../src/imf/IntentHierarchy';
