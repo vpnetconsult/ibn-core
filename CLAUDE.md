@@ -320,8 +320,9 @@ also be `import './telemetry'`.
 
 Future tags follow semver:
 - `v2.2.0` — planned, untagged; candidate scope competing for this number: ERC-8004 discovery Phase 2 (Base Sepolia mint) and the AI-agent MCP-server + trajectory-observability phases (`docs/architecture/AI_AGENT_ALIGNMENT_PLAN.md`) — scope/sequence TBD
-- `v3.0.0` — Live CAMARA integration with operator sandbox
-- `v4.0.0` — Multi-operator federation
+- `v3.0.0` — **RESERVED: RFC 9315 layer-agnostic core cutover** ("two peers, one core" — business-intent + resource-intent both instantiate one `IntentCycleRunner`). Cutover code already on `main` (Phases 1–3 of Project 005 complete); the tag is **gated on the TMF921 CTK-parity gate (Gate B): CTK 83/83 + live O2C recorded green**, then re-pin resource-intent-agent ADR-009. See `projects/005-ibn-core-rfc9315-core/decisions/ARC-005-ADR-002-v1.0.md`. *(Reassigned from "Live CAMARA" — see below; per ARC-005-ROAD the v2.x → v3.0.0 breaking change is the core cutover.)*
+- `v4.0.0` — Live CAMARA integration with operator sandbox (was v3.0.0)
+- `v5.0.0` — Multi-operator federation (was v4.0.0)
 
 ---
 
