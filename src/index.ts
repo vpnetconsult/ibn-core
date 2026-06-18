@@ -22,6 +22,7 @@ import { readRequiredSecret } from './secrets';
 import { responseFilterMiddleware, filterInput } from './response-filter';
 import { probeIntentHandler } from './handlers/probeIntent';
 import { isRedisHealthy } from './store/IntentStore';
+import { buildRegistrationFile } from './discovery/AgentRegistration';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -48,6 +49,41 @@ app.use('/api/', limiter);
 
 // Metrics middleware
 app.use(metricsMiddleware);
+
+// ERC-8004 v1 off-chain registration file (RFC 9315 §4 P5 — Capability
+// Exposure, agent-communication-endpoint surface). Mounted AFTER metrics
+// so each request is observed, but OUTSIDE the /api/ rate limiter so a
+// DoS on /api/ cannot block discovery. C2 (ARB 2026-06-03) requires a
+// paired control — a dedicated limiter — to compensate for that exclusion.
+const wellKnownLimiter = rateLimit({
+  windowMs: parseInt(process.env.WELL_KNOWN_RATE_LIMIT_WINDOW_MS || '60000'),
+  max: parseInt(process.env.WELL_KNOWN_RATE_LIMIT_MAX || '60'),
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: 'Too many requests to /.well-known/agent-registration.json',
+});
+
+app.get(
+  '/.well-known/agent-registration.json',
+  wellKnownLimiter,
+  (req: Request, res: Response) => {
+    try {
+      const file = buildRegistrationFile();
+      res.set('Cache-Control', 'public, max-age=300');
+      res.type('application/json; charset=utf-8');
+      res.status(200).json(file);
+    } catch (err) {
+      // C5 (ARB 2026-06-03): route-level structured logging on 4xx/5xx —
+      // emits DS0015 Application Log events for rate-spike detection on
+      // T1190 Exploit Public-Facing Application.
+      logger.error(
+        { err, route: '/.well-known/agent-registration.json' },
+        'agent-registration build failed',
+      );
+      res.status(500).json({ error: 'agent-registration unavailable' });
+    }
+  },
+);
 
 // Response filtering middleware (role-based field-level authorization)
 app.use(responseFilterMiddleware);

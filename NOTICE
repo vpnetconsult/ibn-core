@@ -29,6 +29,16 @@ Copyright Istio Authors
 Licensed under Apache License 2.0
 https://istio.io
 
+ChaosChain Trustless Agents Reference Implementation (ERC-8004)
+Copyright ChaosChain contributors
+Licensed under Apache License 2.0
+https://github.com/ChaosChain/trustless-agents-erc-ri
+
+js-yaml
+Copyright Vitaly Puzrin
+Licensed under MIT License
+https://github.com/nodeca/js-yaml
+
 STANDARDS IMPLEMENTED:
 
 RFC 9315 "Intent-Based Networking — Concepts and Definitions"
@@ -44,3 +54,12 @@ IETF, June 2015
 
 TM Forum Autonomous Networks Reference Architecture (IG1230)
 © TM Forum. Cited for academic attribution purposes.
+
+ERC-8004 "Trustless Agents"
+Ethereum Improvement Proposal — registration file v1
+Released to the public domain under CC0
+https://eips.ethereum.org/EIPS/eip-8004
+
+ERC-721 "Non-Fungible Token Standard"
+Released to the public domain under CC0
+https://eips.ethereum.org/EIPS/eip-721

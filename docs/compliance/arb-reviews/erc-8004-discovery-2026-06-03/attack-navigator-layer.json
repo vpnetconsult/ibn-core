@@ -1,0 +1,196 @@
+{
+  "name": "ARB Review — ERC-8004 Discovery for ibn-core (Phase 1 + Phase 2)",
+  "versions": {
+    "attack": "15",
+    "navigator": "4.9.5",
+    "layer": "4.5"
+  },
+  "domain": "enterprise-attack",
+  "description": "ARB Review layer — FINAL (reconciled 2026-06-03 against live MITRE ATT&CK MCP, enterprise domain). T1565.002 corrected to T1565.001 (Stored Data Manipulation) post-reconciliation. Score 1.0 = in scope no coverage. 0.5 = partial. 0.1 = covered. Colour green = mitigation + detection designed in. Amber = partial. Red = gap.",
+  "filters": {
+    "platforms": [
+      "Linux",
+      "Containers",
+      "IaaS",
+      "SaaS",
+      "Network Devices",
+      "PRE"
+    ]
+  },
+  "sorting": 3,
+  "layout": {
+    "layout": "side",
+    "showName": true,
+    "showID": true,
+    "showAggregateScores": false,
+    "countUnscored": false
+  },
+  "hideDisabled": false,
+  "techniques": [
+    {
+      "techniqueID": "T1596",
+      "tactic": "reconnaissance",
+      "score": 1.0,
+      "color": "#cc0000",
+      "comment": "On-chain registry is a public technical DB; inherent recon enabler — accepted (public-by-design).",
+      "enabled": true,
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1593.003",
+      "tactic": "reconnaissance",
+      "score": 1.0,
+      "color": "#cc0000",
+      "comment": "Public GitHub repo URLs cited in registration; inherent — accepted.",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1591.002",
+      "tactic": "reconnaissance",
+      "score": 1.0,
+      "color": "#cc0000",
+      "comment": "TMF921 endpoint advertisement enumerates business relationships; inherent — accepted.",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1190",
+      "tactic": "initial-access",
+      "score": 0.5,
+      "color": "#ff9900",
+      "comment": "New public route. M1051 (Dependabot) + M1050 (Helmet) inherited. Detection gap on route-level Application Log — closes via condition C5.",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1133",
+      "tactic": "initial-access",
+      "score": 0.1,
+      "color": "#00cc00",
+      "comment": "Well-known endpoint unauthenticated by design; TMF921 endpoint covered by existing JWT (UC007) — no new gap.",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1078.004",
+      "tactic": "initial-access",
+      "score": 1.0,
+      "color": "#cc0000",
+      "comment": "Phase 2 EOA owner key — coverage gap. Closes via C3 (K8s Secret + RBAC + DS0022).",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1195",
+      "tactic": "initial-access",
+      "score": 0.1,
+      "color": "#00cc00",
+      "comment": "Supply chain — covered by existing CodeQL + Dependabot CI posture; no new gap.",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1059",
+      "tactic": "execution",
+      "score": 0.5,
+      "color": "#ff9900",
+      "comment": "Phase 2 register-agent.ts script; partial detection only. C3's RBAC scoping addresses tamper vector.",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1525",
+      "tactic": "execution",
+      "score": 0.1,
+      "color": "#00cc00",
+      "comment": "Container image pipeline — inherited CodeQL/Dependabot posture; no new gap.",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1554",
+      "tactic": "persistence",
+      "score": 0.1,
+      "color": "#00cc00",
+      "comment": "Host binary compromise — inherited posture; no new gap.",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1552.001",
+      "tactic": "credential-access",
+      "score": 1.0,
+      "color": "#cc0000",
+      "comment": "AGENT_OWNER_PRIVATE_KEY in .env files — coverage gap. Closes via C3.",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1555",
+      "tactic": "credential-access",
+      "score": 1.0,
+      "color": "#cc0000",
+      "comment": "K8s Secret theft path — coverage gap until C3 lands.",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1212",
+      "tactic": "credential-access",
+      "score": 0.1,
+      "color": "#00cc00",
+      "comment": "Dependency vuln credential theft — inherited Dependabot posture.",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1071.001",
+      "tactic": "command-and-control",
+      "score": 0.5,
+      "color": "#ff9900",
+      "comment": "Outbound HTTPS to Base Sepolia RPC. Mitigation gap on egress policy — minor; document via plan §5.3 amendment.",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1565.001",
+      "tactic": "impact",
+      "score": 1.0,
+      "color": "#cc0000",
+      "comment": "HIGHEST-IMPACT TECHNIQUE for this submission (corrected from T1565.002 'Transmitted Data Manipulation' during 2026-06-03 reconciliation; on-chain tokenURI redirect is at-rest manipulation). Phase 2 leaked owner key → setAgentURI redirect. No detective control without C4 — close via on-chain tokenURI monitor + CI pinning. Canonical mitigations: M1022, M1029, M1041.",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1499",
+      "tactic": "impact",
+      "score": 1.0,
+      "color": "#cc0000",
+      "comment": "/.well-known deliberately outside /api/ rate limiter (plan §4.4). Mitigation gap — closes via C2 (dedicated limiter or CDN).",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1657",
+      "tactic": "impact",
+      "score": 1.0,
+      "color": "#888888",
+      "comment": "Financial Theft — deferred to Phase 3 when payment wallets are bound. Out of scope for v2.1/v2.2.",
+      "enabled": false
+    }
+  ],
+  "gradient": {
+    "colors": [
+      "#00cc00",
+      "#ff9900",
+      "#cc0000"
+    ],
+    "minValue": 0,
+    "maxValue": 1
+  },
+  "legendItems": [
+    { "label": "Covered (mitigation + detection)", "color": "#00cc00" },
+    { "label": "Partial (mitigation OR detection only)", "color": "#ff9900" },
+    { "label": "Gap (neither mitigation nor detection)", "color": "#cc0000" },
+    { "label": "Out of scope / deferred", "color": "#888888" }
+  ],
+  "metadata": [
+    { "name": "submission", "value": "ERC-8004 Discovery for ibn-core (Phase 1 + Phase 2)" },
+    { "name": "submitting-architect", "value": "Roland Pfeifer (Vpnet Cloud Solutions Sdn. Bhd.)" },
+    { "name": "review-date", "value": "2026-06-03" },
+    { "name": "reconciled-date", "value": "2026-06-03 (same-day, via mcp__mitre-attack__* MCP)" },
+    { "name": "status", "value": "Final" },
+    { "name": "decision", "value": "Approved with Conditions" },
+    { "name": "report", "value": "docs/compliance/arb-reviews/erc-8004-discovery-2026-06-03/arb-review-report.md" }
+  ],
+  "showTacticRowBackground": false,
+  "tacticRowBackground": "#dddddd",
+  "selectTechniquesAcrossTactics": true,
+  "selectSubtechniquesWithParent": false
+}
