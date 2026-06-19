@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import type { IntentLlm } from './llm/IntentLlm';
 
 export interface ClaudeConfig {
   apiKey: string;
@@ -7,7 +8,7 @@ export interface ClaudeConfig {
   temperature: number;
 }
 
-export class ClaudeClient {
+export class ClaudeClient implements IntentLlm {
   private client: Anthropic;
   private config: ClaudeConfig;
 

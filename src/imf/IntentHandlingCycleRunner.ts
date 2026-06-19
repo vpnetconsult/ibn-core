@@ -14,7 +14,7 @@
  * CTK behaviour (Gate B re-verifies on the CTK harness).
  */
 
-import { ClaudeClient } from '../claude-client';
+import type { IntentLlm } from '../llm/IntentLlm';
 import { MCPClient } from '../mcp-client';
 import { logger } from '../logger';
 import { IntentHandlingStep } from './IntentHandlingCycle';
@@ -62,7 +62,7 @@ export interface IntentHandlingResult {
  */
 export class IntentHandlingCycleRunner {
   constructor(
-    private readonly claude: ClaudeClient,
+    private readonly claude: IntentLlm,
     private readonly mcpClients: BssMcpClients,
     private readonly maxRetries: number = 1,
   ) {}
