@@ -8,7 +8,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { ClaudeClient } from './claude-client';
+import type { IntentLlm } from './llm/IntentLlm';
 import { MCPClient } from './mcp-client';
 import { logger } from './logger';
 import { IntentHandlingCycleRunner } from './imf/IntentHandlingCycleRunner';
@@ -29,7 +29,7 @@ export class IntentProcessor {
   private readonly cycleRunner: IntentHandlingCycleRunner;
 
   constructor(
-    private readonly claude: ClaudeClient,
+    private readonly claude: IntentLlm,
     private readonly mcpClients: {
       bss: MCPClient;
       knowledgeGraph: MCPClient;

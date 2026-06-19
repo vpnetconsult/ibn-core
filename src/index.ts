@@ -9,6 +9,7 @@ import compression from 'compression';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import { ClaudeClient } from './claude-client';
+import { createIntentLlm, type IntentLlm } from './llm/IntentLlm';
 import { MCPClient } from './mcp-client';
 import { IntentProcessor } from './intent-processor';
 import { TMF921IntentService } from './tmf921/intent-service';
@@ -52,13 +53,21 @@ app.use(metricsMiddleware);
 // Response filtering middleware (role-based field-level authorization)
 app.use(responseFilterMiddleware);
 
-// Initialize Claude client
-const claude = new ClaudeClient({
+// Initialize the LLM provider (LLM-agnostic seam). Default: Anthropic (ClaudeClient).
+// LLM_PROVIDER=stub selects a deterministic, network-free provider needing no
+// credential — for offline conformance/regression runs (e.g. TMF921 CTK) and CI.
+// Built lazily so stub mode boots without the Anthropic secret.
+const buildAnthropic = (): IntentLlm => new ClaudeClient({
   apiKey: readRequiredSecret('ANTHROPIC_API_KEY', 'ANTHROPIC_API_KEY_FILE'),
   model: process.env.CLAUDE_MODEL || 'claude-sonnet-4-20250514',
   maxTokens: parseInt(process.env.CLAUDE_MAX_TOKENS || '4000'),
   temperature: parseFloat(process.env.CLAUDE_TEMPERATURE || '0.7'),
 });
+const { provider: llmProvider, llm: claude } = createIntentLlm({
+  provider: process.env.LLM_PROVIDER,
+  anthropic: buildAnthropic,
+});
+logger.info('LLM provider: ' + llmProvider);
 
 // Initialize MCP clients
 const mcpClients = {

@@ -15,7 +15,7 @@
  * PUBLIC open-core (TMF921 is an open TM Forum standard, not owned IP).
  */
 
-import { ClaudeClient } from '../claude-client';
+import type { IntentLlm } from '../llm/IntentLlm';
 import { MCPClient } from '../mcp-client';
 import { logger } from '../logger';
 import { maskCustomerProfile, validateNoRawPII, redactForLogs } from '../pii-masking';
@@ -41,7 +41,7 @@ export interface BssMcpClients {
  */
 export class BssPhaseStrategy implements PhaseStrategy<IntentHandlingContext> {
   constructor(
-    private readonly claude: ClaudeClient,
+    private readonly claude: IntentLlm,
     private readonly mcpClients: BssMcpClients,
     private readonly session: SessionContext,
   ) {}
