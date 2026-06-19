@@ -49,6 +49,7 @@ export class TMF921IntentService {
   async createIntent(intentCreate: IntentCreate, customerId: string): Promise<Intent> {
     const now = new Date().toISOString();
     const intentId = uuidv4();
+    const reportId = uuidv4();
 
     const intent: Intent = {
       // Core identifiers
@@ -58,8 +59,9 @@ export class TMF921IntentService {
       description: intentCreate.description,
 
       // Classification
+      // TMF921 v5: priority is a string (named or numeric-as-string).
       intentType: intentCreate.intentType || IntentType.CUSTOMER_INTENT,
-      priority: intentCreate.priority || 5,
+      priority: String(intentCreate.priority ?? 5),
 
       // Lifecycle (TMF921 spec compliant)
       lifecycleStatus: IntentLifecycleStatus.ACKNOWLEDGED,
@@ -98,8 +100,21 @@ export class TMF921IntentService {
         ...(intentCreate.relatedParty || [])
       ],
 
-      // Reporting
-      intentReport: [],
+      // Reporting — seed an initial IntentReport so the report sub-resource is
+      // populated and TMF921-conformant (mirrors the intent expression).
+      intentReport: [{
+        id: reportId,
+        href: `/tmf-api/intentManagement/v5/intent/${intentId}/intentReport/${reportId}`,
+        name: intentCreate.name,
+        creationDate: now,
+        reportState: 'acknowledged',
+        expression: intentCreate.expression ?? {
+          '@type': 'IntentExpression',
+          expressionLanguage: 'Turtle',
+          expressionValue: '',
+        },
+        '@type': 'IntentReport',
+      }],
 
       // Polymorphism
       '@type': intentCreate['@type'] || 'Intent',
@@ -252,7 +267,7 @@ export class TMF921IntentService {
       name: intentText.slice(0, 100),
       description: intentText,
       intentType: IntentType.CUSTOMER_INTENT,
-      priority: 5,
+      priority: '5',
       lifecycleStatus: IntentLifecycleStatus.COMPLETED,
       statusChangeDate: now,
       creationDate: now,

@@ -43,6 +43,8 @@ export interface Characteristic {
  */
 export interface IntentExpression {
   iri?: string;  // Internationalized Resource Identifier
+  expressionLanguage?: string;  // e.g. 'Turtle', 'JSON-LD' (TMF921 v5)
+  expressionValue?: string;     // the serialized expression
   '@type'?: string;
 }
 
@@ -117,7 +119,10 @@ export interface IntentReportEntry {
 export interface IntentReport {
   id?: string;
   href?: string;
+  name?: string;
   creationDate?: string;
+  reportState?: string;
+  expression?: IntentExpression;
   reportEntry?: IntentReportEntry[];
   '@type'?: string;
   '@baseType'?: string;

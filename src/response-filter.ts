@@ -241,12 +241,18 @@ const ALLOWED_INPUT_FIELDS: Record<string, string[]> = {
   ],
 
   tmf921_intent_spec_update: [
+    'name',
     'description',
     'lifecycleStatus',
     'version',
     'validFor',
+    'expressionSpecification',
     'characteristic',
-    '@type'
+    'attachment',
+    'relatedParty',
+    '@type',
+    '@baseType',
+    '@schemaLocation'
   ],
 };
 
