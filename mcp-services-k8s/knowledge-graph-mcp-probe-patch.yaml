@@ -1,0 +1,73 @@
+# knowledge-graph-mcp-probe-patch.yaml
+# Copyright 2026 Vpnet Cloud Solutions Sdn. Bhd.
+# Licensed under the Apache License, Version 2.0
+#
+# Stabilises the knowledge-graph-mcp deployment by decoupling the LIVENESS
+# probe from the Neo4j dependency. Companion to knowledge-graph-mcp-dispatcher-patch.yaml.
+#
+# Root cause fixed (2026-06-20):
+#   The KG-MCP /health handler runs a live Neo4j round-trip on every call
+#   (driver.session() -> session.run('RETURN 1')). Liveness was wired to
+#   GET /health with timeoutSeconds: 1, periodSeconds: 10, failureThreshold: 3.
+#   Any Neo4j blip > 1s, three times in 30s, made kubelet declare the
+#   container unhealthy and send SIGTERM. The server's graceful-shutdown
+#   handler then exited 0 -> restart. Result: 151 restarts (lastState
+#   Completed/0) and ~10s windows where MCPClient calls timed out — the
+#   transient failure earlier mis-diagnosed as an "MCP-API drift".
+#
+#   This is a liveness/readiness anti-pattern: a LIVENESS check (is the
+#   process wedged?) was coupled to a DEPENDENCY's latency (is Neo4j fast?).
+#
+# Fix:
+#   - livenessProbe  -> cheap tcpSocket:8080 ("is the Node process accepting
+#     connections?"). No Neo4j. Loosened cadence (period 20s, timeout 3s,
+#     failureThreshold 6, initialDelay 15s).
+#   - readinessProbe -> keeps GET /health (the Neo4j check) with timeout 5s,
+#     so a Neo4j blip briefly removes the pod from Service endpoints instead
+#     of killing it; it rejoins automatically when Neo4j recovers.
+#
+# Implements: RFC 9315 §5.2.1 Monitoring / §5.2.3 Compliance Actions
+#   (health signalling for the knowledge-graph capability)
+# TMF921: product catalog + bundle resolution availability in POST /intent pipeline
+# Verified (2026-06-20): restarts 151 -> 0 after rollout; /mcp/tools/call
+#   { tool, params } returns bundles; canonical O2C lifecycleStatus "completed",
+#   reportState "fulfilled".
+#
+# Apply (strategic-merge patch against the running deployment):
+#   kubectl patch deployment/knowledge-graph-mcp -n intent-platform \
+#     --type strategic --patch-file knowledge-graph-mcp-probe-patch.yaml
+#   kubectl rollout status deployment/knowledge-graph-mcp -n intent-platform
+#
+# Note: this is a partial (strategic-merge) patch — it merges by the
+# container name "knowledge-graph-mcp" and intentionally does NOT touch the
+# istio-proxy sidecar. The httpGet:null on livenessProbe removes the old
+# HTTP liveness check so it does not coexist with the new tcpSocket check.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: knowledge-graph-mcp
+  namespace: intent-platform
+spec:
+  template:
+    spec:
+      containers:
+        - name: knowledge-graph-mcp
+          livenessProbe:
+            httpGet: null
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 6
+            successThreshold: 1
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
