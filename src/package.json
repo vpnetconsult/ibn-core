@@ -73,7 +73,8 @@
     "follow-redirects": "^1.16.0",
     "fast-uri": "^3.1.2",
     "ip-address": "^10.1.1",
-    "protobufjs": "^8.2.0"
+    "protobufjs": "^8.2.0",
+    "js-yaml": "^4.2.0"
   },
   "engines": {
     "node": ">=20.0.0"
