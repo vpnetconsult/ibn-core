@@ -43,9 +43,27 @@ After the fixes, re-run = **65/65, 0 failing**.
 
 - ❌ This is a **stubbed-translation** run — the deterministic stub substitutes for live LLM translation. The CTK validates the TMF921 API contract (LLM-independent), but a **real-translation** O2C/CTK run (`LLM_PROVIDER=anthropic`, credits topped up) is still required to close the GA claim per ARC-005-ADR-002 §10.
 
+## O2C reliability — knowledge-graph-mcp liveness fix (2026-06-20, post-run)
+
+During Gate-B verification the canonical O2C **intermittently** timed out at the
+`find_related_products` step. Investigation showed this was **not** an API-contract
+("MCP-API drift") problem — the agent posts `{ tool, params }` to `/mcp/tools/call`
+and the in-repo `knowledge-graph-mcp-dispatcher-patch.yaml` already bridges that
+correctly. The real cause was **knowledge-graph-mcp restart churn**:
+
+| Symptom | Root cause | Fix |
+|---|---|---|
+| KG-MCP pod **151 restarts** (`lastState Completed`/exit 0); ~10 s windows where `MCPClient` calls hit the 10 s timeout | **Liveness** probe wired to `GET /health`, which runs a live Neo4j round-trip (`session.run('RETURN 1')`), with `timeoutSeconds: 1` / `failureThreshold: 3`. Any Neo4j blip > 1 s (×3 in 30 s) → kubelet SIGTERM → graceful exit 0 → restart. A liveness/readiness anti-pattern: a *liveness* check coupled to a *dependency*'s latency. | Decouple liveness from Neo4j: **liveness** → cheap `tcpSocket:8080` (process-alive only, loosened cadence); **readiness** → keeps `GET /health` at `timeoutSeconds: 5` so a Neo4j blip drops the pod from Service endpoints instead of killing it. IaC: `mcp-services-k8s/knowledge-graph-mcp-probe-patch.yaml` (PR #62). |
+
+**Verified after fix:** KG-MCP restarts **151 → 0**; `/mcp/tools/call`
+`{tool,params}` returns bundles (`BUNDLE-WFH-PREMIUM`); canonical O2C
+`lifecycleStatus: completed` / `reportState: fulfilled` repeatably (3/3).
+This stabilises the O2C fulfilment recorded in this Gate-B run; it does not
+change the CTK result (65/65, which is API-contract-only and KG-MCP-independent).
+
 ## Conclusion
 
-For ARC-005-ADR-002 Gate B, this is a **PASS**: 65/65 TMF921 CTK conformance + O2C fulfilment on the cutover code, with the credit blocker removed by the seam (ARC-005-ADR-003), and the 3 surfaced conformance gaps fixed. The only remaining Gate-B item before cutting `v3.0.0` is the **real-translation** confirmation run; then ARB Gate C → tag → re-pin resource ADR-009 (ADR-002 §10 runbook).
+For ARC-005-ADR-002 Gate B, this is a **PASS**: 65/65 TMF921 CTK conformance + O2C fulfilment on the cutover code, with the credit blocker removed by the seam (ARC-005-ADR-003), the 3 surfaced conformance gaps fixed, and the O2C-path KG-MCP restart churn eliminated (PR #62). The only remaining Gate-B item before cutting `v3.0.0` is the **real-translation** confirmation run; then ARB Gate C → tag → re-pin resource ADR-009 (ADR-002 §10 runbook).
 
 ## Reproduce
 
@@ -59,4 +77,4 @@ cd <tmf921-ctk> && platform=linux/arm64 ./run.sh
 ```
 
 ---
-*Generated 2026-06-19. Stubbed-translation conformance result (65/65) for the ibn-core business-intent-agent; machine-readable report under `ctk-evidence/`.*
+*Generated 2026-06-19; updated 2026-06-20 with the knowledge-graph-mcp liveness fix (O2C reliability, PR #62). Stubbed-translation conformance result (65/65) for the ibn-core business-intent-agent; machine-readable report under `ctk-evidence/`.*
