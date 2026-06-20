@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>ibn-core · MITRE ATLAS coverage heatmap</title>
+<style>
+  :root {
+    --navy:#1f2a44; --ink:#0f172a; --muted:#475569; --line:#cbd5e1;
+    --bg:#f8fafc; --card:#ffffff; --purple:#6d28d9;
+    --green:#15803d; --green-bg:#dcfce7;
+    --amber:#b45309; --amber-bg:#fef3c7;
+    --red:#b91c1c;   --red-bg:#fee2e2;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+    font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  .wrap { max-width:1500px; margin:0 auto; padding:28px 24px 60px; }
+  header.hero { background:linear-gradient(135deg,#1f2a44,#6d28d9);
+    color:#fff; border-radius:14px; padding:28px 30px;
+    box-shadow:0 10px 30px rgba(15,23,42,.18); }
+  header.hero .kicker { text-transform:uppercase; letter-spacing:.14em;
+    font-size:11.5px; opacity:.85; margin:0 0 6px; }
+  header.hero h1 { margin:0 0 4px; font-size:26px; line-height:1.2; }
+  header.hero p { margin:6px 0 0; max-width:900px; opacity:.95; font-size:14px; }
+  header.hero .meta { display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
+  header.hero .meta span { background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.25);
+    padding:3px 10px; border-radius:999px; font-size:12px; }
+  .kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:14px;
+    margin:22px 0 18px; }
+  .kpi { background:var(--card); border:1px solid var(--line);
+    border-radius:12px; padding:14px 16px; }
+  .kpi b { display:block; font-size:24px; line-height:1.1; color:var(--navy); }
+  .kpi small { color:var(--muted); font-size:12.5px; }
+  .kpi.green b { color:var(--green); }
+  .kpi.amber b { color:var(--amber); }
+  .kpi.red b   { color:var(--red); }
+  .legend { display:flex; flex-wrap:wrap; gap:14px; margin:6px 0 18px;
+    color:var(--muted); font-size:12.5px; }
+  .legend span { display:inline-flex; align-items:center; gap:6px; }
+  .legend i { width:14px; height:14px; border-radius:3px; display:inline-block; }
+  .matrix { display:grid; gap:6px;
+    grid-template-columns:repeat(16,minmax(150px,1fr));
+    overflow-x:auto; }
+  .col { display:flex; flex-direction:column; min-width:150px; }
+  .thead { background:var(--navy); color:#fff; border-radius:8px 8px 0 0;
+    padding:8px 10px; }
+  .ta-id { font:11px ui-monospace,Menlo,monospace; opacity:.7; }
+  .ta-name { font-size:12.5px; font-weight:700; }
+  .ta-count { font-size:11px; opacity:.8; margin-top:2px; }
+  .cells { display:flex; flex-direction:column; gap:4px; padding:4px 0; }
+  .cell { border-radius:6px; padding:6px 8px; cursor:default;
+    border:1px solid var(--line); transition:transform .05s ease; }
+  .cell:hover { transform:translateY(-1px);
+    box-shadow:0 4px 10px rgba(15,23,42,.08); }
+  .cell.mitigated { background:var(--green-bg); border-color:#86efac; }
+  .cell.partiallymitigated { background:var(--amber-bg); border-color:#fde68a; }
+  .cell.open { background:var(--red-bg); border-color:#fecaca; }
+  .tid { font:11px ui-monospace,Menlo,monospace; color:var(--muted); }
+  .tname { font-size:12px; font-weight:600; color:var(--navy); }
+  .empty { color:var(--muted); font-size:12px; padding:8px; font-style:italic;
+    border:1px dashed var(--line); border-radius:6px; }
+  .panel { margin-top:22px; background:var(--card); border:1px solid var(--line);
+    border-radius:12px; padding:16px 18px; }
+  .panel h2 { margin:0 0 8px; font-size:15px; color:var(--navy); }
+  .panel #detail { font-size:13px; color:var(--ink); }
+  .panel #detail .row { display:flex; gap:10px; margin:6px 0; }
+  .panel #detail .label { width:140px; color:var(--muted); font-size:12.5px; }
+  .panel #detail .val { flex:1; }
+  .panel #detail .tag { display:inline-block; padding:2px 8px; border-radius:5px;
+    font-size:11.5px; font-weight:650; }
+  .tag.mitigated { background:var(--green-bg); color:var(--green); }
+  .tag.partiallymitigated { background:var(--amber-bg); color:var(--amber); }
+  .tag.open { background:var(--red-bg); color:var(--red); }
+  footer { margin-top:32px; padding-top:14px; border-top:1px solid var(--line);
+    color:var(--muted); font-size:12px; }
+  .notes { color:var(--muted); font-size:12.5px; margin:4px 2px 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <p class="kicker">ibn-core · v2.0.1 · MITRE ATLAS assessment</p>
+  <h1>Adversarial-AI threat-informed coverage heatmap</h1>
+  <p>ATLAS (Adversarial Threat Landscape for AI Systems) — the LLM-specific complement
+  to the ATT&amp;CK Enterprise assessment. Residual risk per technique after the
+  in-code AI Gateway controls: prompt-injection detection (OWASP LLM01), PII masking +
+  per-role DLP allowlists on MCP responses, and tool-policy RBAC.
+  Click any tile for the control mapping.</p>
+  <div class="meta">
+    <span>MITRE ATLAS framework</span>
+    <span>39 techniques in scope</span>
+    <span>Data source: github.com/mitre-atlas/atlas-data</span>
+    <span>Apache 2.0 · © 2026 Vpnet Cloud Solutions</span>
+  </div>
+</header>
+
+<div class="kpis">
+  <div class="kpi"><b>39</b><small>ATLAS techniques in scope</small></div>
+  <div class="kpi green"><b>11</b>
+    <small>Mitigated &nbsp;·&nbsp; 28%</small></div>
+  <div class="kpi amber"><b>21</b>
+    <small>Partially mitigated &nbsp;·&nbsp; 54%</small></div>
+  <div class="kpi red"><b>7</b>
+    <small>Open &nbsp;·&nbsp; 18%</small></div>
+</div>
+
+<div class="legend">
+  <span><i style="background:var(--green)"></i>Mitigated — control fully addresses</span>
+  <span><i style="background:var(--amber)"></i>Partially mitigated — control exists, gaps remain</span>
+  <span><i style="background:var(--red)"></i>Open — primary control missing / out-of-scope / not applicable</span>
+</div>
+
+<p class="notes">RAG-specific techniques (AML.T0067 LLM Prompt Crafting, AML.T0070 RAG
+Poisoning, AML.T0071 False RAG Entry Injection) are NOT INCLUDED in this heatmap
+because ibn-core does not use retrieval-augmented generation — both LLM calls
+(analyzeIntent and generateOffer) are single-turn JSON extractions over a fixed
+scaffold. If a future release adds RAG, those tiles must be added with a fresh
+assessment.</p>
+
+<div class="matrix">
+<div class="col"><div class="thead"><div class="ta-id">AML.TA0002</div><div class="ta-name">Reconnaissance</div><div class="ta-count">2</div></div><div class="cells"><div class="cell partiallymitigated" data-id="AML.T0006" data-name="Active Scanning" data-tier="PartiallyMitigated" data-ctrl="TMF921 endpoints expose only the documented schema; the OpenAPI spec is public by design. Istio rate-limit on probing patterns. Gap: discoverable model dependency via OSS docs is intentional."><div class="tid">AML.T0006</div><div class="tname">Active Scanning</div></div>
+<div class="cell open" data-id="AML.T0000.002" data-name="Technical Blogs" data-tier="Open" data-ctrl="Out of scope. ibn-core architecture and AI Gateway design are intentionally published; an attacker may learn the controls in detail from this whitepaper."><div class="tid">AML.T0000.002</div><div class="tname">Technical Blogs</div></div></div></div><div class="col"><div class="thead"><div class="ta-id">AML.TA0003</div><div class="ta-name">Resource Development</div><div class="ta-count">2</div></div><div class="cells"><div class="cell open" data-id="AML.T0017.000" data-name="Adversarial AI Attacks" data-tier="Open" data-ctrl="Adversaries can develop prompt-injection and jailbreak payloads against published OWASP-LLM patterns. ibn-core's defence: the HIGH-tier signature engine is updated against current OWASP LLM01 patterns; MEDIUM/LOW are configurable."><div class="tid">AML.T0017.000</div><div class="tname">Adversarial AI Attacks</div></div>
+<div class="cell open" data-id="AML.T0010.001" data-name="AI Software (Supply Chain Compromise)" data-tier="Open" data-ctrl="Anthropic SDK and other npm packages — supply-chain assurance relies on CodeQL CI + dependabot. Gap: no SBOM, no image signing — same finding as ATT&CK T1195."><div class="tid">AML.T0010.001</div><div class="tname">AI Software (Supply Chain Compromise)</div></div></div></div><div class="col"><div class="thead"><div class="ta-id">AML.TA0004</div><div class="ta-name">Initial Access</div><div class="ta-count">3</div></div><div class="cells"><div class="cell partiallymitigated" data-id="AML.T0049" data-name="Exploit Public-Facing Application" data-tier="PartiallyMitigated" data-ctrl="TMF921 API gated by Istio TLS + JWT/api-key auth + AI Gateway prompt-injection check; idempotency in Redis. Gap: no managed WAF; no recent third-party pentest."><div class="tid">AML.T0049</div><div class="tname">Exploit Public-Facing Application</div></div>
+<div class="cell partiallymitigated" data-id="AML.T0012" data-name="Valid Accounts" data-tier="PartiallyMitigated" data-ctrl="JWT (RS256/Keycloak JWKS) or api-key; named roles. Gap: no key-rotation SOP for downstream operators."><div class="tid">AML.T0012</div><div class="tname">Valid Accounts</div></div>
+<div class="cell open" data-id="AML.T0011" data-name="User Execution" data-tier="Open" data-ctrl="ibn-core does not load user-supplied AI artefacts; users do not bring their own models. Listed Open because the technique is not applicable rather than because mitigated."><div class="tid">AML.T0011</div><div class="tname">User Execution</div></div></div></div><div class="col"><div class="thead"><div class="ta-id">AML.TA0000</div><div class="ta-name">AI Model Access</div><div class="ta-count">2</div></div><div class="cells"><div class="cell partiallymitigated" data-id="AML.T0040" data-name="AI Model Inference API Access" data-tier="PartiallyMitigated" data-ctrl="Anthropic API key in k8s Secret, envFrom; outbound restricted to api.anthropic.com via Istio egress template. Per-call max_tokens cap. Gap: no per-API-key budget."><div class="tid">AML.T0040</div><div class="tname">AI Model Inference API Access</div></div>
+<div class="cell partiallymitigated" data-id="AML.T0047" data-name="AI-Enabled Product or Service" data-tier="PartiallyMitigated" data-ctrl="ibn-core IS the AI-enabled product. Attacker access is gated by TMF921 auth + AI Gateway 3 controls + tool-policy RBAC; refusal is a first-class observable outcome."><div class="tid">AML.T0047</div><div class="tname">AI-Enabled Product or Service</div></div></div></div><div class="col"><div class="thead"><div class="ta-id">AML.TA0005</div><div class="ta-name">Execution</div><div class="ta-count">5</div></div><div class="cells"><div class="cell mitigated" data-id="AML.T0050" data-name="Command and Scripting Interpreter" data-tier="Mitigated" data-ctrl="Model output is parsed as strict JSON (analyzeIntent, generateOffer); ibn-core never executes model output as code or shell. No agent loop, no eval. Architectural elimination."><div class="tid">AML.T0050</div><div class="tname">Command and Scripting Interpreter</div></div>
+<div class="cell partiallymitigated" data-id="AML.T0051" data-name="LLM Prompt Injection" data-tier="PartiallyMitigated" data-ctrl="AI Gateway control ① (prompt-injection-detection.ts) — HIGH-tier signatures (jailbreak, prompt-override, reveal-prompt) block at INGEST; MEDIUM/LOW configurable. Gap: signature engine is regex-based and can be bypassed with sufficient obfuscation."><div class="tid">AML.T0051</div><div class="tname">LLM Prompt Injection</div></div>
+<div class="cell mitigated" data-id="AML.T0051.000" data-name="LLM Prompt Injection: Direct" data-tier="Mitigated" data-ctrl="Same engine; direct attacks via the intent text field are the primary case the engine is tuned for. HIGH-tier matches block before TRANSLATING; the model never sees the payload."><div class="tid">AML.T0051.000</div><div class="tname">LLM Prompt Injection: Direct</div></div>
+<div class="cell partiallymitigated" data-id="AML.T0051.001" data-name="LLM Prompt Injection: Indirect" data-tier="PartiallyMitigated" data-ctrl="MCP back-end responses pass through DLP redaction before being added to the prompt context — limits attacker-controlled content that the model sees. Gap: a malicious MCP tool response could still embed instructions inside an allowlisted field."><div class="tid">AML.T0051.001</div><div class="tname">LLM Prompt Injection: Indirect</div></div>
+<div class="cell mitigated" data-id="AML.T0053" data-name="AI Agent Tool Invocation" data-tier="Mitigated" data-ctrl="ToolPolicyEngine RBAC deny-by-default per-role; admin-only operations (cancel_order, manage_api_keys) require admin role; refusal returns compliantFailure with auditable assessment."><div class="tid">AML.T0053</div><div class="tname">AI Agent Tool Invocation</div></div></div></div><div class="col"><div class="thead"><div class="ta-id">AML.TA0006</div><div class="ta-name">Persistence</div><div class="ta-count">1</div></div><div class="cells"><div class="cell open" data-id="AML.T0020" data-name="Poison Training Data" data-tier="Open" data-ctrl="Out of scope — ibn-core does not train or fine-tune the model; uses Anthropic Claude as a hosted inference endpoint. Model-side persistence is Anthropic's responsibility."><div class="tid">AML.T0020</div><div class="tname">Poison Training Data</div></div></div></div><div class="col"><div class="thead"><div class="ta-id">AML.TA0012</div><div class="ta-name">Privilege Escalation</div><div class="ta-count">0</div></div><div class="cells"><div class="empty">— no techniques in scope —</div></div></div><div class="col"><div class="thead"><div class="ta-id">AML.TA0007</div><div class="ta-name">Defense Evasion</div><div class="ta-count">3</div></div><div class="cells"><div class="cell partiallymitigated" data-id="AML.T0015" data-name="Evade AI Model" data-tier="PartiallyMitigated" data-ctrl="Inputs that mask intent (obfuscated prompt-injection, unicode tricks) may slip past regex signatures. Mitigation: HIGH-tier blockHigh is non-overridable; suspicious requests still produce auditable spans."><div class="tid">AML.T0015</div><div class="tname">Evade AI Model</div></div>
+<div class="cell mitigated" data-id="AML.T0054" data-name="LLM Jailbreak" data-tier="Mitigated" data-ctrl="AI Gateway control ① HIGH-tier patterns explicitly target jailbreak phrasing (&quot;ignore previous instructions&quot;, &quot;pretend you are…&quot;, &quot;reveal your system prompt&quot;). Combined with single-turn prompt design — no multi-turn manipulation surface."><div class="tid">AML.T0054</div><div class="tname">LLM Jailbreak</div></div>
+<div class="cell partiallymitigated" data-id="AML.T0068" data-name="LLM Prompt Obfuscation" data-tier="PartiallyMitigated" data-ctrl="Regex signatures can be bypassed by sufficient obfuscation (base64, leetspeak, language switching). Mitigation: even an obfuscated jailbreak that slips the signature engine cannot extract data the model never sees (PII masker, DLP). Open as a known gap; addressed by defence-in-depth."><div class="tid">AML.T0068</div><div class="tname">LLM Prompt Obfuscation</div></div></div></div><div class="col"><div class="thead"><div class="ta-id">AML.TA0013</div><div class="ta-name">Credential Access</div><div class="ta-count">3</div></div><div class="cells"><div class="cell mitigated" data-id="AML.T0055" data-name="Unsecured Credentials" data-tier="Mitigated" data-ctrl="Direct ibn-core control: PII masker replaces email/phone/address with sentinels BEFORE any LLM call; per-role DLP allowlists redact non-allowlisted fields in MCP responses; the model literally never sees raw credentials."><div class="tid">AML.T0055</div><div class="tname">Unsecured Credentials</div></div>
+<div class="cell partiallymitigated" data-id="AML.T0056" data-name="Extract LLM System Prompt" data-tier="PartiallyMitigated" data-ctrl="Jailbreak block (HIGH-tier) targets reveal-system-prompt phrasing. The scaffold isn't a secret; it's documented in claude-client.ts. Gap: a sufficiently clever paraphrase could still leak scaffold content."><div class="tid">AML.T0056</div><div class="tname">Extract LLM System Prompt</div></div>
+<div class="cell mitigated" data-id="AML.T0057" data-name="LLM Data Leakage" data-tier="Mitigated" data-ctrl="Containment-in-transit: PII masking on the way IN; per-role DLP on MCP responses on the way OUT before being added to context. Schema-preserving redaction means structure is preserved but no PII is ever in the prompt."><div class="tid">AML.T0057</div><div class="tname">LLM Data Leakage</div></div></div></div><div class="col"><div class="thead"><div class="ta-id">AML.TA0008</div><div class="ta-name">Discovery</div><div class="ta-count">5</div></div><div class="cells"><div class="cell partiallymitigated" data-id="AML.T0013" data-name="Discover AI Model Ontology" data-tier="PartiallyMitigated" data-ctrl="The model and provider are publicly documented in the Component CR dependentModels annotation by design. Operationally not a defendable secret."><div class="tid">AML.T0013</div><div class="tname">Discover AI Model Ontology</div></div>
+<div class="cell partiallymitigated" data-id="AML.T0014" data-name="Discover AI Model Family" data-tier="PartiallyMitigated" data-ctrl="Same — public by design. Disclosure is part of the AI Act Art. 50 transparency posture."><div class="tid">AML.T0014</div><div class="tname">Discover AI Model Family</div></div>
+<div class="cell mitigated" data-id="AML.T0044" data-name="Discover AI Artifacts" data-tier="Mitigated" data-ctrl="ibn-core has no user-uploaded model artefacts to discover; there is no artefact store."><div class="tid">AML.T0044</div><div class="tname">Discover AI Artifacts</div></div>
+<div class="cell partiallymitigated" data-id="AML.T0063" data-name="Discover AI Model Outputs" data-tier="PartiallyMitigated" data-ctrl="TMF921 responses contain the structured offer; discovery of model output structure is intentional. Gap: an attacker can map response variance to model behaviour."><div class="tid">AML.T0063</div><div class="tname">Discover AI Model Outputs</div></div>
+<div class="cell partiallymitigated" data-id="AML.T0069" data-name="Discover LLM System Information" data-tier="PartiallyMitigated" data-ctrl="Combined defence with T0056. Architectural: scaffold is not loaded with operator secrets; only model name + extraction instructions."><div class="tid">AML.T0069</div><div class="tname">Discover LLM System Information</div></div></div></div><div class="col"><div class="thead"><div class="ta-id">AML.TA0015</div><div class="ta-name">Lateral Movement</div><div class="ta-count">0</div></div><div class="cells"><div class="empty">— no techniques in scope —</div></div></div><div class="col"><div class="thead"><div class="ta-id">AML.TA0009</div><div class="ta-name">Collection</div><div class="ta-count">1</div></div><div class="cells"><div class="cell mitigated" data-id="AML.T0035" data-name="Data from Information Repositories" data-tier="Mitigated" data-ctrl="MCP back-end access gated by ToolPolicyEngine deny-by-default; per-role allowlists limit what each principal can pull. Reads from customer-data, knowledge-graph and BSS are scoped."><div class="tid">AML.T0035</div><div class="tname">Data from Information Repositories</div></div></div></div><div class="col"><div class="thead"><div class="ta-id">AML.TA0001</div><div class="ta-name">AI Attack Staging</div><div class="ta-count">0</div></div><div class="cells"><div class="empty">— no techniques in scope —</div></div></div><div class="col"><div class="thead"><div class="ta-id">AML.TA0014</div><div class="ta-name">Command and Control</div><div class="ta-count">0</div></div><div class="cells"><div class="empty">— no techniques in scope —</div></div></div><div class="col"><div class="thead"><div class="ta-id">AML.TA0010</div><div class="ta-name">Exfiltration</div><div class="ta-count">3</div></div><div class="cells"><div class="cell mitigated" data-id="AML.T0024" data-name="Exfiltration via AI Inference API" data-tier="Mitigated" data-ctrl="The model only ever sees masked data (PII redacted in, DLP redacted out). An attacker exfiltrating via inference can only pull what the model legitimately knows — which excludes raw customer data by construction."><div class="tid">AML.T0024</div><div class="tname">Exfiltration via AI Inference API</div></div>
+<div class="cell open" data-id="AML.T0024.002" data-name="Extract AI Model (via excessive queries)" data-tier="Open" data-ctrl="Out of scope — model is hosted by Anthropic; model extraction is Anthropic's risk to bear, not ibn-core's. Per-API-key request quotas (recommended) would further limit lateral risk."><div class="tid">AML.T0024.002</div><div class="tname">Extract AI Model (via excessive queries)</div></div>
+<div class="cell partiallymitigated" data-id="AML.T0025" data-name="Exfiltration via Cyber Means" data-tier="PartiallyMitigated" data-ctrl="Istio egress template restricts outbound. Gap: hard-enforced egress allowlist is operator-side as noted in ATT&CK T1041 finding."><div class="tid">AML.T0025</div><div class="tname">Exfiltration via Cyber Means</div></div></div></div><div class="col"><div class="thead"><div class="ta-id">AML.TA0011</div><div class="ta-name">Impact</div><div class="ta-count">9</div></div><div class="cells"><div class="cell partiallymitigated" data-id="AML.T0029" data-name="Denial of AI Service" data-tier="PartiallyMitigated" data-ctrl="HPA + Istio rate-limit + AI-Gateway short-circuit at boundary. Refusal at INGEST = 12 ms / 0 tokens (Scenario D). Gap: no per-API-key quota; chaff attacks at the model API level still consume tokens."><div class="tid">AML.T0029</div><div class="tname">Denial of AI Service</div></div>
+<div class="cell mitigated" data-id="AML.T0034" data-name="Cost Harvesting (Denial of Wallet)" data-tier="Mitigated" data-ctrl="AI Gateway gates the model call: D scenario blocks before LLM call (0 tokens), C blocks after one LLM call (saves the offer-generation call). max_tokens cap bounds per-call spend. Architectural cost protection."><div class="tid">AML.T0034</div><div class="tname">Cost Harvesting (Denial of Wallet)</div></div>
+<div class="cell partiallymitigated" data-id="AML.T0046" data-name="Spamming AI System with Chaff Data" data-tier="PartiallyMitigated" data-ctrl="Combined defence with T0029 + T0034. Gap: an attacker with a legitimate api-key can submit many well-formed intents that pass the gateway but waste compute."><div class="tid">AML.T0046</div><div class="tname">Spamming AI System with Chaff Data</div></div>
+<div class="cell partiallymitigated" data-id="AML.T0048.001" data-name="External Harms: Reputational" data-tier="PartiallyMitigated" data-ctrl="AI Gateway prevents the model from being coerced into offensive output via jailbreak; refusals are observable, not silent. Gap: cannot prevent reputational harm if the system is used as intended but the offer surface is misperceived externally."><div class="tid">AML.T0048.001</div><div class="tname">External Harms: Reputational</div></div>
+<div class="cell partiallymitigated" data-id="AML.T0048.002" data-name="External Harms: Societal" data-tier="PartiallyMitigated" data-ctrl="Same as above. Mitigated indirectly via EU AI Act Art. 50 transparency posture (whitepaper Part B)."><div class="tid">AML.T0048.002</div><div class="tname">External Harms: Societal</div></div>
+<div class="cell partiallymitigated" data-id="AML.T0048.003" data-name="External Harms: User" data-tier="PartiallyMitigated" data-ctrl="Tool-policy RBAC bounds the actions a misused account can take; explicit human acceptance of the offer is required before any network change is provisioned."><div class="tid">AML.T0048.003</div><div class="tname">External Harms: User</div></div>
+<div class="cell open" data-id="AML.T0048.004" data-name="External Harms: AI Intellectual Property Theft" data-tier="Open" data-ctrl="Model IP is Anthropic's; ibn-core does not own model weights. Prompt-scaffold IP is published in the open core. Not defended because not defendable for an open-source project."><div class="tid">AML.T0048.004</div><div class="tname">External Harms: AI Intellectual Property Theft</div></div>
+<div class="cell mitigated" data-id="AML.T0061" data-name="LLM Prompt Self-Replication" data-tier="Mitigated" data-ctrl="Architectural: ibn-core's prompts are single-turn JSON extractions. Model output is parsed as JSON and never fed back as a prompt. No multi-turn loop exists for self-replication to take effect."><div class="tid">AML.T0061</div><div class="tname">LLM Prompt Self-Replication</div></div>
+<div class="cell partiallymitigated" data-id="AML.T0066" data-name="LLM Trusted Output Components Manipulation" data-tier="PartiallyMitigated" data-ctrl="Model output is parsed as strict JSON; downstream effects (order, quote) are RBAC-gated. Gap: if the model is coerced into inflating a discount, the operator-side guardrails (pricing sanity checks) catch it — but those are operator-side, not in the open core."><div class="tid">AML.T0066</div><div class="tname">LLM Trusted Output Components Manipulation</div></div></div></div>
+</div>
+
+<div class="panel" id="panel">
+  <h2>Technique detail</h2>
+  <div id="detail" style="color:var(--muted)">Click an ATLAS technique tile to see its
+  residual-risk tier and the control summary.</div>
+</div>
+
+<footer>
+  ibn-core MITRE ATLAS assessment · generated 2026-05-28 ·
+  Companion documents: <code>docs/security/ibn-core_attack_layer.json</code> (ATT&amp;CK Enterprise),
+  <code>docs/whitepapers/ibn-core_whitepaper.docx</code>,
+  <code>docs/compliance/UC006_ODA_CANVAS_IMPLEMENTATION.html</code>.
+  ATLAS data fetched 2026-05-28 from
+  <code>github.com/mitre-atlas/atlas-data</code>.
+</footer>
+
+</div>
+<script>
+  document.querySelectorAll('.cell').forEach(c => c.addEventListener('click', () => {
+    const id   = c.dataset.id;
+    const name = c.dataset.name;
+    const tier = c.dataset.tier;
+    const ctrl = c.dataset.ctrl;
+    const tl   = tier.toLowerCase();
+    document.getElementById('detail').innerHTML =
+      '<div class="row"><div class="label">Technique</div>'
+      + '<div class="val"><strong>' + id + '</strong> — ' + name + '</div></div>'
+      + '<div class="row"><div class="label">Residual risk</div>'
+      + '<div class="val"><span class="tag ' + tl + '">' + tier + '</span></div></div>'
+      + '<div class="row"><div class="label">Control summary</div>'
+      + '<div class="val">' + ctrl + '</div></div>'
+      + '<div class="row"><div class="label">ATLAS link</div>'
+      + '<div class="val"><a href="https://atlas.mitre.org/techniques/'
+        + id + '" target="_blank">atlas.mitre.org/techniques/' + id + '</a></div></div>';
+  }));
+</script>
+</body>
+</html>

@@ -1,0 +1,1034 @@
+{
+  "name": "ibn-core v2.0.1 \u2014 ATT&CK coverage assessment",
+  "versions": {
+    "attack": "16",
+    "navigator": "5.1.0",
+    "layer": "4.5"
+  },
+  "description": "Threat-informed ATT&CK assessment of ibn-core (Apache 2.0 open core) \u2014 an RFC 9315 / TMF921 v5.0.0 Intent-Based Networking platform embedding Claude via the Model Context Protocol. Scoring shows residual risk AFTER the in-code controls (AI Gateway: prompt-injection / PII+DLP / tool-policy RBAC; Istio mTLS; JWT/API-key auth; OpenTelemetry audit trail). Green = Mitigated (80) \u00b7 Amber = PartiallyMitigated (50) \u00b7 Red = Open (20). \u00a9 2026 Vpnet Cloud Solutions Sdn. Bhd. \u2014 Apache 2.0.",
+  "domain": "enterprise-attack",
+  "sorting": 0,
+  "layout": {
+    "layout": "side",
+    "aggregateFunction": "average",
+    "expandedSubtechniques": "none"
+  },
+  "techniques": [
+    {
+      "techniqueID": "T1190",
+      "tactic": "initial-access",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] TMF921 API behind Istio ingress; JWT/API-key auth; AI Gateway prompt-injection check on request body; idempotency in Redis. Gap: no managed WAF; no recent third-party pentest.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "TMF921 API behind Istio ingress; JWT/API-key auth; AI Gateway prompt-injection check on request body; idempotency in Redis. Gap: no managed WAF; no recent third-party pentest."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1199",
+      "tactic": "initial-access",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] MCP back-ends called over mTLS; ToolPolicyEngine RBAC denies non-allowlisted tools. Gap: requester SessionContext not yet threaded into MCP calls (live provenance attribution pending).",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "MCP back-ends called over mTLS; ToolPolicyEngine RBAC denies non-allowlisted tools. Gap: requester SessionContext not yet threaded into MCP calls (live provenance attribution pending)."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1078",
+      "tactic": "initial-access",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Auth supports api-key, JWT (RS256 against Keycloak JWKS), or both; named roles (customer/agent/admin). Gap: no formal key-rotation SOP documented for downstream operators.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Auth supports api-key, JWT (RS256 against Keycloak JWKS), or both; named roles (customer/agent/admin). Gap: no formal key-rotation SOP documented for downstream operators."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1078.001",
+      "tactic": "initial-access",
+      "score": 80,
+      "color": "",
+      "comment": "[Mitigated] Helm chart ships no default credentials; values.yaml requires explicit secret injection. Image build forbids baked-in tokens.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Mitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Helm chart ships no default credentials; values.yaml requires explicit secret injection. Image build forbids baked-in tokens."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1078.004",
+      "tactic": "initial-access",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Anthropic and LangSmith secrets in k8s Secrets, envFrom; rotation possible. Gap: no external KMS integration; SOPS/sealed-secrets recommended for operators.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Anthropic and LangSmith secrets in k8s Secrets, envFrom; rotation possible. Gap: no external KMS integration; SOPS/sealed-secrets recommended for operators."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1195",
+      "tactic": "initial-access",
+      "score": 20,
+      "color": "",
+      "comment": "[Open] GitHub Actions CodeQL scan; dependabot; NOTICE file lists upstream dependencies. Gap: no SBOM published; container images not signed (cosign/sigstore on roadmap).",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Open"
+        },
+        {
+          "name": "Control summary",
+          "value": "GitHub Actions CodeQL scan; dependabot; NOTICE file lists upstream dependencies. Gap: no SBOM published; container images not signed (cosign/sigstore on roadmap)."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1610",
+      "tactic": "execution",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Component runs under a least-privilege ServiceAccount; chart NetworkPolicy templates ship; Istio mTLS PeerAuthentication. Gap: PSA/PodSecurity admission profile is operator-side.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Component runs under a least-privilege ServiceAccount; chart NetworkPolicy templates ship; Istio mTLS PeerAuthentication. Gap: PSA/PodSecurity admission profile is operator-side."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1609",
+      "tactic": "execution",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] k8s RBAC on the SA forbids exec into peer pods; Istio AuthorizationPolicy limits intra-mesh access. Gap: no runtime detection (Falco/Tetragon) included.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "k8s RBAC on the SA forbids exec into peer pods; Istio AuthorizationPolicy limits intra-mesh access. Gap: no runtime detection (Falco/Tetragon) included."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1059.009",
+      "tactic": "execution",
+      "score": 80,
+      "color": "",
+      "comment": "[Mitigated] AI Gateway gates the model call: prompt-injection block prevents unauthorised model invocations; ClaudeConfig caps max_tokens and pins model+temperature; both LLM calls are single-turn JSON extractions, not free agent loops.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Mitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "AI Gateway gates the model call: prompt-injection block prevents unauthorised model invocations; ClaudeConfig caps max_tokens and pins model+temperature; both LLM calls are single-turn JSON extractions, not free agent loops."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1204.003",
+      "tactic": "execution",
+      "score": 20,
+      "color": "",
+      "comment": "[Open] Operator-side concern. Gap: no image signing (cosign), no admission policy that verifies signatures. To be addressed alongside SBOM/sigstore work.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Open"
+        },
+        {
+          "name": "Control summary",
+          "value": "Operator-side concern. Gap: no image signing (cosign), no admission policy that verifies signatures. To be addressed alongside SBOM/sigstore work."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1648",
+      "tactic": "execution",
+      "score": 20,
+      "color": "",
+      "comment": "[Open] Out of primary scope for v2.0.1 (Kubernetes Deployment, not serverless). Reassess if operator pushes ibn-core into a FaaS runtime.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Open"
+        },
+        {
+          "name": "Control summary",
+          "value": "Out of primary scope for v2.0.1 (Kubernetes Deployment, not serverless). Reassess if operator pushes ibn-core into a FaaS runtime."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1098",
+      "tactic": "persistence",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] manage_api_keys is admin-only via ToolPolicyEngine; account changes leave OTel trace events. Gap: no rate-limit on admin-tier ops.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "manage_api_keys is admin-only via ToolPolicyEngine; account changes leave OTel trace events. Gap: no rate-limit on admin-tier ops."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1098.006",
+      "tactic": "persistence",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Chart RBAC is minimal (controllerRole declared in Component CR). Gap: operator must audit RoleBindings post-install; no built-in drift detection.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Chart RBAC is minimal (controllerRole declared in Component CR). Gap: operator must audit RoleBindings post-install; no built-in drift detection."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1525",
+      "tactic": "persistence",
+      "score": 20,
+      "color": "",
+      "comment": "[Open] Same as T1204.003 \u2014 image-signing gap. Recommended: ship cosign signatures with chart releases.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Open"
+        },
+        {
+          "name": "Control summary",
+          "value": "Same as T1204.003 \u2014 image-signing gap. Recommended: ship cosign signatures with chart releases."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1543.005",
+      "tactic": "persistence",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Component is a Deployment, not a DaemonSet or static pod; no privileged init containers. Gap: operator-side admission controls.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Component is a Deployment, not a DaemonSet or static pod; no privileged init containers. Gap: operator-side admission controls."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1611",
+      "tactic": "privilege-escalation",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Pods run as non-root; securityContext drops capabilities; readOnlyRootFilesystem where possible. Gap: no sandboxed runtime (gVisor/Kata) shipped by default.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Pods run as non-root; securityContext drops capabilities; readOnlyRootFilesystem where possible. Gap: no sandboxed runtime (gVisor/Kata) shipped by default."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1068",
+      "tactic": "privilege-escalation",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Kernel/runtime patching is operator-side. Mitigated by minimal-base images, but residual depends on operator CIS-benchmark adherence.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Kernel/runtime patching is operator-side. Mitigated by minimal-base images, but residual depends on operator CIS-benchmark adherence."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1036",
+      "tactic": "defense-evasion",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] OTel attribution per span (service.name/version, oda.component.*); structured pino logs. Gap: no end-to-end identity passing to MCP \u2014 tracked follow-up.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "OTel attribution per span (service.name/version, oda.component.*); structured pino logs. Gap: no end-to-end identity passing to MCP \u2014 tracked follow-up."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1036.005",
+      "tactic": "defense-evasion",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Component CR is the canonical identity; ImagePullPolicy=IfNotPresent in chart. Gap: typosquat protection on dependencies relies on dependabot only.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Component CR is the canonical identity; ImagePullPolicy=IfNotPresent in chart. Gap: typosquat protection on dependencies relies on dependabot only."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1070",
+      "tactic": "defense-evasion",
+      "score": 80,
+      "color": "",
+      "comment": "[Mitigated] OTLP traces are exported to an EXTERNAL backend (LangSmith EU by default, or Canvas-managed collector). A local attacker cannot delete the audit record without compromising the external sink as well.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Mitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "OTLP traces are exported to an EXTERNAL backend (LangSmith EU by default, or Canvas-managed collector). A local attacker cannot delete the audit record without compromising the external sink as well."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1562",
+      "tactic": "defense-evasion",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] src/telemetry.ts MUST be the very first import (documented hard rule in CLAUDE.md). HIGH-tier injection blocks are non-overridable. Gap: AI Gateway control toggles are config-driven; operator can weaken MEDIUM/LOW tiers.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "src/telemetry.ts MUST be the very first import (documented hard rule in CLAUDE.md). HIGH-tier injection blocks are non-overridable. Gap: AI Gateway control toggles are config-driven; operator can weaken MEDIUM/LOW tiers."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1562.001",
+      "tactic": "defense-evasion",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Same as T1562; additionally, the AI Gateway emits ai_gateway.* events on every fire so disabled-control drift is visible in traces.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Same as T1562; additionally, the AI Gateway emits ai_gateway.* events on every fire so disabled-control drift is visible in traces."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1562.008",
+      "tactic": "defense-evasion",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] OTel export is async; loss of connectivity to the OTLP backend stores buffered spans, then drops oldest. Gap: no immutable audit-log mirror (e.g., to object storage).",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "OTel export is async; loss of connectivity to the OTLP backend stores buffered spans, then drops oldest. Gap: no immutable audit-log mirror (e.g., to object storage)."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1552",
+      "tactic": "credential-access",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] All credentials live in k8s Secrets, injected via envFrom; .gitignore excludes .env. Gap: no external KMS by default; sealed-secrets recommended.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "All credentials live in k8s Secrets, injected via envFrom; .gitignore excludes .env. Gap: no external KMS by default; sealed-secrets recommended."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1552.001",
+      "tactic": "credential-access",
+      "score": 80,
+      "color": "",
+      "comment": "[Mitigated] Repo policy in CLAUDE.md forbids committing .env, API keys, or operator credentials; CodeQL scan rule in CI.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Mitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Repo policy in CLAUDE.md forbids committing .env, API keys, or operator credentials; CodeQL scan rule in CI."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1552.007",
+      "tactic": "credential-access",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] ServiceAccount has minimal RBAC; no cluster-admin rights. Gap: token projection lifetimes are operator-side.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "ServiceAccount has minimal RBAC; no cluster-admin rights. Gap: token projection lifetimes are operator-side."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1552.008",
+      "tactic": "credential-access",
+      "score": 80,
+      "color": "",
+      "comment": "[Mitigated] Direct ibn-core control: PII masker replaces raw email/phone/address with sentinels before any LLM call; per-role DLP allowlists redact non-allowed fields in MCP responses; model never sees secrets via conversation.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Mitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Direct ibn-core control: PII masker replaces raw email/phone/address with sentinels before any LLM call; per-role DLP allowlists redact non-allowed fields in MCP responses; model never sees secrets via conversation."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1528",
+      "tactic": "credential-access",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Keycloak JWTs are short-lived (RS256, JWKS validated per call); api-keys are scoped by role. Gap: no proof-of-possession (DPoP) yet.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Keycloak JWTs are short-lived (RS256, JWKS validated per call); api-keys are scoped by role. Gap: no proof-of-possession (DPoP) yet."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1110",
+      "tactic": "credential-access",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Istio rate-limit; key-based auth preferred over passwords. Gap: no account-lockout policy on JWT subjects (operator-side).",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Istio rate-limit; key-based auth preferred over passwords. Gap: no account-lockout policy on JWT subjects (operator-side)."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1606",
+      "tactic": "credential-access",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] JWTs validated against Keycloak JWKS (RS256, kid-bound). Gap: depends on operator's realm hygiene.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "JWTs validated against Keycloak JWKS (RS256, kid-bound). Gap: depends on operator's realm hygiene."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1613",
+      "tactic": "discovery",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Minimal SA permissions; NetworkPolicy templates. Gap: operator-side namespace separation.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Minimal SA permissions; NetworkPolicy templates. Gap: operator-side namespace separation."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1087",
+      "tactic": "discovery",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] TMF921 endpoints do not enumerate users; admin tools (manage_api_keys) are admin-role only.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "TMF921 endpoints do not enumerate users; admin tools (manage_api_keys) are admin-role only."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1087.004",
+      "tactic": "discovery",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] No cross-tenant discovery surface in the API; Keycloak realm is the auth boundary.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "No cross-tenant discovery surface in the API; Keycloak realm is the auth boundary."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1046",
+      "tactic": "discovery",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Istio mesh enforces mTLS PeerAuthentication; NetworkPolicy templates restrict pod-to-pod. Gap: no zero-trust egress enforcement by default.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Istio mesh enforces mTLS PeerAuthentication; NetworkPolicy templates restrict pod-to-pod. Gap: no zero-trust egress enforcement by default."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1526",
+      "tactic": "discovery",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] MCP capability enumeration is gated by ToolPolicyEngine; getCapabilities() reflects the caller's role.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "MCP capability enumeration is gated by ToolPolicyEngine; getCapabilities() reflects the caller's role."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1021.007",
+      "tactic": "lateral-movement",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Anthropic API key is single-purpose; MCP back-ends are scoped per ibn-core deployment. No re-use of tokens across tenants.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Anthropic API key is single-purpose; MCP back-ends are scoped per ibn-core deployment. No re-use of tokens across tenants."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1550",
+      "tactic": "lateral-movement",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] JWT validation per request; no session cookies. Gap: no token-binding.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "JWT validation per request; no session cookies. Gap: no token-binding."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1119",
+      "tactic": "collection",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] MCP per-role DLP allowlists reduce blast radius of any automated extraction attempt; redaction is schema-preserving so consumers see structure without content.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "MCP per-role DLP allowlists reduce blast radius of any automated extraction attempt; redaction is schema-preserving so consumers see structure without content."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1213",
+      "tactic": "collection",
+      "score": 80,
+      "color": "",
+      "comment": "[Mitigated] ToolPolicyEngine deny-by-default; only role-allowlisted tools (e.g. get_customer_profile, list_products) can read repository data; admin-only tools (update_customer_profile) gated.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Mitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "ToolPolicyEngine deny-by-default; only role-allowlisted tools (e.g. get_customer_profile, list_products) can read repository data; admin-only tools (update_customer_profile) gated."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1530",
+      "tactic": "collection",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Redis SSoT runs in-cluster; not exposed externally. Gap: no encryption-at-rest enforcement enforced by chart (depends on storage class).",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Redis SSoT runs in-cluster; not exposed externally. Gap: no encryption-at-rest enforcement enforced by chart (depends on storage class)."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1071.001",
+      "tactic": "command-and-control",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Egress restricted to known endpoints (Anthropic API, OTLP backend, Keycloak). Gap: egress allowlist is operator-configurable; not hard-enforced by chart.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Egress restricted to known endpoints (Anthropic API, OTLP backend, Keycloak). Gap: egress allowlist is operator-configurable; not hard-enforced by chart."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1041",
+      "tactic": "exfiltration",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] AI Gateway DLP truncates outbound MCP payloads; Istio egress policy templates ship. Gap: same as T1071.001 \u2014 egress hard-enforcement is operator-side.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "AI Gateway DLP truncates outbound MCP payloads; Istio egress policy templates ship. Gap: same as T1071.001 \u2014 egress hard-enforcement is operator-side."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1567",
+      "tactic": "exfiltration",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Outbound to non-allowlisted endpoints blocked by Istio policy templates. Gap: model itself can be coerced via prompt to compose data into the response \u2014 mitigated by DLP allowlists on what the model can see in the first place.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Outbound to non-allowlisted endpoints blocked by Istio policy templates. Gap: model itself can be coerced via prompt to compose data into the response \u2014 mitigated by DLP allowlists on what the model can see in the first place."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1537",
+      "tactic": "exfiltration",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] No direct cloud-storage SDK in ibn-core; would require operator-installed adapter.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "No direct cloud-storage SDK in ibn-core; would require operator-installed adapter."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1485",
+      "tactic": "impact",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] cancel_order/manage_api_keys are admin-only; Redis persistence policy depends on operator backup. Gap: no chart-level point-in-time backup.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "cancel_order/manage_api_keys are admin-only; Redis persistence policy depends on operator backup. Gap: no chart-level point-in-time backup."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1499",
+      "tactic": "impact",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] HPA configured (replicaCount baseline 2); Istio rate-limit templates. Gap: no per-API-key quota; budget controls for AI-call cost not enforced by code.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "HPA configured (replicaCount baseline 2); Istio rate-limit templates. Gap: no per-API-key quota; budget controls for AI-call cost not enforced by code."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1496",
+      "tactic": "impact",
+      "score": 80,
+      "color": "",
+      "comment": "[Mitigated] AI Gateway prevents unauthorised LLM calls (an unauthorised request consumes 0 tokens at Scenario D, 1 LLM call at Scenario C); ClaudeConfig max_tokens cap bounds per-call spend; k8s resource limits on container.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Mitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "AI Gateway prevents unauthorised LLM calls (an unauthorised request consumes 0 tokens at Scenario D, 1 LLM call at Scenario C); ClaudeConfig max_tokens cap bounds per-call spend; k8s resource limits on container."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1496.001",
+      "tactic": "impact",
+      "score": 80,
+      "color": "",
+      "comment": "[Mitigated] Same as T1496.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Mitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Same as T1496."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1490",
+      "tactic": "impact",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Git history immutable; OTel sink external; chart can be reinstalled. Gap: Redis recovery depends on operator backup strategy.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Git history immutable; OTel sink external; chart can be reinstalled. Gap: Redis recovery depends on operator backup strategy."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "T1657",
+      "tactic": "impact",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Order-creating tools allowed for agent role; cancel_order admin-only. Quote acceptance is upstream of ibn-core and requires explicit human action. Gap: no anti-fraud heuristics on offer-acceptance loop.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Order-creating tools allowed for agent role; cancel_order admin-only. Quote acceptance is upstream of ibn-core and requires explicit human action. Gap: no anti-fraud heuristics on offer-acceptance loop."
+        }
+      ],
+      "showSubtechniques": false
+    }
+  ],
+  "gradient": {
+    "colors": [
+      "#b91c1cff",
+      "#b45309ff",
+      "#15803dff"
+    ],
+    "minValue": 0,
+    "maxValue": 100
+  },
+  "legendItems": [
+    {
+      "label": "Open \u2014 primary control missing / out of scope (20)",
+      "color": "#b91c1c"
+    },
+    {
+      "label": "PartiallyMitigated \u2014 control exists, gaps remain (50)",
+      "color": "#b45309"
+    },
+    {
+      "label": "Mitigated \u2014 control fully addresses (80)",
+      "color": "#15803d"
+    }
+  ],
+  "metadata": [
+    {
+      "name": "Subject",
+      "value": "ibn-core v2.0.1 / Helm chart 2.2.0"
+    },
+    {
+      "name": "Author",
+      "value": "Vpnet Cloud Solutions Sdn. Bhd."
+    },
+    {
+      "name": "Generated",
+      "value": "2026-05-28"
+    },
+    {
+      "name": "Scope",
+      "value": "LLM + MCP + Kubernetes + TMF921 API"
+    },
+    {
+      "name": "Companion docs",
+      "value": "docs/whitepapers/ibn-core_whitepaper.docx; docs/compliance/UC006_*.{html,pdf}"
+    }
+  ],
+  "tacticRowBackground": "#dddddd",
+  "filters": {
+    "platforms": [
+      "Linux",
+      "Network",
+      "Containers",
+      "IaaS",
+      "SaaS",
+      "Identity Provider"
+    ]
+  },
+  "links": [
+    {
+      "label": "ibn-core repository",
+      "url": "https://github.com/vpnetconsult/ibn-core"
+    },
+    {
+      "label": "RFC 9315",
+      "url": "https://www.rfc-editor.org/rfc/rfc9315"
+    }
+  ]
+}
