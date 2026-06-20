@@ -19,6 +19,31 @@ Read this before making any changes.
 
 ---
 
+## Product & Image Naming
+
+`ibn-core` is the **shared product** — the open-core RFC 9315 framework/library
+(this repo). It is **not** a deployable application and must **not** be used as a
+runtime container-image name. The framework is consumed by two **peer
+applications**, each with its own roadmap, deployment, and runtime image — the
+"two peers, one core" model (Project 005):
+
+| Layer | Peer app | Runtime image | Lives in |
+|-------|----------|---------------|----------|
+| BSS / business intent | `business-intent-agent` | `business-intent-agent:<tag>` | this repo (`business-intent-agent/`) |
+| Resource intent | `resource-intent-agent` | `resource-intent-agent:<tag>` | private `vpnetconsult/resource-intent-agent` |
+
+**Rules:**
+
+- Name runtime images after the **peer app**, never after the core. Build the BSS
+  app as `business-intent-agent:<tag>` — **not** `ibn-core:<tag>`.
+- The `ibn-core` name is reserved for the **shared library** (git-installable from
+  `v2.1.1`) and for security/compliance artifacts that assess the product itself
+  (e.g. `docs/security/ibn-core_attack_layer.json`).
+- Each peer versions on **its own** roadmap; the `ibn-core` library version (see
+  Version Tags) is a dependency the peers pin, not the peers' own version.
+
+---
+
 ## Licensing Rules — Read Before Every Commit
 
 ### What This Repo Is
