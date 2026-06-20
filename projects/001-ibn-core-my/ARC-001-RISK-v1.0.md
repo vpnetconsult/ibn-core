@@ -13,7 +13,7 @@
 | **Status** | DRAFT |
 | **Version** | 1.0 |
 | **Created Date** | 2026-06-05 |
-| **Last Modified** | 2026-06-05 |
+| **Last Modified** | 2026-06-20 |
 | **Review Cycle** | Monthly (Critical/High); Quarterly (Medium/Low) |
 | **Next Review Date** | 2026-07-05 |
 | **Owner** | Roland Pfeifer, Lead Architect / CTO (Vpnet Cloud Solutions Sdn. Bhd.) |
@@ -28,6 +28,7 @@
 | Version | Date | Author | Changes | Approved By | Approval Date |
 |---------|------|--------|---------|-------------|---------------|
 | 1.0 | 2026-06-05 | ArcKit AI | Initial creation from `/arckit:risk` command | PENDING | PENDING |
+| 1.0 (amended) | 2026-06-20 | ArcKit AI | Added R-017 (MCP probe-coupling restart churn, from ADR-004), R-018 (product/image naming drift, from ADR-005), R-019 (library transitive footprint inherited by consumers, from ADR-006); roll-ups reconciled to 19 risks. In-place amendment of DRAFT — no version bump, inbound links preserved. | PENDING | PENDING |
 
 ---
 
@@ -35,31 +36,35 @@
 
 ### Risk Profile Overview
 
-**Total Risks Identified:** 16 risks across 6 categories
+**Total Risks Identified:** 19 risks across 6 categories *(16 original + 3 added 2026-06-20 from ADR-004/005/006)*
 
 | Risk Level | Inherent | Residual | Change |
 |------------|----------|----------|--------|
 | **Critical** (20-25) | 5 | 0 | ↓ 100% |
 | **High** (13-19) | 9 | 6 | ↓ 33% |
-| **Medium** (6-12) | 2 | 8 | — |
-| **Low** (1-5) | 0 | 2 | — |
-| **TOTAL** | 16 | 16 | — |
+| **Medium** (6-12) | 5 | 9 | — |
+| **Low** (1-5) | 0 | 4 | — |
+| **TOTAL** | 19 | 19 | — |
+
+> **Amendment note (2026-06-20):** the three risks added this revision — R-017 (inherent 12 → residual 4), R-018 (6 → 4), R-019 (9 → 6) — are all Medium-or-below inherent and Low/Medium residual. None is appetite-exceeding; none enters the Top 10 by residual score. The six appetite-exceeding "High-priority" residual risks are unchanged (R-001/002/004/005/006/008).
 
 ### Risk Category Distribution
 
 | Category | Count | Avg Inherent | Avg Residual | Control Effectiveness |
 |----------|-------|--------------|--------------|----------------------|
 | **STRATEGIC** | 3 | 14.0 | 8.7 | 38% reduction |
-| **OPERATIONAL** | 3 | 13.0 | 8.0 | 38% reduction |
+| **OPERATIONAL** | 5 | 11.4 | 6.8 | 40% reduction |
 | **FINANCIAL** | 1 | 9.0 | 6.0 | 33% reduction |
 | **COMPLIANCE** | 4 | 16.5 | 8.0 | 52% reduction |
 | **REPUTATIONAL** | 1 | 12.0 | 9.0 | 25% reduction |
-| **TECHNOLOGY** | 4 | 16.0 | 9.5 | 41% reduction |
+| **TECHNOLOGY** | 5 | 14.6 | 8.8 | 40% reduction |
+
+> Category counts reflect the 2026-06-20 amendment: OPERATIONAL +2 (R-017, R-018), TECHNOLOGY +1 (R-019). Averages recomputed for the two changed categories.
 
 ### Overall Risk Assessment
 
-**Total Inherent Risk Score:** 234/400 (16 risks × 25 max)
-**Total Residual Risk Score:** 132/400
+**Total Inherent Risk Score:** 261/475 (19 risks × 25 max)
+**Total Residual Risk Score:** 146/475
 **Risk Reduction from Controls:** 44% reduction from inherent risk
 **Risk Profile Status:** ⚠️ Concerning — no residual Critical risks, but six residual High risks (AI autonomy, seam leakage, PDPA, NCII, conformance, Claude dependency) cluster on the programme's NON-NEGOTIABLE boundaries and require active, ongoing treatment rather than one-off resolution.
 
@@ -654,15 +659,171 @@ Legend: Critical (20-25)  High (13-19)  Medium (6-12)  Low (1-5)
 
 ---
 
+### Risk R-017: MCP-service self-inflicted restart churn from dependency-coupled health probes
+
+**Category:** OPERATIONAL (TECHNOLOGY facet)
+**Status:** Monitoring (primary control implemented and verified)
+**Risk Owner:** Platform / SRE Lead (with Enterprise / Solution Architect for the orchestration path)
+**Action Owner:** SI Engineer / Platform Operator
+**Source:** `decisions/ARC-001-ADR-004-v1.0.md` (probe decoupling)
+
+#### Risk Identification
+
+**Risk Description:** An MCP service's Kubernetes **liveness** probe is coupled to the health of a backing dependency (e.g. `knowledge-graph-mcp`'s `/health` runs a Neo4j `RETURN 1`), so ordinary dependency latency causes the kubelet to **restart a healthy process**. Because restarting does not heal the dependency, the condition recurs as restart churn — observed at **151 restarts** on `knowledge-graph-mcp` before the fix — destabilising the orchestration path and corrupting telemetry.
+
+**Root Cause:** The Kubernetes liveness-vs-readiness anti-pattern — treating "dependency slow" (a readiness concern) as "process dead" (a liveness/kill concern). Manifests are reused via IaC, so the pattern can re-ship in any MCP service.
+
+**Trigger Events:** Neo4j (or another backing store) cold/slow/under load; a new MCP service ships with a dependency-backed `httpGet` liveness probe; a too-aggressive readiness probe flaps the pod in/out of endpoints.
+
+**Consequences if Realized:** Restart/cold-start churn drops in-flight connections and re-creates driver pools; the FR-003 orchestration path flaps; the O2C journey (UC-1) destabilises; restart noise pollutes the telemetry used for IntentReport assessment (NFR-M-001); operator-acceptance failure (BR-004).
+
+**Affected Stakeholders:** Operator Network Eng (SD-4), SI Delivery (SD-2), ibn-core Engineering (SD-8), Platform/SRE.
+
+**Related Objectives:** Threatens BR-001 (reliable O2C), BR-004 (operator-grade), G-2 (operator go-live); links NFR-A-003, NFR-M-001.
+
+#### Inherent Risk Assessment
+
+| Assessment | Rating | Justification |
+|------------|--------|---------------|
+| **Likelihood** | 4 - Likely | Without the standard, the coupled-probe anti-pattern is common and recurred (151 restarts on KG-MCP). |
+| **Impact** | 3 - Moderate | Degrades the orchestration path and observability; not a live-network outage or data breach. |
+| **Inherent Risk Score** | **12** (Medium/High) | 4 × 3 = 12 |
+
+#### Current Controls
+
+1. **Probe-decoupling standard (ADR-004):** liveness = `tcpSocket` (dependency-free), readiness = `httpGet /health` (dependency-backed). Owner: Platform/SRE. Effectiveness: **Strong** — verified **151 → 0** restarts (PR #62; Gate-B evidence PR #63).
+2. **Istio resilience layer** (circuit breakers, retry/backoff, bulkheads — NFR-A-003): callers route around NotReady pods. Owner: Enterprise Architect. Effectiveness: **Adequate**.
+3. **Standard manifest shape applied via IaC** (NFR-I-003) so new services inherit the topology. Effectiveness: **Adequate** (rollout in progress).
+
+**Overall Control Effectiveness:** Strong (12 → 4); residual concern is unguarded new-service drift, not the fixed service.
+
+#### Residual Risk Assessment
+
+| Assessment | Rating | Justification |
+|------------|--------|---------------|
+| **Likelihood** | 2 - Unlikely | Standard applied to KG-MCP; residual = a new MCP service ships coupled, or an alive-but-listening-but-deadlocked process is caught only as NotReady. |
+| **Impact** | 2 - Minor | A dependency outage now yields NotReady (traffic routed away) + auto-recovery, not churn. |
+| **Residual Risk Score** | **4** (Low) | 2 × 2 = 4 — within appetite. |
+
+#### Risk Response (4Ts)
+
+**Primary Response:** TREAT (largely complete) → TOLERATE/monitor posture. **Action Plan:** apply the standard manifest shape to all remaining `mcp-services-k8s/` services and `business-intent-agent/k8s/`; add a CI/IaC review check and a release restart-count check; alert on sustained NotReady (the new failure mode). **Target residual:** maintain 4. **Owner:** Platform/SRE Lead.
+
+---
+
+### Risk R-018: Product/image naming drift re-conflates the shared core with a deployable app
+
+**Category:** OPERATIONAL (governance/legibility; reinforces COMPLIANCE seam R-002)
+**Status:** Monitoring
+**Risk Owner:** Platform / SRE Lead (with Lead Architect / CTO for the open-core seam)
+**Action Owner:** SI Engineer / Platform Operator
+**Source:** `decisions/ARC-001-ADR-005-v1.0.md` (naming convention)
+
+#### Risk Identification
+
+**Risk Description:** A runtime container image named `ibn-core` re-appears (as found with the mislabelled `ibn-core:ctk-fixes`, which was actually the business-intent-agent), conflating the shared open-core library/product with a deployable application and erasing the second peer's (`resource-intent-agent`) identity at the artefact layer.
+
+**Root Cause:** The naming convention (ADR-005, CLAUDE.md) is convention-only unless enforced; manifests/CI can re-introduce the conflation.
+
+**Trigger Events:** A build tags a runtime image `ibn-core`; a stale manifest/dashboard references `ibn-core:<tag>` as an app; a new service skips the per-app naming rule.
+
+**Consequences if Realized:** Open-core boundary legibility erodes at deployment (PRIN 9, BR-003); agent-readable architectural context degrades (PRIN 14, NFR-M-002); mis-deployment / mis-attribution risk.
+
+**Affected Stakeholders:** Lead Architect (SD-1), Platform/SRE, OSS Community (SD-8), resource-intent-agent maintainers.
+
+**Related Objectives:** Threatens BR-002 (two peers, one core), BR-003 (open-core integrity); supports G-4 (seam integrity).
+
+#### Inherent Risk Assessment
+
+| Assessment | Rating | Justification |
+|------------|--------|---------------|
+| **Likelihood** | 3 - Possible | Convention drift is plausible without a CI guardrail. |
+| **Impact** | 2 - Minor | Confusion / mis-deployment; not a breach or outage. |
+| **Inherent Risk Score** | **6** (Medium) | 3 × 2 = 6 |
+
+#### Current Controls
+
+1. **ADR-005 convention codified in CLAUDE.md** (`## Product & Image Naming`); the mislabelled image retagged to `business-intent-agent:ctk-fixes` (O2C re-verified). Owner: Lead Architect. Effectiveness: **Adequate**.
+2. **Per-app image identities** for both peers + MCP services. Effectiveness: **Adequate**.
+
+**Overall Control Effectiveness:** Adequate (6 → 4).
+
+#### Residual Risk Assessment
+
+| Assessment | Rating | Justification |
+|------------|--------|---------------|
+| **Likelihood** | 2 - Unlikely | Convention + retag done; residual = drift before a CI guardrail lands. |
+| **Impact** | 2 - Minor | Caught on review; cosmetic-to-operational, no breach. |
+| **Residual Risk Score** | **4** (Low) | 2 × 2 = 4 — within appetite. |
+
+#### Risk Response (4Ts)
+
+**Primary Response:** TREAT → TOLERATE once the guardrail lands. **Action Plan:** add a CI/registry guardrail rejecting an image literally named `ibn-core`; sweep manifests/dashboards to per-app names; align the resource-intent-agent (private repo) build at next peer release. **Target residual:** maintain 4. **Owner:** Platform/SRE Lead.
+
+---
+
+### Risk R-019: ibn-core library reuse-surface — heavy transitive footprint inherited by consumers
+
+**Category:** TECHNOLOGY (COMPLIANCE licence facet) — extends R-015 to the consumer side
+**Status:** In Progress
+**Risk Owner:** Security Lead (licence/vuln) with ibn-core Engineering Lead (footprint/build)
+**Action Owner:** ibn-core Engineering
+**Source:** `decisions/ARC-001-ADR-006-v1.0.md` (A-lite git-installable library)
+
+#### Risk Identification
+
+**Risk Description:** Packaging ibn-core as an A-lite git-installable library (ADR-006) drags its full transitive dependency tree (`@anthropic-ai/sdk`, OpenTelemetry, MCP SDK, …) into every consumer (e.g. resource-intent-agent). This inherits a vulnerability surface (NFR-SEC-005) and a licence surface (NFR-SEC-006, PRIN 9) into the peers; build-on-install requires a toolchain; and a Project-005 re-shaping of the reuse surface could break tag-pinned consumers.
+
+**Root Cause:** A-lite consumption (no registry, builds on install, no pruned artefact) means consumers take the whole tree; the reuse surface is still maturing (Project 005 pending).
+
+**Trigger Events:** A transitive dependency develops a critical vuln or pulls an Apache-incompatible (e.g. GPL) licence; a consumer toolchain cannot build-on-install; Project 005 re-shapes the surface breaking pinned consumers.
+
+**Consequences if Realized:** Vulnerable/incompatible dependency inherited by every peer; a GPL/incompatible licence in the public tree breaches PRIN 9 / NFR-SEC-006 (extends R-015 from the core to its consumers); consumer build failures; cross-peer coordination cost on upgrades.
+
+**Affected Stakeholders:** resource-intent-agent maintainers, Vpnet Security (SD-7), ibn-core Engineering (SD-8), Enterprise Architect.
+
+**Related Objectives:** Supports BR-002 (reuse surface) and BR-003/BR-006; threatens NFR-SEC-005/006 posture if unmanaged.
+
+#### Inherent Risk Assessment
+
+| Assessment | Rating | Justification |
+|------------|--------|---------------|
+| **Likelihood** | 3 - Possible | A heavy, evolving tree has a non-trivial chance of a vuln/licence/build issue over time. |
+| **Impact** | 3 - Moderate | Inherited by consumers; a licence breach engages the NON-NEGOTIABLE seam (PRIN 9). |
+| **Inherent Risk Score** | **9** (Medium) | 3 × 3 = 9 |
+
+#### Current Controls
+
+1. **Immutable-tag pinning + public-surface-only export + additive packaging** (ADR-006): consumers pin to `v2.1.1`; only Apache 2.0 surface exported; app build unchanged. Owner: Engineering Lead. Effectiveness: **Adequate**.
+2. **Dependency + code scanning on the core tree** (Dependabot/CodeQL, NFR-SEC-005); recent advisory clean-ups kept the tree green. Owner: Security. Effectiveness: **Adequate** (CI billing constrained — shared with R-006/R-005).
+3. **Licence gate — Apache/MIT/BSD/ISC only, no GPL** (NFR-SEC-006, PRIN 9) — the same control as R-015, now spanning the consumer-inherited tree. Owner: Lead Architect. Effectiveness: **Adequate**.
+4. **Project 005 path** (layer-agnostic core) available to prune heavy deps from the reuse surface. Effectiveness: **Planned**.
+
+**Overall Control Effectiveness:** Adequate (9 → 6).
+
+#### Residual Risk Assessment
+
+| Assessment | Rating | Justification |
+|------------|--------|---------------|
+| **Likelihood** | 2 - Unlikely | Scanning + licence gate + immutable pins reduce escape; residual = a new transitive issue or a churn-break. |
+| **Impact** | 3 - Moderate | Still inherited by consumers; a licence breach is a seam issue. |
+| **Residual Risk Score** | **6** (Medium) | 2 × 3 = 6 — at the COMPLIANCE appetite boundary (≤ 6) for the licence facet. |
+
+#### Risk Response (4Ts)
+
+**Primary Response:** TREAT. **Action Plan:** scan the resolved consumer-inherited tree per release (licence + vuln); document build-on-install prerequisites; prune the footprint via Project 005 (or promote to A-full prebuilt artefact) once the surface stabilises; coordinate tag bumps so pinned consumers are not silently broken. **Target residual:** maintain 6, drive the licence facet to ≤ 4 via the gate. **Owner:** Security Lead + Engineering Lead.
+
+---
+
 ## D. Risk Category Analysis
 
 ### STRATEGIC Risks (R-003 and strategic facets of R-001/R-007)
 
 **Count:** 3 (R-003 primary; autonomy-rejection theme). **Avg Inherent:** ~13 | **Avg Residual:** ~6. **Themes:** autonomy acceptance on critical national infrastructure; open-core credibility. **Profile:** ⚠️ Concerning — strategic risk is the AI-autonomy acceptance question (STKE Conflict 2), treated by evidence-led phasing.
 
-### OPERATIONAL Risks (R-001, R-009, R-012, R-016)
+### OPERATIONAL Risks (R-001, R-009, R-012, R-016, R-017, R-018)
 
-**Count:** 4 | **Avg Inherent:** ~10.75 | **Avg Residual:** ~7.5 | **Reduction:** ~30%. **Themes:** safe autonomous operation, SI delivery to production, supply-chain availability, key-person concentration. **Profile:** ⚠️ Concerning — R-001 dominates and remains residual High.
+**Count:** 6 | **Avg Inherent:** ~10.2 | **Avg Residual:** ~6.3 | **Reduction:** ~38%. **Themes:** safe autonomous operation, SI delivery to production, supply-chain availability, key-person concentration, MCP-service probe-coupling restart churn (R-017), product/image naming drift (R-018). **Profile:** ⚠️ Concerning at the top (R-001 dominates, residual High) but the two added risks (R-017/R-018) are well-controlled Low residual.
 
 ### FINANCIAL Risks
 
@@ -676,9 +837,9 @@ Legend: Critical (20-25)  High (13-19)  Medium (6-12)  Low (1-5)
 
 **Count:** 1 | **Inherent:** 15 | **Residual:** 6 | **Reduction:** 60%. **Theme:** open-washing. **Profile:** ✅ Acceptable post-control; prevention-focused.
 
-### TECHNOLOGY Risks (R-005, R-006, R-008, R-011, R-013, R-014)
+### TECHNOLOGY Risks (R-005, R-006, R-008, R-011, R-013, R-014, R-019)
 
-**Count:** 6 | **Avg Inherent:** ~13.2 | **Avg Residual:** ~8.2 | **Reduction:** ~38%. **Themes:** NCII cyber-resilience, conformance regression, agent identity scoping, IdP dependency, translation accuracy, SSoT integrity. **Profile:** ⚠️ Concerning — R-005 residual High; the rest within or near appetite.
+**Count:** 7 | **Avg Inherent:** ~13.1 | **Avg Residual:** ~7.6 | **Reduction:** ~42%. **Themes:** NCII cyber-resilience, conformance regression, agent identity scoping, IdP dependency, translation accuracy, SSoT integrity, library reuse-surface transitive footprint inherited by consumers (R-019). **Profile:** ⚠️ Concerning — R-005 residual High; the rest within or near appetite. R-019 (residual 6) sits at the COMPLIANCE boundary on its licence facet and extends R-015 to the consumer side.
 
 ---
 
@@ -689,8 +850,11 @@ Legend: Critical (20-25)  High (13-19)  Medium (6-12)  Low (1-5)
 | Lead Architect / CTO | Strategic + seam + autonomy authority | R-001, R-002, R-003, R-006, R-007, R-016 | 0 | 2 (R-001, R-006*) | 3 | 1 | ⚠️ High concentration |
 | Security / Compliance (incl. Security Lead) | Zero-trust, PDPA, NCII, identity | R-004, R-005, R-008, R-010, R-011 | 0 | 2 (R-005, +R-004*) | 3 | 0 | ⚠️ High concentration |
 | SI Delivery Lead | Engagement go-live | R-012 | 0 | 0 | 1 | 0 | Focused |
-| ibn-core Engineering Lead | Framework + AI runtime | R-009, R-013, R-015 | 0 | 0 | 2 | 1 | Moderate |
+| ibn-core Engineering Lead | Framework + AI runtime | R-009, R-013, R-015, R-019 | 0 | 0 | 3 | 1 | Moderate |
 | Enterprise / Solution Architect | Topology, SSoT, resilience | R-014 | 0 | 0 | 0 | 1 | Low |
+| Platform / SRE Lead | Cluster, manifests, image registry, probes | R-017, R-018 | 0 | 0 | 0 | 2 | Low (new owner, 2026-06-20) |
+
+> **2026-06-20 amendment:** a **Platform / SRE Lead** owner is introduced for the infrastructure-layer risks (R-017 probes, R-018 image naming). R-019 (library footprint) is co-owned by Security Lead (licence/vuln facet) and ibn-core Engineering Lead (footprint/build facet) — listed under Engineering above.
 
 \* R-004/R-006 residual 9 sit at the Medium/High boundary; treated as High-priority for escalation.
 
@@ -702,11 +866,11 @@ Legend: Critical (20-25)  High (13-19)  Medium (6-12)  Low (1-5)
 
 | Response | Count | % | Key Examples |
 |----------|-------|---|--------------|
-| **TOLERATE** | 3 | 19% | R-014, R-015, R-016 (low residual, within appetite) |
-| **TREAT** | 13 | 81% | R-001…R-013 (active mitigation on every appetite-exceeding risk) |
+| **TOLERATE** | 3 | 16% | R-014, R-015, R-016 (low residual, within appetite) |
+| **TREAT** | 16 | 84% | R-001…R-013, R-017, R-018, R-019 (active mitigation; R-017/R-018 trending to a Tolerate/monitor posture as their controls complete) |
 | **TRANSFER** | 0 | 0% | None — live-network safety, PDPA liability, and conformance cannot be meaningfully insured/outsourced for this subject |
 | **TERMINATE** | 0 | 0% | None — no activity exceeds appetite so far it must be stopped; autonomy is phased, not terminated |
-| **TOTAL** | 16 | 100% | |
+| **TOTAL** | 19 | 100% | |
 
 **Insights:** An 81% Treat rate reflects a young, high-stakes programme whose risks are intrinsic to its differentiators (AI autonomy, open-core, regulated telco) and must be actively managed rather than tolerated, transferred, or terminated. Several Treat responses (R-003, R-009) carry a built-in Tolerate fallback (assist mode; non-critical telemetry).
 
@@ -728,12 +892,12 @@ Legend: Critical (20-25)  High (13-19)  Medium (6-12)  Low (1-5)
 | Category | Appetite | Within | Exceeding | Action |
 |----------|----------|--------|-----------|--------|
 | STRATEGIC | ≤ 12 | R-003 | none | ✅ |
-| OPERATIONAL | ≤ 12 (safety ≤ 9) | R-009, R-012, R-016 | R-001 (12 > 9 safety) | ⚠️ EARB + operator sign-off |
-| COMPLIANCE | ≤ 6 | R-015 | R-002 (9), R-004 (9), R-010 (8) | ❌ Security/Compliance gate + regulator path |
+| OPERATIONAL | ≤ 12 (safety ≤ 9) | R-009, R-012, R-016, R-017 (4), R-018 (4) | R-001 (12 > 9 safety) | ⚠️ EARB + operator sign-off |
+| COMPLIANCE | ≤ 6 | R-015, R-019 (6, at boundary — licence facet) | R-002 (9), R-004 (9), R-010 (8) | ❌ Security/Compliance gate + regulator path |
 | REPUTATIONAL | ≤ 6 | R-007 | none | ✅ |
-| TECHNOLOGY | ≤ 12 (sec ≤ 6–9) | R-006*, R-011, R-013, R-014 | R-005 (12 > 9), R-008 (9 > 6) | ⚠️/❌ Security/Compliance + NACSA |
+| TECHNOLOGY | ≤ 12 (sec ≤ 6–9) | R-006*, R-011, R-013, R-014, R-019 (6) | R-005 (12 > 9), R-008 (9 > 6) | ⚠️/❌ Security/Compliance + NACSA |
 
-**Overall Appetite Compliance:** 6 of 16 residual risks exceed the tightened appetite. All six are go-live-gating and concentrate on the NON-NEGOTIABLE principles — expected for a pre-production, AI-native, regulated-telco programme. None is residual Critical.
+**Overall Appetite Compliance:** 6 of 19 residual risks exceed the tightened appetite — unchanged by the 2026-06-20 amendment (the three added risks are all within appetite: R-017 = 4, R-018 = 4, R-019 = 6 at the COMPLIANCE boundary). All six exceeding risks are go-live-gating and concentrate on the NON-NEGOTIABLE principles — expected for a pre-production, AI-native, regulated-telco programme. None is residual Critical.
 
 **Significantly exceeding (regulated surfaces):** R-001 (live-network safety), R-004 (PDPA), R-005 (NCII) are the three that most directly gate first operator go-live (STKE G-2).
 
@@ -766,6 +930,9 @@ Legend: Critical (20-25)  High (13-19)  Medium (6-12)  Low (1-5)
 | 9 | Expand translation evaluation set; track accuracy as release metric | R-013 | Engineering | Ongoing | 8→6 |
 | 10 | IdP HA/DR ADR; validate SSoT backup/restore DR drill | R-011, R-014 | Enterprise Architect | Q4 2026 | maintain |
 | 11 | Monitor Claude/LangSmith deprecation; validate model-migration path | R-009 | Engineering | Ongoing | maintain 6 |
+| 12 | Apply ADR-004 probe standard to all MCP services + agent workloads; CI restart-count check; alert on sustained NotReady | R-017 | Platform/SRE Lead | Q3 2026 | maintain 4 |
+| 13 | CI/registry guardrail rejecting an image named `ibn-core`; sweep manifests to per-app names | R-018 | Platform/SRE Lead | Q3 2026 | maintain 4 |
+| 14 | Per-release licence+vuln scan of the consumer-inherited dependency tree; document build-on-install prereqs; prune via Project 005 | R-019 | Security Lead + Engineering | Ongoing / Project 005 | maintain 6, licence facet → ≤ 4 |
 
 ---
 
@@ -857,8 +1024,13 @@ Legend: Critical (20-25)  High (13-19)  Medium (6-12)  Low (1-5)
 | Enterprise Architect | SSoT integrity | R-014 | Redis SSoT loss / split-brain | TECHNOLOGY | 3 |
 | Engineering | SD-8 licence posture | R-015 | GPL/vulnerable dependency in core | COMPLIANCE | 4 |
 | Lead Architect | governance | R-016 | Key-person concentration | OPERATIONAL | 4 |
+| Platform / SRE | reliable orchestration path | R-017 | MCP probe-coupling restart churn | OPERATIONAL | 4 |
+| Platform / SRE + Lead Architect | open-core legibility at deployment | R-018 | Product/image naming drift | OPERATIONAL | 4 |
+| Security + Engineering | reuse-surface footprint | R-019 | Library transitive footprint inherited by consumers | TECHNOLOGY | 6 |
 
-**Conflict-derived risks (STKE Conflict Analysis):** Conflict 1 (openness vs seam) → R-002, R-007; Conflict 2 (autonomy vs risk appetite) → R-001, R-003, R-005, R-008; Conflict 3 (speed vs compliance depth) → R-004, R-010, R-012.
+**Conflict-derived risks (STKE Conflict Analysis):** Conflict 1 (openness vs seam) → R-002, R-007, R-018 (naming legibility of the seam); Conflict 2 (autonomy vs risk appetite) → R-001, R-003, R-005, R-008; Conflict 3 (speed vs compliance depth) → R-004, R-010, R-012.
+
+**ADR-derived risks (2026-06-20 amendment):** ADR-004 (probe decoupling) → R-017; ADR-005 (naming convention) → R-018; ADR-006 (A-lite library packaging) → R-019 (extends R-015 to the consumer-inherited dependency tree).
 
 ---
 
@@ -899,6 +1071,9 @@ Legend: Critical (20-25)  High (13-19)  Medium (6-12)  Low (1-5)
 | ARC-001-ADR-001 | ARC-001-ADR-001-v1.0.md | ADR | projects/001-ibn-core-my/decisions/ | Operator identity / agent role; §7.4 risk table |
 | ARC-001-ADR-002 | ARC-001-ADR-002-v1.0.md | ADR | projects/001-ibn-core-my/decisions/ | Cloud platform / landing zones; §7.4 risk table |
 | ARC-001-ADR-003 | ARC-001-ADR-003-v1.0.md | ADR | projects/001-ibn-core-my/decisions/ | Data residency per classification; §7.4 risk table |
+| ARC-001-ADR-004 | ARC-001-ADR-004-v1.0.md | ADR | projects/001-ibn-core-my/decisions/ | MCP probe decoupling; §7.4 → R-017 |
+| ARC-001-ADR-005 | ARC-001-ADR-005-v1.0.md | ADR | projects/001-ibn-core-my/decisions/ | Product/image naming convention; §7.4 → R-018 |
+| ARC-001-ADR-006 | ARC-001-ADR-006-v1.0.md | ADR | projects/001-ibn-core-my/decisions/ | A-lite git-installable library; §7.4 → R-019 |
 
 ### Citations
 
@@ -926,4 +1101,18 @@ Legend: Critical (20-25)  High (13-19)  Medium (6-12)  Low (1-5)
 **ArcKit Version**: 5.11.0
 **Project**: ibn-core-my (Project 001)
 **AI Model**: claude-opus-4-8[1m]
-**Generation Context**: Synthesised from ARC-001-STKE-v1.0 (risk owners, conflicts, stakeholder risks), ARC-001-REQ-v1.0 (controls/requirements), ARC-000-PRIN-v1.0 (NON-NEGOTIABLE principles → appetite), and ARC-001-ADR-001/002/003 (§7.4 risk tables). Risk appetite = commercial-telco Medium, tightened for PDPA/NCII/seam surfaces. No TNDR/CMPT procurement artefact exists; supplier-concentration risk not applicable. No risk-appetite.md or external threat reports present in 000-global/policies.
+**Generation Context**: Synthesised from ARC-001-STKE-v1.0 (risk owners, conflicts, stakeholder risks), ARC-001-REQ-v1.0 (controls/requirements), ARC-000-PRIN-v1.0 (NON-NEGOTIABLE principles → appetite), and ARC-001-ADR-001/002/003 (§7.4 risk tables). **2026-06-20 amendment** added R-017/018/019 from ARC-001-ADR-004 (MCP probe decoupling), ADR-005 (product/image naming), and ADR-006 (A-lite library packaging); roll-ups reconciled to 19 risks; in-place DRAFT amendment (no version bump, inbound links preserved). Risk appetite = commercial-telco Medium, tightened for PDPA/NCII/seam surfaces. No TNDR/CMPT procurement artefact exists; supplier-concentration risk not applicable. No risk-appetite.md or external threat reports present in 000-global/policies.
+
+<!-- arckit-provenance:start -->
+
+## Build Provenance
+
+_Stamped automatically by the ArcKit plugin's `provenance-stamp.mjs` PostToolUse hook. Complements (does not replace) the human-authored footer above. Carries only fields the model can't authoritatively self-report: build context from `.arckit/state.json` and effort levels derived from command frontmatter + the silent-downgrade matrix._
+
+| Field | Value |
+|-------|-------|
+| Requested Effort | `high` |
+| Effective Effort | _unknown — model not parsed from existing footer_ |
+| Stamped at | 2026-06-20T21:24:44.528Z |
+
+<!-- arckit-provenance:end -->
