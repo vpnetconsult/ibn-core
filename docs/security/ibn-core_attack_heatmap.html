@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>ibn-core · ATT&amp;CK coverage heatmap</title>
+<style>
+  :root {
+    --navy:#1f2a44; --ink:#0f172a; --muted:#475569; --line:#cbd5e1;
+    --bg:#f8fafc; --card:#ffffff; --teal:#0e7c86;
+    --green:#15803d; --green-bg:#dcfce7;
+    --amber:#b45309; --amber-bg:#fef3c7;
+    --red:#b91c1c;   --red-bg:#fee2e2;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+    font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 28px 24px 60px; }
+  header.hero { background: linear-gradient(135deg,#1f2a44,#0e7c86);
+    color:#fff; border-radius:14px; padding:28px 30px;
+    box-shadow:0 10px 30px rgba(15,23,42,.18); }
+  header.hero .kicker { text-transform:uppercase; letter-spacing:.14em;
+    font-size:11.5px; opacity:.85; margin:0 0 6px; }
+  header.hero h1 { margin:0 0 4px; font-size:26px; line-height:1.2; }
+  header.hero p { margin:6px 0 0; max-width:880px; opacity:.95; font-size:14px; }
+  header.hero .meta { display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
+  header.hero .meta span { background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.25);
+    padding:3px 10px; border-radius:999px; font-size:12px; }
+  .kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:14px;
+    margin: 22px 0 18px; }
+  .kpi { background:var(--card); border:1px solid var(--line);
+    border-radius:12px; padding:14px 16px; }
+  .kpi b { display:block; font-size:24px; line-height:1.1; color:var(--navy); }
+  .kpi small { color:var(--muted); font-size:12.5px; }
+  .kpi.green b { color: var(--green); }
+  .kpi.amber b { color: var(--amber); }
+  .kpi.red   b { color: var(--red); }
+  .legend { display:flex; flex-wrap:wrap; gap:14px; margin: 6px 0 18px;
+    color:var(--muted); font-size:12.5px; }
+  .legend span { display:inline-flex; align-items:center; gap:6px; }
+  .legend i { width:14px; height:14px; border-radius:3px; display:inline-block; }
+  .matrix { display:grid; gap:6px;
+    grid-template-columns: repeat(14, minmax(150px, 1fr));
+    overflow-x:auto; }
+  .col { display:flex; flex-direction:column; min-width:150px; }
+  .thead { background:var(--navy); color:#fff; border-radius:8px 8px 0 0;
+    padding:8px 10px; }
+  .ta-id { font-size:10.5px; opacity:.7; }
+  .ta-name { font-size:12.5px; font-weight:700; }
+  .ta-count { font-size:11px; opacity:.8; margin-top:2px; }
+  .cells { display:flex; flex-direction:column; gap:4px; padding:4px 0; }
+  .cell { border-radius:6px; padding:6px 8px; cursor:default;
+    border:1px solid var(--line); transition:transform .05s ease; }
+  .cell:hover { transform: translateY(-1px); box-shadow:0 4px 10px rgba(15,23,42,.08); }
+  .cell.mitigated { background:var(--green-bg); border-color:#86efac; }
+  .cell.partiallymitigated { background:var(--amber-bg); border-color:#fde68a; }
+  .cell.open { background:var(--red-bg); border-color:#fecaca; }
+  .tid { font:11px ui-monospace,Menlo,monospace; color:var(--muted); }
+  .tname { font-size:12px; font-weight:600; color:var(--navy); }
+  .empty { color:var(--muted); font-size:12px; padding:8px; font-style:italic;
+    border:1px dashed var(--line); border-radius:6px; }
+  .panel { margin-top:22px; background:var(--card); border:1px solid var(--line);
+    border-radius:12px; padding:16px 18px; }
+  .panel h2 { margin:0 0 8px; font-size:15px; color:var(--navy); }
+  .panel #detail { font-size:13px; color:var(--ink); }
+  .panel #detail .row { display:flex; gap:10px; margin:6px 0; }
+  .panel #detail .label { width:140px; color:var(--muted); font-size:12.5px; }
+  .panel #detail .val { flex:1; }
+  .panel #detail .tag { display:inline-block; padding:2px 8px; border-radius:5px;
+    font-size:11.5px; font-weight:650; }
+  .tag.mitigated { background:var(--green-bg); color:var(--green); }
+  .tag.partiallymitigated { background:var(--amber-bg); color:var(--amber); }
+  .tag.open { background:var(--red-bg); color:var(--red); }
+  footer { margin-top:32px; padding-top:14px; border-top:1px solid var(--line);
+    color:var(--muted); font-size:12px; }
+  .notes { color:var(--muted); font-size:12.5px; margin: 4px 2px 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <p class="kicker">ibn-core · v2.0.1 · MITRE ATT&amp;CK assessment</p>
+  <h1>Threat-informed coverage heatmap</h1>
+  <p>Residual risk per ATT&amp;CK technique after the in-code controls are applied
+  (AI Gateway: prompt-injection / PII+DLP / tool-policy RBAC · Istio mTLS · JWT &amp;
+  API-key auth · OpenTelemetry audit trail). Click any tile for the control mapping.</p>
+  <div class="meta">
+    <span>Enterprise ATT&amp;CK v16</span>
+    <span>Navigator layer 4.5</span>
+    <span>Platforms: Containers · Linux · IaaS · SaaS · Identity Provider · Network</span>
+    <span>Apache 2.0 · © 2026 Vpnet Cloud Solutions</span>
+  </div>
+</header>
+
+<div class="kpis">
+  <div class="kpi"><b>50</b><small>techniques in scope</small></div>
+  <div class="kpi green"><b>8</b>
+    <small>Mitigated &nbsp;·&nbsp; 16%</small></div>
+  <div class="kpi amber"><b>38</b>
+    <small>Partially mitigated &nbsp;·&nbsp; 76%</small></div>
+  <div class="kpi red"><b>4</b>
+    <small>Open &nbsp;·&nbsp; 8%</small></div>
+</div>
+
+<div class="legend">
+  <span><i style="background:var(--green)"></i>Mitigated — control fully addresses</span>
+  <span><i style="background:var(--amber)"></i>Partially mitigated — control exists, gaps remain</span>
+  <span><i style="background:var(--red)"></i>Open — primary control missing / out-of-scope for the open core</span>
+</div>
+
+<p class="notes">Note: the LLM-specific class of attacks not formally represented in
+ATT&amp;CK Enterprise (prompt injection, jailbreak, model-output coercion) maps to
+<strong>MITRE ATLAS</strong>. Coverage of those is summarised in
+<code>docs/security/ibn-core_attack_assessment.docx</code> Section 4 and is
+implemented in code by the AI Gateway's prompt-injection control.</p>
+
+<div class="matrix">
+<div class="col"><div class="thead"><div class="ta-id">TA0043</div><div class="ta-name">Reconnaissance</div><div class="ta-count">0</div></div><div class="cells"><div class="empty">— no techniques in scope —</div></div></div><div class="col"><div class="thead"><div class="ta-id">TA0042</div><div class="ta-name">Resource Development</div><div class="ta-count">0</div></div><div class="cells"><div class="empty">— no techniques in scope —</div></div></div><div class="col"><div class="thead"><div class="ta-id">TA0001</div><div class="ta-name">Initial Access</div><div class="ta-count">6</div></div><div class="cells"><div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1190" data-name="Exploit Public-Facing Application" data-ctrl="TMF921 API behind Istio ingress; JWT/API-key auth; AI Gateway prompt-injection check on request body; idempotency in Redis. Gap: no managed WAF; no recent third-party pentest."><div class="tid">T1190</div><div class="tname">Exploit Public-Facing Application</div></div>
+<div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1199" data-name="Trusted Relationship" data-ctrl="MCP back-ends called over mTLS; ToolPolicyEngine RBAC denies non-allowlisted tools. Gap: requester SessionContext not yet threaded into MCP calls (live provenance attribution pending)."><div class="tid">T1199</div><div class="tname">Trusted Relationship</div></div>
+<div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1078" data-name="Valid Accounts" data-ctrl="Auth supports api-key, JWT (RS256 against Keycloak JWKS), or both; named roles (customer/agent/admin). Gap: no formal key-rotation SOP documented for downstream operators."><div class="tid">T1078</div><div class="tname">Valid Accounts</div></div>
+<div class="cell mitigated" data-tier="Mitigated" data-id="T1078.001" data-name="Default Accounts" data-ctrl="Helm chart ships no default credentials; values.yaml requires explicit secret injection. Image build forbids baked-in tokens."><div class="tid">T1078.001</div><div class="tname">Default Accounts</div></div>
+<div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1078.004" data-name="Cloud Accounts" data-ctrl="Anthropic and LangSmith secrets in k8s Secrets, envFrom; rotation possible. Gap: no external KMS integration; SOPS/sealed-secrets recommended for operators."><div class="tid">T1078.004</div><div class="tname">Cloud Accounts</div></div>
+<div class="cell open" data-tier="Open" data-id="T1195" data-name="Supply Chain Compromise" data-ctrl="GitHub Actions CodeQL scan; dependabot; NOTICE file lists upstream dependencies. Gap: no SBOM published; container images not signed (cosign/sigstore on roadmap)."><div class="tid">T1195</div><div class="tname">Supply Chain Compromise</div></div></div></div><div class="col"><div class="thead"><div class="ta-id">TA0002</div><div class="ta-name">Execution</div><div class="ta-count">5</div></div><div class="cells"><div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1610" data-name="Deploy Container" data-ctrl="Component runs under a least-privilege ServiceAccount; chart NetworkPolicy templates ship; Istio mTLS PeerAuthentication. Gap: PSA/PodSecurity admission profile is operator-side."><div class="tid">T1610</div><div class="tname">Deploy Container</div></div>
+<div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1609" data-name="Container Administration Command" data-ctrl="k8s RBAC on the SA forbids exec into peer pods; Istio AuthorizationPolicy limits intra-mesh access. Gap: no runtime detection (Falco/Tetragon) included."><div class="tid">T1609</div><div class="tname">Container Administration Command</div></div>
+<div class="cell mitigated" data-tier="Mitigated" data-id="T1059.009" data-name="Cloud API" data-ctrl="AI Gateway gates the model call: prompt-injection block prevents unauthorised model invocations; ClaudeConfig caps max_tokens and pins model+temperature; both LLM calls are single-turn JSON extractions, not free agent loops."><div class="tid">T1059.009</div><div class="tname">Cloud API</div></div>
+<div class="cell open" data-tier="Open" data-id="T1204.003" data-name="Malicious Image" data-ctrl="Operator-side concern. Gap: no image signing (cosign), no admission policy that verifies signatures. To be addressed alongside SBOM/sigstore work."><div class="tid">T1204.003</div><div class="tname">Malicious Image</div></div>
+<div class="cell open" data-tier="Open" data-id="T1648" data-name="Serverless Execution" data-ctrl="Out of primary scope for v2.0.1 (Kubernetes Deployment, not serverless). Reassess if operator pushes ibn-core into a FaaS runtime."><div class="tid">T1648</div><div class="tname">Serverless Execution</div></div></div></div><div class="col"><div class="thead"><div class="ta-id">TA0003</div><div class="ta-name">Persistence</div><div class="ta-count">4</div></div><div class="cells"><div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1098" data-name="Account Manipulation" data-ctrl="manage_api_keys is admin-only via ToolPolicyEngine; account changes leave OTel trace events. Gap: no rate-limit on admin-tier ops."><div class="tid">T1098</div><div class="tname">Account Manipulation</div></div>
+<div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1098.006" data-name="Additional Container Cluster Roles" data-ctrl="Chart RBAC is minimal (controllerRole declared in Component CR). Gap: operator must audit RoleBindings post-install; no built-in drift detection."><div class="tid">T1098.006</div><div class="tname">Additional Container Cluster Roles</div></div>
+<div class="cell open" data-tier="Open" data-id="T1525" data-name="Implant Internal Image" data-ctrl="Same as T1204.003 — image-signing gap. Recommended: ship cosign signatures with chart releases."><div class="tid">T1525</div><div class="tname">Implant Internal Image</div></div>
+<div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1543.005" data-name="Container Service" data-ctrl="Component is a Deployment, not a DaemonSet or static pod; no privileged init containers. Gap: operator-side admission controls."><div class="tid">T1543.005</div><div class="tname">Container Service</div></div></div></div><div class="col"><div class="thead"><div class="ta-id">TA0004</div><div class="ta-name">Privilege Escalation</div><div class="ta-count">2</div></div><div class="cells"><div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1611" data-name="Escape to Host" data-ctrl="Pods run as non-root; securityContext drops capabilities; readOnlyRootFilesystem where possible. Gap: no sandboxed runtime (gVisor/Kata) shipped by default."><div class="tid">T1611</div><div class="tname">Escape to Host</div></div>
+<div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1068" data-name="Exploitation for Privilege Escalation" data-ctrl="Kernel/runtime patching is operator-side. Mitigated by minimal-base images, but residual depends on operator CIS-benchmark adherence."><div class="tid">T1068</div><div class="tname">Exploitation for Privilege Escalation</div></div></div></div><div class="col"><div class="thead"><div class="ta-id">TA0005</div><div class="ta-name">Defense Evasion</div><div class="ta-count">6</div></div><div class="cells"><div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1036" data-name="Masquerading" data-ctrl="OTel attribution per span (service.name/version, oda.component.*); structured pino logs. Gap: no end-to-end identity passing to MCP — tracked follow-up."><div class="tid">T1036</div><div class="tname">Masquerading</div></div>
+<div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1036.005" data-name="Match Legitimate Resource Name or Location" data-ctrl="Component CR is the canonical identity; ImagePullPolicy=IfNotPresent in chart. Gap: typosquat protection on dependencies relies on dependabot only."><div class="tid">T1036.005</div><div class="tname">Match Legitimate Resource Name or Location</div></div>
+<div class="cell mitigated" data-tier="Mitigated" data-id="T1070" data-name="Indicator Removal" data-ctrl="OTLP traces are exported to an EXTERNAL backend (LangSmith EU by default, or Canvas-managed collector). A local attacker cannot delete the audit record without compromising the external sink as well."><div class="tid">T1070</div><div class="tname">Indicator Removal</div></div>
+<div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1562" data-name="Impair Defenses" data-ctrl="src/telemetry.ts MUST be the very first import (documented hard rule in CLAUDE.md). HIGH-tier injection blocks are non-overridable. Gap: AI Gateway control toggles are config-driven; operator can weaken MEDIUM/LOW tiers."><div class="tid">T1562</div><div class="tname">Impair Defenses</div></div>
+<div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1562.001" data-name="Disable or Modify Tools" data-ctrl="Same as T1562; additionally, the AI Gateway emits ai_gateway.* events on every fire so disabled-control drift is visible in traces."><div class="tid">T1562.001</div><div class="tname">Disable or Modify Tools</div></div>
+<div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1562.008" data-name="Disable or Modify Cloud Logs" data-ctrl="OTel export is async; loss of connectivity to the OTLP backend stores buffered spans, then drops oldest. Gap: no immutable audit-log mirror (e.g., to object storage)."><div class="tid">T1562.008</div><div class="tname">Disable or Modify Cloud Logs</div></div></div></div><div class="col"><div class="thead"><div class="ta-id">TA0006</div><div class="ta-name">Credential Access</div><div class="ta-count">7</div></div><div class="cells"><div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1552" data-name="Unsecured Credentials" data-ctrl="All credentials live in k8s Secrets, injected via envFrom; .gitignore excludes .env. Gap: no external KMS by default; sealed-secrets recommended."><div class="tid">T1552</div><div class="tname">Unsecured Credentials</div></div>
+<div class="cell mitigated" data-tier="Mitigated" data-id="T1552.001" data-name="Credentials In Files" data-ctrl="Repo policy in CLAUDE.md forbids committing .env, API keys, or operator credentials; CodeQL scan rule in CI."><div class="tid">T1552.001</div><div class="tname">Credentials In Files</div></div>
+<div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1552.007" data-name="Container API" data-ctrl="ServiceAccount has minimal RBAC; no cluster-admin rights. Gap: token projection lifetimes are operator-side."><div class="tid">T1552.007</div><div class="tname">Container API</div></div>
+<div class="cell mitigated" data-tier="Mitigated" data-id="T1552.008" data-name="Chat Messages" data-ctrl="Direct ibn-core control: PII masker replaces raw email/phone/address with sentinels before any LLM call; per-role DLP allowlists redact non-allowed fields in MCP responses; model never sees secrets via conversation."><div class="tid">T1552.008</div><div class="tname">Chat Messages</div></div>
+<div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1528" data-name="Steal Application Access Token" data-ctrl="Keycloak JWTs are short-lived (RS256, JWKS validated per call); api-keys are scoped by role. Gap: no proof-of-possession (DPoP) yet."><div class="tid">T1528</div><div class="tname">Steal Application Access Token</div></div>
+<div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1110" data-name="Brute Force" data-ctrl="Istio rate-limit; key-based auth preferred over passwords. Gap: no account-lockout policy on JWT subjects (operator-side)."><div class="tid">T1110</div><div class="tname">Brute Force</div></div>
+<div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1606" data-name="Forge Web Credentials" data-ctrl="JWTs validated against Keycloak JWKS (RS256, kid-bound). Gap: depends on operator's realm hygiene."><div class="tid">T1606</div><div class="tname">Forge Web Credentials</div></div></div></div><div class="col"><div class="thead"><div class="ta-id">TA0007</div><div class="ta-name">Discovery</div><div class="ta-count">5</div></div><div class="cells"><div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1613" data-name="Container and Resource Discovery" data-ctrl="Minimal SA permissions; NetworkPolicy templates. Gap: operator-side namespace separation."><div class="tid">T1613</div><div class="tname">Container and Resource Discovery</div></div>
+<div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1087" data-name="Account Discovery" data-ctrl="TMF921 endpoints do not enumerate users; admin tools (manage_api_keys) are admin-role only."><div class="tid">T1087</div><div class="tname">Account Discovery</div></div>
+<div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1087.004" data-name="Cloud Account" data-ctrl="No cross-tenant discovery surface in the API; Keycloak realm is the auth boundary."><div class="tid">T1087.004</div><div class="tname">Cloud Account</div></div>
+<div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1046" data-name="Network Service Discovery" data-ctrl="Istio mesh enforces mTLS PeerAuthentication; NetworkPolicy templates restrict pod-to-pod. Gap: no zero-trust egress enforcement by default."><div class="tid">T1046</div><div class="tname">Network Service Discovery</div></div>
+<div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1526" data-name="Cloud Service Discovery" data-ctrl="MCP capability enumeration is gated by ToolPolicyEngine; getCapabilities() reflects the caller's role."><div class="tid">T1526</div><div class="tname">Cloud Service Discovery</div></div></div></div><div class="col"><div class="thead"><div class="ta-id">TA0008</div><div class="ta-name">Lateral Movement</div><div class="ta-count">2</div></div><div class="cells"><div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1021.007" data-name="Cloud Services" data-ctrl="Anthropic API key is single-purpose; MCP back-ends are scoped per ibn-core deployment. No re-use of tokens across tenants."><div class="tid">T1021.007</div><div class="tname">Cloud Services</div></div>
+<div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1550" data-name="Use Alternate Authentication Material" data-ctrl="JWT validation per request; no session cookies. Gap: no token-binding."><div class="tid">T1550</div><div class="tname">Use Alternate Authentication Material</div></div></div></div><div class="col"><div class="thead"><div class="ta-id">TA0009</div><div class="ta-name">Collection</div><div class="ta-count">3</div></div><div class="cells"><div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1119" data-name="Automated Collection" data-ctrl="MCP per-role DLP allowlists reduce blast radius of any automated extraction attempt; redaction is schema-preserving so consumers see structure without content."><div class="tid">T1119</div><div class="tname">Automated Collection</div></div>
+<div class="cell mitigated" data-tier="Mitigated" data-id="T1213" data-name="Data from Information Repositories" data-ctrl="ToolPolicyEngine deny-by-default; only role-allowlisted tools (e.g. get_customer_profile, list_products) can read repository data; admin-only tools (update_customer_profile) gated."><div class="tid">T1213</div><div class="tname">Data from Information Repositories</div></div>
+<div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1530" data-name="Data from Cloud Storage" data-ctrl="Redis SSoT runs in-cluster; not exposed externally. Gap: no encryption-at-rest enforcement enforced by chart (depends on storage class)."><div class="tid">T1530</div><div class="tname">Data from Cloud Storage</div></div></div></div><div class="col"><div class="thead"><div class="ta-id">TA0011</div><div class="ta-name">Command and Control</div><div class="ta-count">1</div></div><div class="cells"><div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1071.001" data-name="Web Protocols" data-ctrl="Egress restricted to known endpoints (Anthropic API, OTLP backend, Keycloak). Gap: egress allowlist is operator-configurable; not hard-enforced by chart."><div class="tid">T1071.001</div><div class="tname">Web Protocols</div></div></div></div><div class="col"><div class="thead"><div class="ta-id">TA0010</div><div class="ta-name">Exfiltration</div><div class="ta-count">3</div></div><div class="cells"><div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1041" data-name="Exfiltration Over C2 Channel" data-ctrl="AI Gateway DLP truncates outbound MCP payloads; Istio egress policy templates ship. Gap: same as T1071.001 — egress hard-enforcement is operator-side."><div class="tid">T1041</div><div class="tname">Exfiltration Over C2 Channel</div></div>
+<div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1567" data-name="Exfiltration Over Web Service" data-ctrl="Outbound to non-allowlisted endpoints blocked by Istio policy templates. Gap: model itself can be coerced via prompt to compose data into the response — mitigated by DLP allowlists on what the model can see in the first place."><div class="tid">T1567</div><div class="tname">Exfiltration Over Web Service</div></div>
+<div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1537" data-name="Transfer Data to Cloud Account" data-ctrl="No direct cloud-storage SDK in ibn-core; would require operator-installed adapter."><div class="tid">T1537</div><div class="tname">Transfer Data to Cloud Account</div></div></div></div><div class="col"><div class="thead"><div class="ta-id">TA0040</div><div class="ta-name">Impact</div><div class="ta-count">6</div></div><div class="cells"><div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1485" data-name="Data Destruction" data-ctrl="cancel_order/manage_api_keys are admin-only; Redis persistence policy depends on operator backup. Gap: no chart-level point-in-time backup."><div class="tid">T1485</div><div class="tname">Data Destruction</div></div>
+<div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1499" data-name="Endpoint Denial of Service" data-ctrl="HPA configured (replicaCount baseline 2); Istio rate-limit templates. Gap: no per-API-key quota; budget controls for AI-call cost not enforced by code."><div class="tid">T1499</div><div class="tname">Endpoint Denial of Service</div></div>
+<div class="cell mitigated" data-tier="Mitigated" data-id="T1496" data-name="Resource Hijacking" data-ctrl="AI Gateway prevents unauthorised LLM calls (an unauthorised request consumes 0 tokens at Scenario D, 1 LLM call at Scenario C); ClaudeConfig max_tokens cap bounds per-call spend; k8s resource limits on container."><div class="tid">T1496</div><div class="tname">Resource Hijacking</div></div>
+<div class="cell mitigated" data-tier="Mitigated" data-id="T1496.001" data-name="Compute Hijacking" data-ctrl="Same as T1496."><div class="tid">T1496.001</div><div class="tname">Compute Hijacking</div></div>
+<div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1490" data-name="Inhibit System Recovery" data-ctrl="Git history immutable; OTel sink external; chart can be reinstalled. Gap: Redis recovery depends on operator backup strategy."><div class="tid">T1490</div><div class="tname">Inhibit System Recovery</div></div>
+<div class="cell partiallymitigated" data-tier="PartiallyMitigated" data-id="T1657" data-name="Financial Theft" data-ctrl="Order-creating tools allowed for agent role; cancel_order admin-only. Quote acceptance is upstream of ibn-core and requires explicit human action. Gap: no anti-fraud heuristics on offer-acceptance loop."><div class="tid">T1657</div><div class="tname">Financial Theft</div></div></div></div>
+</div>
+
+<div class="panel" id="panel">
+  <h2>Technique detail</h2>
+  <div id="detail" style="color:var(--muted)">Click a technique tile to see its
+  residual-risk tier and the control summary.</div>
+</div>
+
+<footer>
+  ibn-core ATT&amp;CK assessment · generated 2026-05-28 ·
+  Companion documents: <code>docs/whitepapers/ibn-core_whitepaper.docx</code>,
+  <code>docs/compliance/UC006_ODA_CANVAS_IMPLEMENTATION.html</code>.
+  This heatmap is a standalone artefact (no external assets). The same data is
+  available as a MITRE ATT&amp;CK Navigator layer in
+  <code>ibn-core_attack_layer.json</code> — load at
+  <code>https://mitre-attack.github.io/attack-navigator/</code>.
+</footer>
+
+</div>
+<script>
+  document.querySelectorAll('.cell').forEach(c => c.addEventListener('click', () => {
+    const id   = c.dataset.id;
+    const name = c.dataset.name;
+    const tier = c.dataset.tier;
+    const ctrl = c.dataset.ctrl;
+    const tl   = tier.toLowerCase();
+    document.getElementById('detail').innerHTML =
+      '<div class="row"><div class="label">Technique</div>'
+      + '<div class="val"><strong>' + id + '</strong> — ' + name + '</div></div>'
+      + '<div class="row"><div class="label">Residual risk</div>'
+      + '<div class="val"><span class="tag ' + tl + '">' + tier + '</span></div></div>'
+      + '<div class="row"><div class="label">Control summary</div>'
+      + '<div class="val">' + ctrl + '</div></div>'
+      + '<div class="row"><div class="label">ATT&amp;CK link</div>'
+      + '<div class="val"><a href="https://attack.mitre.org/techniques/'
+        + id.replace('.', '/') + '/" target="_blank">attack.mitre.org/techniques/' + id + '</a></div></div>';
+  }));
+</script>
+</body>
+</html>

@@ -1,0 +1,826 @@
+{
+  "name": "ibn-core v2.0.1 \u2014 MITRE ATLAS coverage assessment",
+  "versions": {
+    "attack": "atlas-2026",
+    "navigator": "5.1.0",
+    "layer": "4.5"
+  },
+  "description": "Threat-informed MITRE ATLAS assessment of ibn-core (Apache 2.0 open core) \u2014 the LLM-specific complement to the ATT&CK Enterprise assessment in ibn-core_attack_layer.json. Scoring shows residual risk AFTER the in-code AI Gateway controls: prompt-injection detection (OWASP LLM01), PII masking + per-role DLP allowlists on MCP responses, and tool-policy RBAC. Green = Mitigated (80) \u00b7 Amber = PartiallyMitigated (50) \u00b7 Red = Open (20). Loadable in the MITRE ATLAS Navigator at https://mitre-atlas.github.io/atlas-navigator/. \u00a9 2026 Vpnet Cloud Solutions Sdn. Bhd. \u2014 Apache 2.0.",
+  "domain": "enterprise-attack",
+  "sorting": 0,
+  "layout": {
+    "layout": "side",
+    "aggregateFunction": "average",
+    "expandedSubtechniques": "none"
+  },
+  "techniques": [
+    {
+      "techniqueID": "AML.T0006",
+      "tactic": "reconnaissance",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] TMF921 endpoints expose only the documented schema; the OpenAPI spec is public by design. Istio rate-limit on probing patterns. Gap: discoverable model dependency via OSS docs is intentional.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "TMF921 endpoints expose only the documented schema; the OpenAPI spec is public by design. Istio rate-limit on probing patterns. Gap: discoverable model dependency via OSS docs is intentional."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0000.002",
+      "tactic": "reconnaissance",
+      "score": 20,
+      "color": "",
+      "comment": "[Open] Out of scope. ibn-core architecture and AI Gateway design are intentionally published; an attacker may learn the controls in detail from this whitepaper.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Open"
+        },
+        {
+          "name": "Control summary",
+          "value": "Out of scope. ibn-core architecture and AI Gateway design are intentionally published; an attacker may learn the controls in detail from this whitepaper."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0017.000",
+      "tactic": "resource-development",
+      "score": 20,
+      "color": "",
+      "comment": "[Open] Adversaries can develop prompt-injection and jailbreak payloads against published OWASP-LLM patterns. ibn-core's defence: the HIGH-tier signature engine is updated against current OWASP LLM01 patterns; MEDIUM/LOW are configurable.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Open"
+        },
+        {
+          "name": "Control summary",
+          "value": "Adversaries can develop prompt-injection and jailbreak payloads against published OWASP-LLM patterns. ibn-core's defence: the HIGH-tier signature engine is updated against current OWASP LLM01 patterns; MEDIUM/LOW are configurable."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0010.001",
+      "tactic": "resource-development",
+      "score": 20,
+      "color": "",
+      "comment": "[Open] Anthropic SDK and other npm packages \u2014 supply-chain assurance relies on CodeQL CI + dependabot. Gap: no SBOM, no image signing \u2014 same finding as ATT&CK T1195.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Open"
+        },
+        {
+          "name": "Control summary",
+          "value": "Anthropic SDK and other npm packages \u2014 supply-chain assurance relies on CodeQL CI + dependabot. Gap: no SBOM, no image signing \u2014 same finding as ATT&CK T1195."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0049",
+      "tactic": "initial-access",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] TMF921 API gated by Istio TLS + JWT/api-key auth + AI Gateway prompt-injection check; idempotency in Redis. Gap: no managed WAF; no recent third-party pentest.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "TMF921 API gated by Istio TLS + JWT/api-key auth + AI Gateway prompt-injection check; idempotency in Redis. Gap: no managed WAF; no recent third-party pentest."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0012",
+      "tactic": "initial-access",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] JWT (RS256/Keycloak JWKS) or api-key; named roles. Gap: no key-rotation SOP for downstream operators.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "JWT (RS256/Keycloak JWKS) or api-key; named roles. Gap: no key-rotation SOP for downstream operators."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0011",
+      "tactic": "initial-access",
+      "score": 20,
+      "color": "",
+      "comment": "[Open] ibn-core does not load user-supplied AI artefacts; users do not bring their own models. Listed Open because the technique is not applicable rather than because mitigated.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Open"
+        },
+        {
+          "name": "Control summary",
+          "value": "ibn-core does not load user-supplied AI artefacts; users do not bring their own models. Listed Open because the technique is not applicable rather than because mitigated."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0040",
+      "tactic": "ai-model-access",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Anthropic API key in k8s Secret, envFrom; outbound restricted to api.anthropic.com via Istio egress template. Per-call max_tokens cap. Gap: no per-API-key budget.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Anthropic API key in k8s Secret, envFrom; outbound restricted to api.anthropic.com via Istio egress template. Per-call max_tokens cap. Gap: no per-API-key budget."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0047",
+      "tactic": "ai-model-access",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] ibn-core IS the AI-enabled product. Attacker access is gated by TMF921 auth + AI Gateway 3 controls + tool-policy RBAC; refusal is a first-class observable outcome.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "ibn-core IS the AI-enabled product. Attacker access is gated by TMF921 auth + AI Gateway 3 controls + tool-policy RBAC; refusal is a first-class observable outcome."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0050",
+      "tactic": "execution",
+      "score": 80,
+      "color": "",
+      "comment": "[Mitigated] Model output is parsed as strict JSON (analyzeIntent, generateOffer); ibn-core never executes model output as code or shell. No agent loop, no eval. Architectural elimination.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Mitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Model output is parsed as strict JSON (analyzeIntent, generateOffer); ibn-core never executes model output as code or shell. No agent loop, no eval. Architectural elimination."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0051",
+      "tactic": "execution",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] AI Gateway control \u2460 (prompt-injection-detection.ts) \u2014 HIGH-tier signatures (jailbreak, prompt-override, reveal-prompt) block at INGEST; MEDIUM/LOW configurable. Gap: signature engine is regex-based and can be bypassed with sufficient obfuscation.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "AI Gateway control \u2460 (prompt-injection-detection.ts) \u2014 HIGH-tier signatures (jailbreak, prompt-override, reveal-prompt) block at INGEST; MEDIUM/LOW configurable. Gap: signature engine is regex-based and can be bypassed with sufficient obfuscation."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0051.000",
+      "tactic": "execution",
+      "score": 80,
+      "color": "",
+      "comment": "[Mitigated] Same engine; direct attacks via the intent text field are the primary case the engine is tuned for. HIGH-tier matches block before TRANSLATING; the model never sees the payload.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Mitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Same engine; direct attacks via the intent text field are the primary case the engine is tuned for. HIGH-tier matches block before TRANSLATING; the model never sees the payload."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0051.001",
+      "tactic": "execution",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] MCP back-end responses pass through DLP redaction before being added to the prompt context \u2014 limits attacker-controlled content that the model sees. Gap: a malicious MCP tool response could still embed instructions inside an allowlisted field.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "MCP back-end responses pass through DLP redaction before being added to the prompt context \u2014 limits attacker-controlled content that the model sees. Gap: a malicious MCP tool response could still embed instructions inside an allowlisted field."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0053",
+      "tactic": "execution",
+      "score": 80,
+      "color": "",
+      "comment": "[Mitigated] ToolPolicyEngine RBAC deny-by-default per-role; admin-only operations (cancel_order, manage_api_keys) require admin role; refusal returns compliantFailure with auditable assessment.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Mitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "ToolPolicyEngine RBAC deny-by-default per-role; admin-only operations (cancel_order, manage_api_keys) require admin role; refusal returns compliantFailure with auditable assessment."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0020",
+      "tactic": "persistence",
+      "score": 20,
+      "color": "",
+      "comment": "[Open] Out of scope \u2014 ibn-core does not train or fine-tune the model; uses Anthropic Claude as a hosted inference endpoint. Model-side persistence is Anthropic's responsibility.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Open"
+        },
+        {
+          "name": "Control summary",
+          "value": "Out of scope \u2014 ibn-core does not train or fine-tune the model; uses Anthropic Claude as a hosted inference endpoint. Model-side persistence is Anthropic's responsibility."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0015",
+      "tactic": "defense-evasion",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Inputs that mask intent (obfuscated prompt-injection, unicode tricks) may slip past regex signatures. Mitigation: HIGH-tier blockHigh is non-overridable; suspicious requests still produce auditable spans.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Inputs that mask intent (obfuscated prompt-injection, unicode tricks) may slip past regex signatures. Mitigation: HIGH-tier blockHigh is non-overridable; suspicious requests still produce auditable spans."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0054",
+      "tactic": "defense-evasion",
+      "score": 80,
+      "color": "",
+      "comment": "[Mitigated] AI Gateway control \u2460 HIGH-tier patterns explicitly target jailbreak phrasing (\"ignore previous instructions\", \"pretend you are\u2026\", \"reveal your system prompt\"). Combined with single-turn prompt design \u2014 no multi-turn manipulation surface.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Mitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "AI Gateway control \u2460 HIGH-tier patterns explicitly target jailbreak phrasing (\"ignore previous instructions\", \"pretend you are\u2026\", \"reveal your system prompt\"). Combined with single-turn prompt design \u2014 no multi-turn manipulation surface."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0068",
+      "tactic": "defense-evasion",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Regex signatures can be bypassed by sufficient obfuscation (base64, leetspeak, language switching). Mitigation: even an obfuscated jailbreak that slips the signature engine cannot extract data the model never sees (PII masker, DLP). Open as a known gap; addressed by defence-in-depth.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Regex signatures can be bypassed by sufficient obfuscation (base64, leetspeak, language switching). Mitigation: even an obfuscated jailbreak that slips the signature engine cannot extract data the model never sees (PII masker, DLP). Open as a known gap; addressed by defence-in-depth."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0055",
+      "tactic": "credential-access",
+      "score": 80,
+      "color": "",
+      "comment": "[Mitigated] Direct ibn-core control: PII masker replaces email/phone/address with sentinels BEFORE any LLM call; per-role DLP allowlists redact non-allowlisted fields in MCP responses; the model literally never sees raw credentials.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Mitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Direct ibn-core control: PII masker replaces email/phone/address with sentinels BEFORE any LLM call; per-role DLP allowlists redact non-allowlisted fields in MCP responses; the model literally never sees raw credentials."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0056",
+      "tactic": "credential-access",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Jailbreak block (HIGH-tier) targets reveal-system-prompt phrasing. The scaffold isn't a secret; it's documented in claude-client.ts. Gap: a sufficiently clever paraphrase could still leak scaffold content.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Jailbreak block (HIGH-tier) targets reveal-system-prompt phrasing. The scaffold isn't a secret; it's documented in claude-client.ts. Gap: a sufficiently clever paraphrase could still leak scaffold content."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0057",
+      "tactic": "credential-access",
+      "score": 80,
+      "color": "",
+      "comment": "[Mitigated] Containment-in-transit: PII masking on the way IN; per-role DLP on MCP responses on the way OUT before being added to context. Schema-preserving redaction means structure is preserved but no PII is ever in the prompt.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Mitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Containment-in-transit: PII masking on the way IN; per-role DLP on MCP responses on the way OUT before being added to context. Schema-preserving redaction means structure is preserved but no PII is ever in the prompt."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0013",
+      "tactic": "discovery",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] The model and provider are publicly documented in the Component CR dependentModels annotation by design. Operationally not a defendable secret.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "The model and provider are publicly documented in the Component CR dependentModels annotation by design. Operationally not a defendable secret."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0014",
+      "tactic": "discovery",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Same \u2014 public by design. Disclosure is part of the AI Act Art. 50 transparency posture.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Same \u2014 public by design. Disclosure is part of the AI Act Art. 50 transparency posture."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0044",
+      "tactic": "discovery",
+      "score": 80,
+      "color": "",
+      "comment": "[Mitigated] ibn-core has no user-uploaded model artefacts to discover; there is no artefact store.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Mitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "ibn-core has no user-uploaded model artefacts to discover; there is no artefact store."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0063",
+      "tactic": "discovery",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] TMF921 responses contain the structured offer; discovery of model output structure is intentional. Gap: an attacker can map response variance to model behaviour.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "TMF921 responses contain the structured offer; discovery of model output structure is intentional. Gap: an attacker can map response variance to model behaviour."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0069",
+      "tactic": "discovery",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Combined defence with T0056. Architectural: scaffold is not loaded with operator secrets; only model name + extraction instructions.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Combined defence with T0056. Architectural: scaffold is not loaded with operator secrets; only model name + extraction instructions."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0035",
+      "tactic": "collection",
+      "score": 80,
+      "color": "",
+      "comment": "[Mitigated] MCP back-end access gated by ToolPolicyEngine deny-by-default; per-role allowlists limit what each principal can pull. Reads from customer-data, knowledge-graph and BSS are scoped.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Mitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "MCP back-end access gated by ToolPolicyEngine deny-by-default; per-role allowlists limit what each principal can pull. Reads from customer-data, knowledge-graph and BSS are scoped."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0024",
+      "tactic": "exfiltration",
+      "score": 80,
+      "color": "",
+      "comment": "[Mitigated] The model only ever sees masked data (PII redacted in, DLP redacted out). An attacker exfiltrating via inference can only pull what the model legitimately knows \u2014 which excludes raw customer data by construction.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Mitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "The model only ever sees masked data (PII redacted in, DLP redacted out). An attacker exfiltrating via inference can only pull what the model legitimately knows \u2014 which excludes raw customer data by construction."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0024.002",
+      "tactic": "exfiltration",
+      "score": 20,
+      "color": "",
+      "comment": "[Open] Out of scope \u2014 model is hosted by Anthropic; model extraction is Anthropic's risk to bear, not ibn-core's. Per-API-key request quotas (recommended) would further limit lateral risk.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Open"
+        },
+        {
+          "name": "Control summary",
+          "value": "Out of scope \u2014 model is hosted by Anthropic; model extraction is Anthropic's risk to bear, not ibn-core's. Per-API-key request quotas (recommended) would further limit lateral risk."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0025",
+      "tactic": "exfiltration",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Istio egress template restricts outbound. Gap: hard-enforced egress allowlist is operator-side as noted in ATT&CK T1041 finding.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Istio egress template restricts outbound. Gap: hard-enforced egress allowlist is operator-side as noted in ATT&CK T1041 finding."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0029",
+      "tactic": "impact",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] HPA + Istio rate-limit + AI-Gateway short-circuit at boundary. Refusal at INGEST = 12 ms / 0 tokens (Scenario D). Gap: no per-API-key quota; chaff attacks at the model API level still consume tokens.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "HPA + Istio rate-limit + AI-Gateway short-circuit at boundary. Refusal at INGEST = 12 ms / 0 tokens (Scenario D). Gap: no per-API-key quota; chaff attacks at the model API level still consume tokens."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0034",
+      "tactic": "impact",
+      "score": 80,
+      "color": "",
+      "comment": "[Mitigated] AI Gateway gates the model call: D scenario blocks before LLM call (0 tokens), C blocks after one LLM call (saves the offer-generation call). max_tokens cap bounds per-call spend. Architectural cost protection.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Mitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "AI Gateway gates the model call: D scenario blocks before LLM call (0 tokens), C blocks after one LLM call (saves the offer-generation call). max_tokens cap bounds per-call spend. Architectural cost protection."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0046",
+      "tactic": "impact",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Combined defence with T0029 + T0034. Gap: an attacker with a legitimate api-key can submit many well-formed intents that pass the gateway but waste compute.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Combined defence with T0029 + T0034. Gap: an attacker with a legitimate api-key can submit many well-formed intents that pass the gateway but waste compute."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0048.001",
+      "tactic": "impact",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] AI Gateway prevents the model from being coerced into offensive output via jailbreak; refusals are observable, not silent. Gap: cannot prevent reputational harm if the system is used as intended but the offer surface is misperceived externally.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "AI Gateway prevents the model from being coerced into offensive output via jailbreak; refusals are observable, not silent. Gap: cannot prevent reputational harm if the system is used as intended but the offer surface is misperceived externally."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0048.002",
+      "tactic": "impact",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Same as above. Mitigated indirectly via EU AI Act Art. 50 transparency posture (whitepaper Part B).",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Same as above. Mitigated indirectly via EU AI Act Art. 50 transparency posture (whitepaper Part B)."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0048.003",
+      "tactic": "impact",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Tool-policy RBAC bounds the actions a misused account can take; explicit human acceptance of the offer is required before any network change is provisioned.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Tool-policy RBAC bounds the actions a misused account can take; explicit human acceptance of the offer is required before any network change is provisioned."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0048.004",
+      "tactic": "impact",
+      "score": 20,
+      "color": "",
+      "comment": "[Open] Model IP is Anthropic's; ibn-core does not own model weights. Prompt-scaffold IP is published in the open core. Not defended because not defendable for an open-source project.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Open"
+        },
+        {
+          "name": "Control summary",
+          "value": "Model IP is Anthropic's; ibn-core does not own model weights. Prompt-scaffold IP is published in the open core. Not defended because not defendable for an open-source project."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0061",
+      "tactic": "impact",
+      "score": 80,
+      "color": "",
+      "comment": "[Mitigated] Architectural: ibn-core's prompts are single-turn JSON extractions. Model output is parsed as JSON and never fed back as a prompt. No multi-turn loop exists for self-replication to take effect.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "Mitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Architectural: ibn-core's prompts are single-turn JSON extractions. Model output is parsed as JSON and never fed back as a prompt. No multi-turn loop exists for self-replication to take effect."
+        }
+      ],
+      "showSubtechniques": false
+    },
+    {
+      "techniqueID": "AML.T0066",
+      "tactic": "impact",
+      "score": 50,
+      "color": "",
+      "comment": "[PartiallyMitigated] Model output is parsed as strict JSON; downstream effects (order, quote) are RBAC-gated. Gap: if the model is coerced into inflating a discount, the operator-side guardrails (pricing sanity checks) catch it \u2014 but those are operator-side, not in the open core.",
+      "enabled": true,
+      "metadata": [
+        {
+          "name": "Residual risk tier",
+          "value": "PartiallyMitigated"
+        },
+        {
+          "name": "Control summary",
+          "value": "Model output is parsed as strict JSON; downstream effects (order, quote) are RBAC-gated. Gap: if the model is coerced into inflating a discount, the operator-side guardrails (pricing sanity checks) catch it \u2014 but those are operator-side, not in the open core."
+        }
+      ],
+      "showSubtechniques": false
+    }
+  ],
+  "gradient": {
+    "colors": [
+      "#b91c1cff",
+      "#b45309ff",
+      "#15803dff"
+    ],
+    "minValue": 0,
+    "maxValue": 100
+  },
+  "legendItems": [
+    {
+      "label": "Open (20) \u2014 primary control missing / out-of-scope",
+      "color": "#b91c1c"
+    },
+    {
+      "label": "PartiallyMitigated (50) \u2014 control exists, gaps remain",
+      "color": "#b45309"
+    },
+    {
+      "label": "Mitigated (80) \u2014 control fully addresses",
+      "color": "#15803d"
+    }
+  ],
+  "metadata": [
+    {
+      "name": "Subject",
+      "value": "ibn-core v2.0.1 / Helm chart 2.2.0"
+    },
+    {
+      "name": "Framework",
+      "value": "MITRE ATLAS (Adversarial Threat Landscape for AI Systems)"
+    },
+    {
+      "name": "ATLAS data source",
+      "value": "github.com/mitre-atlas/atlas-data ATLAS.yaml (fetched 2026-05-28)"
+    },
+    {
+      "name": "Author",
+      "value": "Vpnet Cloud Solutions Sdn. Bhd."
+    },
+    {
+      "name": "Generated",
+      "value": "2026-05-28"
+    },
+    {
+      "name": "Companion docs",
+      "value": "docs/security/ibn-core_attack_layer.json; docs/whitepapers/ibn-core_whitepaper.docx"
+    }
+  ],
+  "tacticRowBackground": "#dddddd",
+  "filters": {
+    "platforms": []
+  },
+  "links": [
+    {
+      "label": "ATLAS framework",
+      "url": "https://atlas.mitre.org"
+    },
+    {
+      "label": "ATLAS Navigator",
+      "url": "https://mitre-atlas.github.io/atlas-navigator/"
+    },
+    {
+      "label": "ibn-core repository",
+      "url": "https://github.com/vpnetconsult/ibn-core"
+    }
+  ]
+}
