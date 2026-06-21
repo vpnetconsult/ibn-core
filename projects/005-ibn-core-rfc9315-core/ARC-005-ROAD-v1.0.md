@@ -13,7 +13,7 @@
 | **Status** | DRAFT |
 | **Version** | 1.0 |
 | **Created Date** | 2026-06-14 |
-| **Last Modified** | 2026-06-14 |
+| **Last Modified** | 2026-06-21 |
 | **Review Cycle** | Quarterly |
 | **Review Date** | 2026-07-14 |
 | **Owner** | Roland Pfeifer, Lead Architect (Vpnet Cloud Solutions Sdn. Bhd.) |
@@ -30,6 +30,7 @@
 | Version | Date | Author | Changes | Approved By | Approval Date |
 |---------|------|--------|---------|-------------|---------------|
 | 1.0 | 2026-06-14 | ArcKit AI | Initial creation from `/arckit:roadmap` command | [PENDING] | [PENDING] |
+| 1.0 (amended) | 2026-06-21 | ArcKit AI | Delivery-status refresh: Phase 0 ✅ delivered, Phase 1 🔄 partially delivered (core extracted #52, slim entry #54, LLM seam #59); Gate B (CTK parity) flagged as the outstanding verification / `v3.0.0`-tag release condition | [PENDING] | [PENDING] |
 
 > **Input gaps**: Project 005 has no `ARC-005-REQ`, `ARC-005-STKE`, `ARC-005-WARD`, or `ARC-005-RISK` yet (this roadmap precedes them). It is grounded in the global principles `ARC-000-PRIN-v1.0`, the Project 005 README thesis, and the as-is constraint from `resource-intent-agent` (`ARC-004-ADR-010`, `ARC-004-REQ` v1.3). Run `/arckit:requirements` and `/arckit:risk` for 005 to close the loop.
 
@@ -199,7 +200,9 @@ gantt
 
 ### Roadmap Phases
 
-#### Phase 0: Decide (CY 2026 Q3)
+> **Delivery status (2026-06-21)** — Phase 0 ✅ **delivered**; Phase 1 🔄 **partially delivered**. Landed on `main`: the layer-agnostic core (`IntentCycleRunner`, `PhaseStrategy`, no-domain-imports guard, `BssPhaseStrategy`) via **PR #52**; slim `lib` entry (D4) via **PR #54**; LLM-agnostic seam (ADR-005-003) via **PR #59**. BSS now runs on the core. **Outstanding for Phase 1**: the **TMF921 CTK 83/83 re-verification (Gate B)** — not yet recorded green; it gates the deferred `v3.0.0` tag (ADR-005-002). Phases 2–5 (packaging tag, resource peer, third-domain proof, hardening) are unstarted and correctly future. See `ARC-005-TRAC-v1.0` for the per-requirement realisation matrix.
+
+#### Phase 0: Decide (CY 2026 Q3) — ✅ DELIVERED
 
 **Objectives**: agree the extraction; specify the `PhaseStrategy` port contracts; record the decision.
 
@@ -209,11 +212,11 @@ gantt
 
 ---
 
-#### Phase 1: Extract Core (CY 2026 Q3 → CY 2027 Q1)
+#### Phase 1: Extract Core (CY 2026 Q3 → CY 2027 Q1) — 🔄 PARTIALLY DELIVERED
 
 **Objectives**: lift the phase state machine into a domain-neutral `IntentCycleRunner`; re-express current BSS logic as the **first adapter set** over it — behaviour-preserving.
 
-**Key Deliverables**: `IntentCycleRunner` + `PhaseStrategy` ports; BSS adapter set; **TMF921 CTK 83/83 re-verified** (the guardrail). No feature work mixed in.
+**Key Deliverables**: `IntentCycleRunner` + `PhaseStrategy` ports ✅ (#52); BSS adapter set ✅ (`BssPhaseStrategy`, #52); no-domain-imports guard ✅ (#52); **TMF921 CTK 83/83 re-verified** ⏳ (the guardrail — **Gate B still outstanding**). No feature work mixed in.
 
 **Investment**: ~16 engineer-weeks (~USD 80k) — the largest, highest-risk phase.
 
@@ -271,9 +274,9 @@ Turn the BSS-concrete runner into a domain-neutral `IntentCycleRunner` with a `P
 
 **CY 2026 (Q3–Q4)**:
 
-- Initiative 1.1: ARB extraction decision + port-contract spec (Phase 0).
-- Initiative 1.2: Extract `IntentCycleRunner`; enforce a "no domain imports in core" dependency rule (Phase 1).
-- **Milestones**: Gate A (ARB decision); core runner compiles domain-free.
+- Initiative 1.1: ARB extraction decision + port-contract spec (Phase 0). — ✅ done (ADR-005-001; `phase0-port-contract-spec-v1.0`)
+- Initiative 1.2: Extract `IntentCycleRunner`; enforce a "no domain imports in core" dependency rule (Phase 1). — ✅ done (#52)
+- **Milestones**: Gate A (ARB decision) ✅; core runner compiles domain-free ✅ (#52).
 - **Investment**: ~USD 60k.
 
 **CY 2027 (Q1)**:
@@ -284,10 +287,10 @@ Turn the BSS-concrete runner into a domain-neutral `IntentCycleRunner` with a `P
 
 #### Success Criteria
 
-- [ ] `IntentCycleRunner` has zero domain (BSS/resource) imports.
-- [ ] One `PhaseStrategy` port per RFC 9315 phase, implemented by ≥ 2 domains.
-- [ ] Phase enums exported from the public entry (D6 closed).
-- [ ] Port contracts honour the ADR-005-001 conditions: continuous assurance (D-1), RFC 9315-named ports mapped to §5 (D-2), intent-refinement hierarchy (D-3), declarative/outcome-oriented core (D-4).
+- [x] `IntentCycleRunner` has zero domain (BSS/resource) imports. *(✅ #52 — enforced by `no-domain-imports.test.ts`)*
+- [ ] One `PhaseStrategy` port per RFC 9315 phase, implemented by ≥ 2 domains. *(🔄 port set defined + BSS adapter #52; second domain — resource — is Phase 3)*
+- [x] Phase enums exported from the public entry (D6 closed). *(✅ #52/#54 — `lib/index.ts`)*
+- [ ] Port contracts honour the ADR-005-001 conditions: continuous assurance (D-1), RFC 9315-named ports mapped to §5 (D-2), intent-refinement hierarchy (D-3), declarative/outcome-oriented core (D-4). *(🔄 D-2 met in `PhaseStrategy`; D-1/D-3/D-4 across Phases 3–5)*
 
 ---
 
@@ -301,9 +304,9 @@ Both BSS and resource instantiate the same core as peers — BSS first (dogfoodi
 
 **CY 2026 (Q4) → CY 2027 (Q1)**:
 
-- Initiative 2.1: Re-express BSS as the first adapter set (Phase 1).
-- Initiative 2.2: **CTK 83/83 parity** verification (Gate B).
-- **Milestones**: Gate B (CTK-parity); BSS runs on the core.
+- Initiative 2.1: Re-express BSS as the first adapter set (Phase 1). — ✅ done (`BssPhaseStrategy`, #52)
+- Initiative 2.2: **CTK 83/83 parity** verification (Gate B). — ⏳ outstanding (the binding Phase-1 verification)
+- **Milestones**: Gate B (CTK-parity) ⏳ pending; BSS runs on the core ✅ (#52).
 - **Investment**: ~USD 60k.
 
 **CY 2027 (Q2)**:
@@ -661,6 +664,6 @@ _Stamped automatically by the ArcKit plugin's `provenance-stamp.mjs` PostToolUse
 |-------|-------|
 | Requested Effort | `high` |
 | Effective Effort | _unknown — model not parsed from existing footer_ |
-| Stamped at | 2026-06-14T19:30:19.331Z |
+| Stamped at | 2026-06-21T11:47:05.739Z |
 
 <!-- arckit-provenance:end -->
