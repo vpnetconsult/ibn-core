@@ -12,15 +12,15 @@
 | **Document Type** | MyDIGITAL National Priorities Alignment Statement |
 | **Project** | ibn-core-my (Project 001) |
 | **Classification** | PUBLIC |
-| **Status** | DRAFT |
+| **Status** | APPROVED |
 | **Version** | 1.0 |
 | **Created Date** | 2026-06-05 |
-| **Last Modified** | 2026-06-05 |
+| **Last Modified** | 2026-06-21 |
 | **Review Cycle** | Quarterly |
 | **Next Review Date** | 2026-09-05 |
 | **Owner** | Roland Pfeifer, Lead Architect / CTO (Vpnet Cloud Solutions Sdn. Bhd.) |
-| **Reviewed By** | PENDING |
-| **Approved By** | PENDING |
+| **Reviewed By** | Vpnet Compliance owner review — Roland Pfeifer, CTO (2026-06-21) |
+| **Approved By** | Roland Pfeifer, CTO — management acceptance (Vpnet accountable owner), 2026-06-21; MyDIGITAL alignment is voluntary/strategic positioning, not a compliance certification |
 | **Distribution** | ibn-core engineering, Vpnet SI delivery teams, operator integration partners (U Mobile, TM Malaysia) |
 
 > **Subject type note**: ibn-core is a **commercial** product / Systems Integration (SI) engagement, not a Federal public-sector entity. The `my-operator` build recipe deliberately drops the public-sector-only MyDIGITAL overlays (MyGovEA, ePerolehan, MyGDX, National Archives digital records, MyDigital ID, rakyat-centric service review) and reframes data classification to commercial data-sensitivity tiers rather than Arahan Keselamatan. The Generic/commercial document-control header (not the Malaysia Federal "Agensi" header) therefore applies; classification follows the project's PUBLIC posture, consistent with `ARC-000-PRIN-v1.0`, `ARC-001-REQ-v1.0`, and `ARC-001-STKE-v1.0`.
@@ -30,6 +30,7 @@
 | Version | Date | Author | Changes | Approved By | Approval Date |
 |---------|------|--------|---------|-------------|---------------|
 | 1.0 | 2026-06-05 | ArcKit AI | Initial creation from `/arckit:my-mydigital` (executed via arckit-build wave 2) | PENDING | PENDING |
+| 1.0 (signed off) | 2026-06-21 | ArcKit AI | Management sign-off — Status → APPROVED (Vpnet owner acceptance); voluntary/strategic alignment, not a certification | Roland Pfeifer, CTO | 2026-06-21 |
 
 ---
 
