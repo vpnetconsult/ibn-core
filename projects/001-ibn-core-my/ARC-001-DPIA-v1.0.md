@@ -12,15 +12,15 @@
 | **Document Type** | Data Protection Impact Assessment (PDPA 2010 am. 2024; UK GDPR Art. 35 structure) |
 | **Project** | ibn-core-my (Project 001) |
 | **Classification** | OFFICIAL-SENSITIVE |
-| **Status** | DRAFT |
+| **Status** | APPROVED |
 | **Version** | 1.0 |
 | **Created Date** | 2026-06-05 |
-| **Last Modified** | 2026-06-05 |
+| **Last Modified** | 2026-06-21 |
 | **Review Cycle** | 12 months (or on material change, breach, or JPDP guidance update) |
 | **Next Review Date** | 2027-06-05 |
 | **Owner** | Roland Pfeifer, Lead Architect / CTO (Vpnet Cloud Solutions Sdn. Bhd.) |
-| **Reviewed By** | [PENDING — Vpnet DPO (to be appointed); operator DPO per engagement] |
-| **Approved By** | [PENDING — Data Controller (operator) + Vpnet processor sign-off] |
+| **Reviewed By** | Vpnet DPO-function owner review — Roland Pfeifer, CTO (2026-06-21); operator DPO per engagement |
+| **Approved By** | Roland Pfeifer, CTO — Vpnet processor-side management acceptance, 2026-06-21; operator Data Controller approval + qualified MY data-protection practitioner review required per engagement before reliance |
 | **Distribution** | ibn-core engineering, Vpnet SI delivery teams, Security/Compliance, operator integration partners (U Mobile, TM Malaysia), operator Compliance Officers / DPOs |
 
 > **Assessment Date**: 2026-06-05 · **Scope**: Full system · **Phase**: Alpha · **Assessment risk posture**: Medium (pre-production; mock adapters in alpha; live subscriber PII enters at SI / v3.0.0).
@@ -30,6 +30,7 @@
 | Version | Date | Author | Changes | Approved By | Approval Date |
 |---------|------|--------|---------|-------------|---------------|
 | 1.0 | 2026-06-05 | ArcKit AI | Initial creation from `/arckit:dpia` (arckit-build wave 7). Full-system scope; framed to PDPA 2010 (am. 2024) / JPDP per `ARC-001-PDPA-v1.0`; ICO 9-criteria screening = 4/9 → DPIA REQUIRED. | [PENDING] | [PENDING] |
+| 1.0 (signed off) | 2026-06-21 | ArcKit AI | Vpnet processor-side management sign-off — Status → APPROVED; operator Data Controller approval + qualified-practitioner review retained as per-engagement gate | Roland Pfeifer, CTO | 2026-06-21 |
 
 ## Executive Summary
 
@@ -982,3 +983,17 @@ No children are identified as a data-subject category in `ARC-001-STKE-v1.0` (th
 ---
 
 **END OF DPIA**
+
+<!-- arckit-provenance:start -->
+
+## Build Provenance
+
+_Stamped automatically by the ArcKit plugin's `provenance-stamp.mjs` PostToolUse hook. Complements (does not replace) the human-authored footer above. Carries only fields the model can't authoritatively self-report: build context from `.arckit/state.json` and effort levels derived from command frontmatter + the silent-downgrade matrix._
+
+| Field | Value |
+|-------|-------|
+| Requested Effort | `high` |
+| Effective Effort | _unknown — model not parsed from existing footer_ |
+| Stamped at | 2026-06-21T12:17:59.258Z |
+
+<!-- arckit-provenance:end -->

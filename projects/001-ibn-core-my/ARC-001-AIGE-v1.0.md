@@ -14,15 +14,15 @@
 | **Document Type** | National AI Governance & Ethics (AIGE) Assessment |
 | **Project** | ibn-core-my (Project 001) |
 | **Classification** | PUBLIC |
-| **Status** | DRAFT |
+| **Status** | APPROVED |
 | **Version** | 1.0 |
 | **Created Date** | 2026-06-05 |
-| **Last Modified** | 2026-06-05 |
+| **Last Modified** | 2026-06-21 |
 | **Review Cycle** | Quarterly |
 | **Next Review Date** | 2026-09-05 |
 | **Owner** | Roland Pfeifer, Lead Architect / CTO (Vpnet Cloud Solutions Sdn. Bhd.) |
-| **Reviewed By** | [PENDING] |
-| **Approved By** | [PENDING] |
+| **Reviewed By** | Vpnet AI-Governance owner review — Roland Pfeifer, CTO (2026-06-21) |
+| **Approved By** | Roland Pfeifer, CTO — management acceptance (Vpnet accountable owner), 2026-06-21; qualified MY AI-governance counsel (MOSTI/NAIO) review required before external reliance (per preamble) |
 | **Distribution** | ibn-core engineering, Vpnet SI delivery teams, operator integration partners (U Mobile, TM Malaysia), operator Compliance Officers, operator Network Engineering |
 
 > **Subject type note**: This assessment uses the **Generic / commercial** document-control header per `_partials/RENDERING.md` — ibn-core's `governance_framework` is not `Malaysia Federal` and its `classification_scheme` is not `Arahan Keselamatan` (userConfig `organisation_name: Vpnet`), so the Malaysia Federal doc-control block is omitted. This is consistent with `ARC-001-MYCLAS-v1.0`, `ARC-001-MYDIG-v1.0` and `ARC-001-PDPA-v1.0`. AIGE alignment is nonetheless assessed in full, and personal-data / NCII obligations remain binding under sector law.
@@ -32,6 +32,7 @@
 | Version | Date | Author | Changes | Approved By | Approval Date |
 |---------|------|--------|---------|-------------|---------------|
 | 1.0 | 2026-06-05 | ArcKit AI | Initial creation from `/arckit:my-ai-governance` (executed via arckit-build wave 7, command-fallback). Maps ibn-core to the seven AIGE principles; documents human oversight (HITL gating per R-001), transparency/explainability via GenAI + RFC 9315 telemetry, and accountability via constrained agent-role identity (FR-007 / ADR-001). | [PENDING] | [PENDING] |
+| 1.0 (signed off) | 2026-06-21 | ArcKit AI | Management sign-off — Status → APPROVED (Vpnet owner acceptance); MY AI-governance counsel (MOSTI/NAIO) caveat retained | Roland Pfeifer, CTO | 2026-06-21 |
 
 ---
 
