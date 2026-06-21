@@ -12,15 +12,15 @@
 | **Document Type** | Commercial Data-Sensitivity Classification Register |
 | **Project** | ibn-core-my (Project 001) |
 | **Classification** | PUBLIC |
-| **Status** | DRAFT |
+| **Status** | APPROVED |
 | **Version** | 1.0 |
 | **Created Date** | 2026-06-05 |
-| **Last Modified** | 2026-06-05 |
+| **Last Modified** | 2026-06-21 |
 | **Review Cycle** | Quarterly |
 | **Next Review Date** | 2026-09-05 |
 | **Owner** | Roland Pfeifer, Lead Architect / CTO (Vpnet Cloud Solutions Sdn. Bhd.) |
-| **Reviewed By** | [PENDING] |
-| **Approved By** | [PENDING] |
+| **Reviewed By** | Vpnet Compliance owner review — Roland Pfeifer, CTO (2026-06-21) |
+| **Approved By** | Roland Pfeifer, CTO — management acceptance (Vpnet accountable owner), 2026-06-21; living register, maintained per engagement; qualified MY compliance counsel before external use |
 | **Distribution** | ibn-core engineering, Vpnet SI delivery teams, operator integration partners (U Mobile, TM Malaysia) |
 
 > **Subject type note**: This register applies the **Generic / commercial** document-control header, not the Malaysia Federal "Agensi" header. Per `_partials/RENDERING.md`, the Malaysia public-sector doc-control block is included only when `governance_framework` is `Malaysia Federal` **or** `classification_scheme` is `Arahan Keselamatan`. ibn-core is a commercial subject under neither condition, so the Malaysia block is omitted — consistent with `ARC-001-MYDIG-v1.0` (Subject type note) and the project's PUBLIC posture in `ARC-000-PRIN-v1.0`, `ARC-001-REQ-v1.0`, and `ARC-001-STKE-v1.0`.
@@ -30,6 +30,7 @@
 | Version | Date | Author | Changes | Approved By | Approval Date |
 |---------|------|--------|---------|-------------|---------------|
 | 1.0 | 2026-06-05 | ArcKit AI | Initial creation from `/arckit:my-classification` (executed via arckit-build wave 3); commercial-tier reframing per `my-operator` recipe | [PENDING] | [PENDING] |
+| 1.0 (signed off) | 2026-06-21 | ArcKit AI | Management sign-off — Status → APPROVED (Vpnet owner acceptance); living register, MY counsel caveat retained | Roland Pfeifer, CTO | 2026-06-21 |
 
 ---
 

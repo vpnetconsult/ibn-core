@@ -12,15 +12,15 @@
 | **Document Type** | Commercial Cloud Residency & Data-Sovereignty Assessment |
 | **Project** | ibn-core-my (Project 001) |
 | **Classification** | PUBLIC |
-| **Status** | DRAFT |
+| **Status** | APPROVED |
 | **Version** | 1.0 |
 | **Created Date** | 2026-06-05 |
-| **Last Modified** | 2026-06-05 |
+| **Last Modified** | 2026-06-21 |
 | **Review Cycle** | Quarterly |
 | **Next Review Date** | 2026-09-05 |
 | **Owner** | Roland Pfeifer, Lead Architect / CTO (Vpnet Cloud Solutions Sdn. Bhd.) |
-| **Reviewed By** | [PENDING] |
-| **Approved By** | [PENDING] |
+| **Reviewed By** | Vpnet Compliance owner review — Roland Pfeifer, CTO (2026-06-21) |
+| **Approved By** | Roland Pfeifer, CTO — management acceptance (Vpnet accountable owner), 2026-06-21; per-engagement residency confirmation with operator per ADR-002/003; qualified MY compliance counsel before external use |
 | **Distribution** | ibn-core engineering, Vpnet SI delivery teams, operator integration partners (U Mobile, TM Malaysia) |
 
 > **Subject type note**: This assessment applies the **Generic / commercial** document-control header, not the Malaysia Federal "Agensi" header. Per `_partials/RENDERING.md`, the Malaysia public-sector doc-control block is included only when `governance_framework` is `Malaysia Federal` **or** `classification_scheme` is `Arahan Keselamatan`. ibn-core is a commercial subject under neither condition, so the Malaysia block is omitted — consistent with `ARC-001-MYCLAS-v1.0` and `ARC-001-MYDIG-v1.0` (Subject type notes) and the project's PUBLIC posture in `ARC-000-PRIN-v1.0`, `ARC-001-REQ-v1.0`, and `ARC-001-STKE-v1.0`. Because the classification scheme is the **commercial four-tier ladder** (PUBLIC / INTERNAL / CONFIDENTIAL / RESTRICTED) inherited from `ARC-001-MYCLAS-v1.0`, this assessment evaluates residency against those tiers — **not** against Sulit / Rahsia / Rahsia Besar on-shore obligations, which bind only public-sector subjects.
@@ -30,6 +30,7 @@
 | Version | Date | Author | Changes | Approved By | Approval Date |
 |---------|------|--------|---------|-------------|---------------|
 | 1.0 | 2026-06-05 | ArcKit AI | Initial creation from `/arckit:my-cloud-first` (executed via arckit-build wave 4); commercial cloud-residency reframing per `my-operator` recipe | [PENDING] | [PENDING] |
+| 1.0 (signed off) | 2026-06-21 | ArcKit AI | Management sign-off — Status → APPROVED (Vpnet owner acceptance); per-engagement residency + MY counsel caveat retained | Roland Pfeifer, CTO | 2026-06-21 |
 
 ---
 
