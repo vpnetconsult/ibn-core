@@ -13,7 +13,7 @@
 | **Status** | DRAFT |
 | **Version** | 1.0 |
 | **Created Date** | 2026-06-05 |
-| **Last Modified** | 2026-06-05 |
+| **Last Modified** | 2026-06-20 |
 | **Review Cycle** | Quarterly |
 | **Next Review Date** | 2026-07-05 |
 | **Owner** | Roland Pfeifer, Lead Architect / CTO (Vpnet Cloud Solutions Sdn. Bhd.) |
@@ -26,6 +26,7 @@
 | Version | Date | Author | Changes | Approved By | Approval Date |
 |---------|------|--------|---------|-------------|---------------|
 | 1.0 | 2026-06-05 | ArcKit AI | Initial creation from `/arckit:traceability` command | [PENDING] | [PENDING] |
+| 1.0 (amended) | 2026-06-20 | ArcKit AI | Refreshed to incorporate ADR-004/005/006 (forward + backward) and risks R-017/018/019; NFR-M-002 upgraded ❌→⚠️ (now traced via ADR-005/006); coverage/metrics reconciled. In-place DRAFT amendment — no version bump, inbound links preserved. | [PENDING] | [PENDING] |
 
 ## Document Purpose
 
@@ -101,12 +102,12 @@ flowchart TD
 
 | Req ID | Requirement | Priority | ADR | HLD (HLDR) | Compliance / Risk | Ops | Status |
 |--------|-------------|----------|-----|------------|-------------------|-----|--------|
-| BR-001 | Standards-conformant intent platform (RFC 9315 / TMF921) | MUST | — | HLDR §3, §5 | AIPB; NFR-C-003 CTK | OPS | ✅ |
-| BR-002 | AI-native intent translation & autonomous orchestration | MUST | — | HLDR (via FR-002/003) | DPIA, AIGE, AIPB, RISK R-001/R-013 | OPS | ✅ |
-| BR-003 | Open-core commercial model integrity | MUST | ADR-001/002/003 | HLDR §5.4 | SECD, PDPA, AIPB, RISK R-002 | — | ✅ |
-| BR-004 | Operator-grade delivery for Malaysian SI engagements | MUST | ADR-001/002 | (via NFR-A/M) | RISK R-012 | OPS | ✅ |
+| BR-001 | Standards-conformant intent platform (RFC 9315 / TMF921) | MUST | ADR-004 | HLDR §3, §5 | AIPB; NFR-C-003 CTK; RISK R-017 | OPS | ✅ |
+| BR-002 | AI-native intent translation & autonomous orchestration | MUST | ADR-006 | HLDR (via FR-002/003) | DPIA, AIGE, AIPB, RISK R-001/R-013/R-019 | OPS | ✅ |
+| BR-003 | Open-core commercial model integrity | MUST | ADR-001/002/003/005/006 | HLDR §5.4 | SECD, PDPA, AIPB, RISK R-002/R-018/R-019 | — | ✅ |
+| BR-004 | Operator-grade delivery for Malaysian SI engagements | MUST | ADR-001/002/004/005 | (via NFR-A/M) | RISK R-012/R-017 | OPS | ✅ |
 | BR-005 | Auditable, trustworthy autonomous behaviour | MUST | ADR-001 | HLDR §6 | AIGE, AIPB, RISK R-001 | OPS | ✅ |
-| BR-006 | Maintain academic & evidence baseline | SHOULD | ADR-003 | (via NFR-C-003) | AIPB, RISK R-006 | — | ✅ |
+| BR-006 | Maintain academic & evidence baseline | SHOULD | ADR-003/006 | (via NFR-C-003) | AIPB, RISK R-006 | — | ✅ |
 
 #### 2.1.2 Functional Requirements (FR)
 
@@ -114,17 +115,17 @@ flowchart TD
 |--------|-------------|----------|-----|------------|-------------------|-----|--------|
 | FR-001 | Natural-language intent ingestion | MUST | — | HLDR §5 (Ingestion) | DPIA | — | ✅ |
 | FR-002 | AI/LLM-based intent translation | MUST | — | HLDR §5 (Translation) | DPIA, AIGE, AIPB, RISK R-013 | — | ✅ |
-| FR-003 | Autonomous agent orchestration via MCP | MUST | — | HLDR §5.4 (Orchestration) | DPIA, AIGE, AIPB, RISK R-001 | — | ✅ |
+| FR-003 | Autonomous agent orchestration via MCP | MUST | ADR-004 | HLDR §5.4 (Orchestration) | DPIA, AIGE, AIPB, RISK R-001/R-017 | — | ✅ |
 | FR-004 | Intent lifecycle management (create/retrieve/delete) | MUST | — | HLDR §5 | — | — | ⚠️ |
 | FR-005 | Intent-state single source of truth | MUST | ADR-002/003 | HLDR §5.3 | DPIA, RISK R-014 | OPS | ✅ |
 | FR-006 | Identity-based authn / authz | MUST | ADR-001 | HLDR §6 | DPIA, SECD, PDPA, AIPB | — | ✅ |
 | FR-007 | Constrained agent-role identity for autonomous cycles | MUST | ADR-001 | HLDR §6 | DPIA, SECD, NCII, AIGE, AIPB, PDPA, RISK R-008 | OPS | ✅ |
 | FR-008 | IntentReport generation & compliance assessment | MUST | — | HLDR §5 | DPIA, AIPB | — | ✅ |
 | FR-009 | PII masking of subscriber context | MUST | ADR-002/003 | HLDR §6 | DPIA, SECD, AIGE, AIPB, PDPA, RISK R-004 | OPS | ✅ |
-| FR-010 | Published MCP adapter seam with mock implementation | MUST | — | HLDR §5.4 | — | — | ⚠️ |
+| FR-010 | Published MCP adapter seam with mock implementation | MUST | ADR-006 | HLDR §5.4 | RISK R-019 | — | ⚠️ |
 | FR-011 | Agent & application telemetry emission | MUST | ADR-001 | HLDR §5 (telemetry) | DPIA, SECD, NCII, AIGE, AIPB, OPS, RISK R-011 | OPS | ✅ |
 | FR-012 | Adapter capability exposure | SHOULD | — | HLDR §5.4 | — | — | ⚠️ |
-| FR-013 | Intent status monitoring | SHOULD | — | HLDR §5 | DPIA | — | ✅ |
+| FR-013 | Intent status monitoring | SHOULD | ADR-004 | HLDR §5 | DPIA | — | ✅ |
 
 #### 2.1.3 Integration Requirements (INT)
 
@@ -141,27 +142,27 @@ flowchart TD
 |--------|-------------|----------|-----|------------|-------------------|-----|--------|
 | NFR-P-001 | Response time | HIGH | — | HLDR §7 | DPIA, AIPB | OPS | ✅ |
 | NFR-P-002 | Throughput & AI-cost efficiency | HIGH | — | HLDR §7, §10 | AIPB, RISK R-002 | OPS | ✅ |
-| NFR-A-001 | Availability target | HIGH | ADR-002 | HLDR §7 | — | OPS | ✅ |
+| NFR-A-001 | Availability target | HIGH | ADR-002/004 | HLDR §7 | RISK R-017 | OPS | ✅ |
 | NFR-A-002 | Disaster recovery | HIGH | ADR-002/003 | HLDR §9 | SECD, NCII, RISK R-014 | OPS | ✅ |
-| NFR-A-003 | Fault tolerance | CRITICAL | — | HLDR §7 | SECD, NCII, AIGE, AIPB, RISK R-011 | OPS | ✅ |
+| NFR-A-003 | Fault tolerance | CRITICAL | ADR-004 | HLDR §7 | SECD, NCII, AIGE, AIPB, RISK R-011/R-017 | OPS | ✅ |
 | NFR-S-001 | Horizontal scaling | HIGH | ADR-002 | HLDR §7 | DPIA, AIPB | OPS | ✅ |
 | NFR-S-002 | Tenant & data-volume scaling | MEDIUM | — | HLDR §7 | — | OPS | ✅ |
 | NFR-SEC-001 | Authentication | CRITICAL | ADR-001 | HLDR §6 | DPIA, SECD, NCII, PDPA | OPS | ✅ |
 | NFR-SEC-002 | Authorization | CRITICAL | ADR-001 | HLDR §6 | — | — | ⚠️ |
 | NFR-SEC-003 | Data encryption | CRITICAL | ADR-002/003 | HLDR §6 | DPIA, SECD, NCII, AIPB, PDPA | OPS | ✅ |
 | NFR-SEC-004 | Secrets management | CRITICAL | ADR-001/002/003 | HLDR §6 | SECD, AIPB, PDPA, RISK R-002 | OPS | ✅ |
-| NFR-SEC-005 | Vulnerability management | HIGH | ADR-001 | HLDR §6 | DPIA, SECD, AIPB, PDPA, RISK R-005 | OPS | ✅ |
-| NFR-SEC-006 | Dependency licence compatibility | CRITICAL | — | HLDR §6 | SECD, NCII, AIPB, RISK R-002 | — | ✅ |
+| NFR-SEC-005 | Vulnerability management | HIGH | ADR-001/006 | HLDR §6 | DPIA, SECD, AIPB, PDPA, RISK R-005/R-019 | OPS | ✅ |
+| NFR-SEC-006 | Dependency licence compatibility | CRITICAL | ADR-006 | HLDR §6 | SECD, NCII, AIPB, RISK R-002/R-015/R-019 | — | ✅ |
 | NFR-C-001 | Data privacy compliance (PDPA 2010) | CRITICAL | ADR-002/003 | HLDR §5.3 | DPIA, SECD, AIGE, AIPB, PDPA, RISK R-004 | OPS | ✅ |
 | NFR-C-002 | Audit logging | HIGH | ADR-001 | HLDR §6 | DPIA, SECD, NCII, AIGE, AIPB, PDPA, RISK R-004 | OPS | ✅ |
 | NFR-C-003 | Standards-conformance verification (CTK) | CRITICAL | — | HLDR §3 | RISK R-006 | OPS | ✅ |
 | NFR-U-001 | API & developer experience | MEDIUM | — | — | — | — | ❌ |
-| NFR-M-001 | Observability | HIGH | ADR-003 | HLDR §9 | SECD, NCII, AIPB | OPS | ✅ |
-| NFR-M-002 | Documentation & agent-readable context | MEDIUM | — | — | — | — | ❌ |
-| NFR-M-003 | Operational runbooks | MEDIUM | ADR-001 | HLDR §9 | DPIA, SECD, NCII, PDPA, RISK R-011 | OPS | ✅ |
+| NFR-M-001 | Observability | HIGH | ADR-003/004 | HLDR §9 | SECD, NCII, AIPB, RISK R-017 | OPS | ✅ |
+| NFR-M-002 | Documentation & agent-readable context | MEDIUM | ADR-005/006 | CLAUDE.md naming + library import surface | — | — | ⚠️ |
+| NFR-M-003 | Operational runbooks | MEDIUM | ADR-001/004 | HLDR §9 | DPIA, SECD, NCII, PDPA, RISK R-011/R-017 | OPS | ✅ |
 | NFR-I-001 | API standards (TMF921) | CRITICAL | — | HLDR §5.4 | RISK R-006 | — | ✅ |
-| NFR-I-002 | Integration via published interfaces | HIGH | ADR-002 | HLDR §5.4 | SECD | — | ✅ |
-| NFR-I-003 | Infrastructure as code | HIGH | ADR-002/003 | HLDR §9 | SECD, AIPB, RISK R-010 | OPS | ✅ |
+| NFR-I-002 | Integration via published interfaces | HIGH | ADR-002/006 | HLDR §5.4 | SECD, RISK R-019 | — | ✅ |
+| NFR-I-003 | Infrastructure as code | HIGH | ADR-002/003/004 | HLDR §9 | SECD, AIPB, RISK R-010/R-017/R-018 | OPS | ✅ |
 
 ---
 
@@ -174,10 +175,13 @@ Every architecture decision traces to at least one requirement — no orphan ADR
 | ADR-001 | Operator identity via Keycloak central IdP + constrained agent role + CAMARA-native egress auth | FR-006, FR-007, FR-011, INT-001, INT-003, NFR-SEC-001/002/004/005, NFR-C-002, NFR-M-003, BR-003/004/005 | ✅ Traced |
 | ADR-002 | Cloud platform & data-centre placement — hybrid, classification-driven landing zones | FR-005, FR-009, NFR-A-001/002, NFR-C-001, NFR-S-001, NFR-I-002/003, NFR-SEC-003/004, BR-003/004 | ✅ Traced |
 | ADR-003 | Data residency per commercial sensitivity classification (MYCLAS-keyed) | FR-005, FR-009, INT-002, INT-004, NFR-A-002, NFR-C-001, NFR-I-003, NFR-M-001, NFR-SEC-003/004, BR-003/004/006 | ✅ Traced |
+| ADR-004 | Decouple liveness from dependency health for MCP services (probe topology standard) | FR-003, FR-013, NFR-A-001/003, NFR-M-001/003, NFR-I-003, BR-001/004 | ✅ Traced |
+| ADR-005 | Product & container-image naming convention (`ibn-core` = library; peer app images) | BR-002/003/004/006, NFR-M-002, NFR-I-002/003 | ✅ Traced |
+| ADR-006 | Package ibn-core as a git-installable library (A-lite, additive) | BR-002/003/006, FR-010, NFR-I-002, NFR-M-002, NFR-SEC-005/006 | ✅ Traced |
 
 ### 2.3 Backward Traceability: Risk Controls → Requirements (No Unmitigated Appetite-Exceeding Risk)
 
-All 16 risks (R-001…R-016) carry a named owner and treatment strategy in ARC-001-RISK §Mitigation Action Plan. The table below links each appetite-exceeding / top-tier risk to the requirement(s) whose controls mitigate it.
+All 19 risks (R-001…R-019) carry a named owner and treatment strategy in ARC-001-RISK §Mitigation Action Plan. The table below links each appetite-exceeding / top-tier risk to the requirement(s) whose controls mitigate it (R-017/018/019 added 2026-06-20 from ADR-004/005/006).
 
 | Risk ID | Risk | Mitigating Requirement(s) | Mitigating Artefact | Owner | Status |
 |---------|------|---------------------------|---------------------|-------|--------|
@@ -193,6 +197,9 @@ All 16 risks (R-001…R-016) carry a named owner and treatment strategy in ARC-0
 | R-012 | First operator engagement misses go-live | BR-004, FR-010 | OPS, DPIA/NCII front-loading | SI Delivery Lead | ✅ Mitigated (Treat) |
 | R-013 | LLM translation accuracy drift | FR-002, BR-002 | AIGE, AIPB (eval set) | Engineering | ✅ Mitigated (Treat) |
 | R-014 | SSoT backup/restore failure | FR-005, NFR-A-002 | OPS DR drill | Enterprise Architect | ✅ Mitigated (Tolerate) |
+| R-017 | MCP-service restart churn from dependency-coupled probes | FR-003, NFR-A-001/003, NFR-M-001/003, NFR-I-003 | ADR-004 probe-decoupling standard (151→0 restarts) | Platform / SRE Lead | ✅ Mitigated (Treat) |
+| R-018 | Product/image naming drift re-conflates core with deployable | BR-003, NFR-M-002, NFR-I-003 | ADR-005 naming convention (CLAUDE.md) + CI guardrail | Platform / SRE Lead | ✅ Mitigated (Treat) |
+| R-019 | Library transitive footprint inherited by consumers | BR-002/003, FR-010, NFR-SEC-005/006, NFR-I-002 | ADR-006 immutable pinning + licence/vuln gate; Project 005 prune | Security Lead + Engineering | ✅ Mitigated (Treat) |
 
 ---
 
@@ -205,14 +212,14 @@ All 16 risks (R-001…R-016) carry a named owner and treatment strategy in ARC-0
 | Business Requirements (BR) | 6 | 6 | 0 | 0 | 100% |
 | Functional Requirements (FR) | 13 | 10 | 3 | 0 | 77% |
 | Integration Requirements (INT) | 4 | 4 | 0 | 0 | 100% |
-| Non-Functional Requirements (NFR) | 23 | 20 | 1 | 2 | 87% |
-| **Total** | **46** | **40** | **4** | **2** | **87%** |
+| Non-Functional Requirements (NFR) | 23 | 20 | 2 | 1 | 87% |
+| **Total** | **46** | **40** | **5** | **1** | **87%** |
 
-**Downstream-reference coverage** (requirement referenced in at least one decision/design/compliance/risk/ops artefact): **44 / 46 = 95.7%**.
+**Downstream-reference coverage** (requirement referenced in at least one decision/design/compliance/risk/ops artefact): **45 / 46 = 97.8%** *(up from 95.7% — NFR-M-002 now traced via ADR-005/006, 2026-06-20)*.
 
 **Target Coverage**: 100% of MUST/CRITICAL, > 80% of SHOULD/HIGH, < 50% acceptable for MAY/MEDIUM.
 
-**Current Status**: ON TRACK — both ❌ gaps are MEDIUM-priority NFRs; all MUST/CRITICAL requirements are covered.
+**Current Status**: ON TRACK — the one remaining ❌ gap is a MEDIUM-priority NFR (NFR-U-001); all MUST/CRITICAL requirements are covered. The 2026-06-20 refresh upgraded NFR-M-002 (agent-readable context) from ❌ to ⚠️ — now traced to ADR-005 (naming convention) and ADR-006 (library import surface).
 
 ### 3.2 Coverage by Priority
 
@@ -222,7 +229,7 @@ All 16 risks (R-001…R-016) carry a named owner and treatment strategy in ARC-0
 | CRITICAL | 13 | 13 | 0 | 100% | 100% | ✅ Pass |
 | HIGH | 11 | 11 | 0 | 100% | > 80% | ✅ Pass |
 | SHOULD_HAVE | 3 | 3 | 0 | 100% | > 80% | ✅ Pass |
-| MEDIUM | 5 | 3 | 2 | 60% | < 50% acceptable | ✅ Pass |
+| MEDIUM | 5 | 4 | 1 | 80% | < 50% acceptable | ✅ Pass |
 
 > Note: MUST_HAVE / SHOULD_HAVE are the MoSCoW priorities used for BR/FR/INT; CRITICAL / HIGH / MEDIUM are the priorities used for NFRs in ARC-001-REQ. Both schemes are shown so each requirement is checked against its own threshold.
 
@@ -234,13 +241,16 @@ All 16 risks (R-001…R-016) carry a named owner and treatment strategy in ARC-0
 | ADR-001 (identity) | 14 | Identity / authz / agent role |
 | ADR-002 (cloud platform) | 12 | Placement / residency / scaling |
 | ADR-003 (data residency) | 13 | Residency / SSoT / AI egress |
+| ADR-004 (probe decoupling) | 9 | Reliability / pod-lifecycle probe topology |
+| ADR-005 (product/image naming) | 7 | Open-core naming legibility |
+| ADR-006 (A-lite library packaging) | 8 | Reuse surface / dependency footprint |
 | DPIA | 23 | Privacy verification |
 | SECD | 22 | Security control verification |
 | OPS | 24 | Operational control |
 | AIPB | 28 | AI governance verification |
-| RISK | 21 | Risk-control linkage |
+| RISK | 24 | Risk-control linkage (19 risks, incl. R-017/018/019) |
 
-**Orphan decisions / design elements**: none. Every ADR and HLDR section traces to a requirement.
+**Orphan decisions / design elements**: none. Every ADR (now ADR-001…006) and HLDR section traces to a requirement.
 
 ### 3.4 Verification / Test Coverage
 
@@ -265,9 +275,10 @@ This product has no separate executable test plan yet; verification is evidenced
 | Req ID | Requirement | Priority | Gap | Severity | Recommended Action | Target |
 |--------|-------------|----------|-----|----------|--------------------|--------|
 | NFR-U-001 | API & developer experience | MEDIUM | No reference in any ADR, HLDR, compliance or ops artefact | LOW | Trace to README/quickstart + OpenAPI/CTK DX evidence, or add a DX section to OPS | Next minor (v1.1) |
-| NFR-M-002 | Documentation & agent-readable context | MEDIUM | No downstream reference; satisfied in practice by CLAUDE.md / docs but not traced | LOW | Cite CLAUDE.md + `docs/` as the implementing evidence in a future HLDR/OPS update | Next minor (v1.1) |
 
-**Impact**: Both are MEDIUM developer/documentation NFRs; no impact on MUST/CRITICAL release readiness. They are likely satisfied by existing repo assets (README, OpenAPI, CLAUDE.md, agent-native docs) but lack an explicit traceability link.
+> **Resolved 2026-06-20:** NFR-M-002 (Documentation & agent-readable context) is no longer an orphan — it is now traced to ADR-005 (CLAUDE.md naming convention) and ADR-006 (documented library import surface), upgrading it to ⚠️ Partial (design coverage, explicit verification still thin — see §4.2).
+
+**Impact**: The single remaining orphan (NFR-U-001) is a MEDIUM developer-experience NFR; no impact on MUST/CRITICAL release readiness. It is likely satisfied by existing repo assets (README, OpenAPI) but lacks an explicit traceability link.
 
 ### 4.2 Requirements With Design but Thin Explicit Verification (Partial)
 
@@ -277,6 +288,7 @@ This product has no separate executable test plan yet; verification is evidenced
 | FR-010 | MCP adapter seam + mock | MUST | Open-core seam designed (HLDR §5.4); verification implicit in build, not a named conformance artefact | Add seam contract test / mock-adapter smoke evidence |
 | FR-012 | Adapter capability exposure | SHOULD | Designed (HLDR §5.4); no explicit verification reference | Add `getCapabilities()` contract test reference |
 | NFR-SEC-002 | Authorization | CRITICAL | Covered by ADR-001 + HLDR §6, but no dedicated security-test/compliance artefact reference beyond authentication | Add authz/RBAC test evidence (pair with R-008 control) — prioritise given CRITICAL status |
+| NFR-M-002 | Documentation & agent-readable context | MEDIUM | Now design-traced (ADR-005 naming, ADR-006 import surface, CLAUDE.md) but no explicit verification artefact | Cite CLAUDE.md + `docs/` + the library `'ibn-core'` export surface as named evidence in a future HLDR/OPS update |
 
 ### 4.3 Design / Decision Elements Without Requirements (Scope Creep)
 
@@ -284,7 +296,7 @@ None identified. All ADRs and HLDR sections trace to one or more requirements (s
 
 ### 4.4 Unmitigated Risks
 
-None. All 16 risks (R-001…R-016) have named owners and treatment strategies; every appetite-exceeding risk maps to a mitigating requirement and control (see §2.3).
+None. All 19 risks (R-001…R-019) have named owners and treatment strategies; every appetite-exceeding risk maps to a mitigating requirement and control (see §2.3). The three risks added 2026-06-20 (R-017/018/019) are all within appetite with implemented or in-progress controls.
 
 ---
 
@@ -305,16 +317,16 @@ None. All 16 risks (R-001…R-016) have named owners and treatment strategies; e
 | NFR-SEC-002 | Authorization | ADR-001 agent role, HLDR §6 | (verification thin — see §4.2) | ⚠️ |
 | NFR-SEC-003 | Data encryption | ADR-002/003, HLDR §6 | DPIA, SECD, NCII, PDPA | ✅ |
 | NFR-SEC-004 | Secrets management | ADR-001/002/003, HLDR §6 | SECD, PDPA, RISK R-002 | ✅ |
-| NFR-SEC-005 | Vulnerability management | ADR-001, HLDR §6 | SECD, RISK R-005 | ✅ |
-| NFR-SEC-006 | Dependency licence compatibility | HLDR §6, CLAUDE.md licence rules | SECD, NCII, RISK R-002 | ✅ |
+| NFR-SEC-005 | Vulnerability management | ADR-001/006, HLDR §6 | SECD, RISK R-005/R-019 | ✅ |
+| NFR-SEC-006 | Dependency licence compatibility | ADR-006, HLDR §6, CLAUDE.md licence rules | SECD, NCII, RISK R-002/R-015/R-019 | ✅ |
 
 ### 5.3 Availability & Resilience
 
 | NFR ID | Requirement | Design Strategy | Verification | Status |
 |--------|-------------|-----------------|--------------|--------|
-| NFR-A-001 | Availability target | ADR-002 multi-AZ, HLDR §7 | OPS SLO | ✅ |
+| NFR-A-001 | Availability target | ADR-002 multi-AZ, ADR-004 probe topology, HLDR §7 | OPS SLO, RISK R-017 | ✅ |
 | NFR-A-002 | Disaster recovery | ADR-002/003, HLDR §9 | OPS DR drill, RISK R-014 | ✅ |
-| NFR-A-003 | Fault tolerance | HLDR §7 circuit breakers | SECD, NCII, RISK R-011 | ✅ |
+| NFR-A-003 | Fault tolerance | HLDR §7 circuit breakers + ADR-004 liveness/readiness decoupling | SECD, NCII, RISK R-011/R-017 | ✅ |
 
 ### 5.4 Compliance
 
@@ -342,21 +354,22 @@ For change-impact analysis of a specific requirement, use `/arckit:impact` again
 
 | Metric | Current Value | Target | Status |
 |--------|---------------|--------|--------|
-| Requirements with design/decision coverage | 44/46 (95.7%) | 100% | ⚠️ At Risk (2 MEDIUM NFRs) |
+| Requirements with design/decision coverage | 45/46 (97.8%) | 100% | ⚠️ At Risk (1 MEDIUM NFR) |
 | MUST + CRITICAL requirements covered | 29/29 (100%) | 100% | ✅ On Track |
 | Requirements with verification/compliance link | 40/46 (87%) | 100% | ⚠️ At Risk |
-| Orphan decisions (ADR with no requirement) | 0 | 0 | ✅ On Track |
+| Orphan decisions (ADR with no requirement) | 0 (ADR-001…006 all traced) | 0 | ✅ On Track |
 | Orphan design elements (scope creep) | 0 | 0 | ✅ On Track |
-| Risks with mitigating control + owner | 16/16 (100%) | 100% | ✅ On Track |
-| Outstanding traceability gaps | 2 (both LOW severity) | 0 | ⚠️ At Risk |
+| Risks with mitigating control + owner | 19/19 (100%) | 100% | ✅ On Track |
+| Outstanding traceability gaps | 1 (LOW severity) | 0 | ⚠️ At Risk |
 
 ### 7.2 Coverage Trends
 
 | Date | Req Coverage | MUST/CRITICAL Coverage | Risk-Control Coverage |
 |------|--------------|------------------------|------------------------|
-| 2026-06-05 | 87% (95.7% incl. partial) | 100% | 100% |
+| 2026-06-05 | 87% (95.7% incl. partial) | 100% | 100% (16/16) |
+| 2026-06-20 | 87% (97.8% incl. partial) | 100% | 100% (19/19) |
 
-**Trend**: Baseline established.
+**Trend**: Improving — downstream coverage 95.7% → 97.8% as ADR-004/005/006 landed; NFR-M-002 moved off the orphan list; risk-control linkage extended to 19 risks. One MEDIUM orphan (NFR-U-001) remains.
 
 ---
 
@@ -367,7 +380,8 @@ For change-impact analysis of a specific requirement, use `/arckit:impact` again
 | ID | Gap Description | Owner | Priority | Target Date | Status |
 |----|-----------------|-------|----------|-------------|--------|
 | GAP-001 | NFR-U-001 (API/DX) untraced — link OpenAPI/CTK DX + README | Engineering Lead | LOW | 2026-07 | Open |
-| GAP-002 | NFR-M-002 (docs/agent context) untraced — cite CLAUDE.md + docs as evidence | Lead Architect | LOW | 2026-07 | Open |
+| GAP-002 | NFR-M-002 (docs/agent context) untraced — cite CLAUDE.md + docs as evidence | Lead Architect | LOW | 2026-07 | ✅ Resolved 2026-06-20 (traced via ADR-005/006; now ⚠️ partial — explicit verification still open) |
+| GAP-005 | R-017/018/019 follow-ups: apply ADR-004 probe standard fleet-wide; CI image-name guardrail; per-release footprint scan | Platform/SRE + Security | MEDIUM | 2026-Q3 | Open (tracked in ARC-001-RISK action plan #12–14) |
 | GAP-003 | NFR-SEC-002 (authorization) verification thin — add RBAC/authz test evidence | Security Lead | HIGH | Before G-2 | Open |
 | GAP-004 | FR-004/FR-010/FR-012 verification implicit — add lifecycle/seam contract tests | Engineering Lead | MEDIUM | 2026-Q3 | Open |
 
@@ -376,13 +390,13 @@ For change-impact analysis of a specific requirement, use `/arckit:impact` again
 | ID | Orphan Item | Type | Resolution | Owner | Status |
 |----|-------------|------|------------|-------|--------|
 | ORP-001 | NFR-U-001 | Requirement (no design) | Add evidence link | Engineering Lead | Open |
-| ORP-002 | NFR-M-002 | Requirement (no design) | Add evidence link | Lead Architect | Open |
+| ORP-002 | NFR-M-002 | Requirement (no design) | Traced to ADR-005 (naming) + ADR-006 (import surface) | Lead Architect | ✅ Resolved 2026-06-20 |
 
 ### 8.3 Release Recommendation
 
-**Overall Traceability Score: 90 / 100.**
+**Overall Traceability Score: 91 / 100** *(+1 from the 2026-06-20 refresh — NFR-M-002 orphan resolved; six ADRs and 19 risks now fully cross-linked)*.
 
-**Recommendation: APPROVED WITH CONDITIONS.** All 29 MUST/CRITICAL requirements are covered by a decision and design with downstream control, all ADRs trace to requirements (no scope creep), and every risk has a mitigating control with a named owner. Conditions before G-2 production go-live: (1) close GAP-003 (CRITICAL NFR-SEC-002 authorization verification), (2) attach explicit verification evidence for the four ⚠️ partials, and (3) link the two LOW-severity MEDIUM-priority documentation/DX NFRs (NFR-U-001, NFR-M-002). No blocking (CRITICAL) traceability gaps.
+**Recommendation: APPROVED WITH CONDITIONS.** All 29 MUST/CRITICAL requirements are covered by a decision and design with downstream control, all six ADRs (ADR-001…006) trace to requirements (no scope creep), and every one of the 19 risks has a mitigating control with a named owner. Conditions before G-2 production go-live: (1) close GAP-003 (CRITICAL NFR-SEC-002 authorization verification), (2) attach explicit verification evidence for the ⚠️ partials (now including NFR-M-002), and (3) link the one remaining LOW-severity MEDIUM-priority NFR (NFR-U-001). No blocking (CRITICAL) traceability gaps.
 
 ---
 
@@ -393,9 +407,9 @@ For change-impact analysis of a specific requirement, use `/arckit:impact` again
 - [x] All business requirements traced to decisions/design
 - [x] All functional requirements traced to design components
 - [x] All design elements / ADRs trace back to requirements (no orphans)
-- [ ] All requirements have explicit verification coverage (4 partials + 2 LOW gaps outstanding)
+- [ ] All requirements have explicit verification coverage (4 partials + 1 LOW gap outstanding)
 - [x] All gaps identified with severity and action plan
-- [x] All NFRs addressed in design (2 MEDIUM NFRs pending evidence link)
+- [x] All NFRs addressed in design (1 MEDIUM NFR — NFR-U-001 — pending evidence link)
 - [x] All risks have mitigating control and owner
 - [x] Change-impact method defined
 
@@ -417,7 +431,7 @@ See `ARC-001-REQ-v1.0.md` (46 requirements: 6 BR, 13 FR, 4 INT, 23 NFR).
 
 ### Appendix B: Design & Decision Documents
 
-`ARC-001-HLDR-v1.0.md`; `decisions/ARC-001-ADR-001..003-v1.0.md`.
+`ARC-001-HLDR-v1.0.md`; `decisions/ARC-001-ADR-001..006-v1.0.md`.
 
 ### Appendix C: Compliance & Verification Evidence
 
@@ -458,4 +472,18 @@ Requirement IDs extracted from `ARC-001-REQ-v1.0.md`; downstream references harv
 **ArcKit Version**: 5.11.0
 **Project**: ibn-core-my (Project 001)
 **AI Model**: claude-opus-4-8[1m]
-**Generation Context**: Built from ARC-001 REQ (46 requirements), HLDR, ADR-001/002/003, RISK (16 risks), and compliance/ops artefacts (DPIA, SECD, NCII, AIGE, AIPB, PDPA, OPS). Requirement-ID cross-reference scan across all project artefacts; no external documents.
+**Generation Context**: Built from ARC-001 REQ (46 requirements), HLDR, ADR-001/002/003, RISK (16 risks), and compliance/ops artefacts (DPIA, SECD, NCII, AIGE, AIPB, PDPA, OPS). Requirement-ID cross-reference scan across all project artefacts; no external documents. **2026-06-20 amendment**: incorporated ADR-004 (probe decoupling), ADR-005 (product/image naming), ADR-006 (A-lite library packaging) and risks R-017/018/019 into forward + backward traceability; NFR-M-002 resolved off the orphan list (now traced via ADR-005/006); coverage/metrics reconciled to 6 ADRs / 19 risks. In-place DRAFT amendment, inbound links preserved.
+
+<!-- arckit-provenance:start -->
+
+## Build Provenance
+
+_Stamped automatically by the ArcKit plugin's `provenance-stamp.mjs` PostToolUse hook. Complements (does not replace) the human-authored footer above. Carries only fields the model can't authoritatively self-report: build context from `.arckit/state.json` and effort levels derived from command frontmatter + the silent-downgrade matrix._
+
+| Field | Value |
+|-------|-------|
+| Requested Effort | `high` |
+| Effective Effort | _unknown — model not parsed from existing footer_ |
+| Stamped at | 2026-06-20T21:30:52.296Z |
+
+<!-- arckit-provenance:end -->
