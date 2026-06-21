@@ -14,15 +14,15 @@
 | **Document Type** | PDPA 2010 (am. 2024) Compliance Assessment |
 | **Project** | ibn-core-my (Project 001) |
 | **Classification** | PUBLIC |
-| **Status** | DRAFT |
+| **Status** | APPROVED |
 | **Version** | 1.0 |
 | **Created Date** | 2026-06-05 |
-| **Last Modified** | 2026-06-05 |
+| **Last Modified** | 2026-06-21 |
 | **Review Cycle** | Quarterly |
 | **Next Review Date** | 2026-09-05 |
 | **Owner** | Roland Pfeifer, Lead Architect / CTO (Vpnet Cloud Solutions Sdn. Bhd.) |
-| **Reviewed By** | [PENDING] |
-| **Approved By** | [PENDING] |
+| **Reviewed By** | Vpnet DPO-function owner review — Roland Pfeifer, CTO (2026-06-21) |
+| **Approved By** | Roland Pfeifer, CTO — management acceptance (Vpnet accountable owner), 2026-06-21; qualified MY data-protection practitioner (JPDP) review required before external reliance (per preamble) |
 | **Distribution** | ibn-core engineering, Vpnet SI delivery teams, operator integration partners (U Mobile, TM Malaysia), operator Compliance Officers |
 
 > **Subject type note**: This assessment uses the **Generic / commercial** document-control header per `_partials/RENDERING.md` — ibn-core's `governance_framework` is not `Malaysia Federal` and its `classification_scheme` is not `Arahan Keselamatan`, so the Malaysia Federal doc-control block is omitted. This is consistent with `ARC-001-MYCLAS-v1.0` and `ARC-001-MYDIG-v1.0`. Personal data is nonetheless governed by the **PDPA 2010 (am. 2024)**, which binds commercial data users regardless of classification scheme.
@@ -32,6 +32,7 @@
 | Version | Date | Author | Changes | Approved By | Approval Date |
 |---------|------|--------|---------|-------------|---------------|
 | 1.0 | 2026-06-05 | ArcKit AI | Initial creation from `/arckit:my-pdpa` (executed via arckit-build wave 4); commercial-applicability confirmed; inherits RESTRICTED-tier personal-data scope (DS-009) from `ARC-001-MYCLAS-v1.0` | [PENDING] | [PENDING] |
+| 1.0 (signed off) | 2026-06-21 | ArcKit AI | Management sign-off — Status → APPROVED (Vpnet owner acceptance); qualified MY DP-practitioner / JPDP review caveat retained | Roland Pfeifer, CTO | 2026-06-21 |
 
 ---
 

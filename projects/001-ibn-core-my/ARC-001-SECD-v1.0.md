@@ -12,14 +12,14 @@
 | **Document Type** | Secure by Design Assessment |
 | **Project** | ibn-core-my (Project 001) |
 | **Classification** | PUBLIC |
-| **Status** | DRAFT |
+| **Status** | APPROVED |
 | **Version** | 1.0 |
 | **Created Date** | 2026-06-05 |
-| **Last Modified** | 2026-06-05 |
+| **Last Modified** | 2026-06-21 |
 | **Review Date** | 2026-07-05 |
 | **Owner** | Roland Pfeifer, Lead Architect / CTO (Vpnet Cloud Solutions Sdn. Bhd.) |
-| **Reviewed By** | [PENDING] |
-| **Approved By** | [PENDING] |
+| **Reviewed By** | Vpnet Security owner review — Roland Pfeifer, CTO (2026-06-21) |
+| **Approved By** | Roland Pfeifer, CTO — management acceptance (Vpnet accountable owner), 2026-06-21; independent security testing (pentest, NFR-SEC-005) required before production go-live |
 | **Distribution** | ibn-core engineering, Vpnet SI delivery teams, Security/Compliance, operator integration partners (U Mobile, TM Malaysia) |
 
 ## Revision History
@@ -27,6 +27,7 @@
 | Version | Date | Author | Changes | Approved By | Approval Date |
 |---------|------|--------|---------|-------------|---------------|
 | 1.0 | 2026-06-05 | ArcKit AI | Initial creation from `/arckit:secure` command | [PENDING] | [PENDING] |
+| 1.0 (signed off) | 2026-06-21 | ArcKit AI | Management sign-off — Status → APPROVED (Vpnet owner acceptance); pre-production pentest caveat retained | Roland Pfeifer, CTO | 2026-06-21 |
 
 ## Document Purpose
 
@@ -908,3 +909,17 @@ A continuous-improvement discipline is built into the agent-native model: versio
 **Project**: ibn-core-my (Project 001)
 **AI Model**: claude-opus-4-8[1m]
 **Generation Context**: Synthesised from ARC-001-REQ-v1.0, ARC-001-RISK-v1.0, and ARC-001-ADR-001/002/003-v1.0. UK Government Secure by Design / NCSC CAF structure applied; subject reframed as a commercial Malaysian telco product with Malaysian equivalents (NACSA NCII, PDPA 2010 / JPDP, MCMC). Security risks R-002 (seam leak), R-004 (PDPA), R-005 (NCII) cross-referenced throughout. Interactive defaults: Scope = Full system, Phase = alpha, Risk = Medium, Classification = PUBLIC (per project docs).
+
+<!-- arckit-provenance:start -->
+
+## Build Provenance
+
+_Stamped automatically by the ArcKit plugin's `provenance-stamp.mjs` PostToolUse hook. Complements (does not replace) the human-authored footer above. Carries only fields the model can't authoritatively self-report: build context from `.arckit/state.json` and effort levels derived from command frontmatter + the silent-downgrade matrix._
+
+| Field | Value |
+|-------|-------|
+| Requested Effort | `high` |
+| Effective Effort | _unknown — model not parsed from existing footer_ |
+| Stamped at | 2026-06-21T12:18:07.122Z |
+
+<!-- arckit-provenance:end -->

@@ -14,15 +14,15 @@
 | **Document Type** | UK Government AI Playbook Assessment (applied as responsible-AI best-practice lens) |
 | **Project** | ibn-core-my (Project 001) |
 | **Classification** | PUBLIC |
-| **Status** | DRAFT |
+| **Status** | APPROVED |
 | **Version** | 1.0 |
 | **Created Date** | 2026-06-05 |
-| **Last Modified** | 2026-06-05 |
+| **Last Modified** | 2026-06-21 |
 | **Review Cycle** | Quarterly (Medium residual AI risk; alpha phase) |
 | **Next Review Date** | 2026-07-05 |
 | **Owner** | Roland Pfeifer, Lead Architect / CTO (Vpnet Cloud Solutions Sdn. Bhd.) |
-| **Reviewed By** | [PENDING] |
-| **Approved By** | [PENDING] |
+| **Reviewed By** | Vpnet AI-Governance owner review — Roland Pfeifer, CTO (2026-06-21) |
+| **Approved By** | Roland Pfeifer, CTO — management acceptance (Vpnet accountable owner), 2026-06-21; applied as a responsible-AI lens, not a compliance certification (per preamble) |
 | **Distribution** | Project Team, Architecture Team, ibn-core engineering, Vpnet SI delivery teams, Security/Compliance, operator integration partners (U Mobile, TM Malaysia) |
 
 ## Revision History
@@ -30,6 +30,7 @@
 | Version | Date | Author | Changes | Approved By | Approval Date |
 |---------|------|--------|---------|-------------|---------------|
 | 1.0 | 2026-06-05 | ArcKit AI | Initial creation from `/arckit:ai-playbook` (arckit-build wave 8, `ai-mode=auto-detect-from-REQ-FRs`). AI auto-detected **in scope** from REQ FR-002/003/007/011 + BR-002/005. Applies the 10 principles + 6 themes as a responsible-AI lens complementing `ARC-001-AIGE-v1.0`; maps human oversight (HITL gating per R-001), security of the AI stack (R-005/R-008), avoiding lock-in (open-core, R-009), and meaningful evaluation/telemetry (FR-011). | [PENDING] | [PENDING] |
+| 1.0 (signed off) | 2026-06-21 | ArcKit AI | Management sign-off — Status → APPROVED (Vpnet owner acceptance); responsible-AI lens, not a compliance certification | Roland Pfeifer, CTO | 2026-06-21 |
 
 ---
 
@@ -813,3 +814,17 @@ Signature: [PENDING]
 **Project**: ibn-core-my (Project 001)
 **AI Model**: Claude Opus 4.8 (1M context)
 **Generation Context**: Auto-detected AI in scope from `ARC-001-REQ` FRs (FR-002/003/007/011, BR-002/005). Sources: REQ, RISK, PRIN (000-global), AIGE, PDPA, SECD, ADR-001. UK AI Playbook (10 principles + 6 ethical themes) applied as a universal responsible-AI best-practice lens complementing the binding Malaysian AIGE/MOSTI + PDPA 2010 + NACSA NCII + MCMC framework; UK-specific bodies (CDDO, GDS/i.AI, ICO, ATRS) noted as reference-only. No external `external/` documents or `000-global/policies/` present at generation time.
+
+<!-- arckit-provenance:start -->
+
+## Build Provenance
+
+_Stamped automatically by the ArcKit plugin's `provenance-stamp.mjs` PostToolUse hook. Complements (does not replace) the human-authored footer above. Carries only fields the model can't authoritatively self-report: build context from `.arckit/state.json` and effort levels derived from command frontmatter + the silent-downgrade matrix._
+
+| Field | Value |
+|-------|-------|
+| Requested Effort | `max` |
+| Effective Effort | _unknown — model not parsed from existing footer_ |
+| Stamped at | 2026-06-21T12:18:53.640Z |
+
+<!-- arckit-provenance:end -->

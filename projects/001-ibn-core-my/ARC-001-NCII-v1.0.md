@@ -14,15 +14,15 @@
 | **Document Type** | NACSA NCII Statement of Applicability (Cyber Security Act 2024) |
 | **Project** | ibn-core-my (Project 001) |
 | **Classification** | PUBLIC |
-| **Status** | DRAFT |
+| **Status** | APPROVED |
 | **Version** | 1.0 |
 | **Created Date** | 2026-06-05 |
-| **Last Modified** | 2026-06-05 |
+| **Last Modified** | 2026-06-21 |
 | **Review Cycle** | Annual (minimum; re-run on material architecture change or new operator engagement) |
 | **Next Review Date** | 2027-06-05 |
 | **Owner** | Roland Pfeifer, Lead Architect / CTO (Vpnet Cloud Solutions Sdn. Bhd.) — accountable; Security Lead — control owner |
-| **Reviewed By** | [PENDING] |
-| **Approved By** | [PENDING] |
+| **Reviewed By** | Vpnet Security/Compliance owner review — Roland Pfeifer, CTO (2026-06-21) |
+| **Approved By** | Roland Pfeifer, CTO — management acceptance (Vpnet accountable owner), 2026-06-21; qualified MY cybersecurity/compliance counsel review + operator NACSA liaison required before reliance (per preamble) |
 | **Distribution** | ibn-core engineering, Vpnet SI delivery + Security/Compliance, operator NCII/security teams (U Mobile, TM Malaysia), operator-side NACSA liaison |
 | **Instrument cited** | Cyber Security Act 2024 [Act 854] + subsidiary regulations (NACSA); cross-ref PDPA 2010 (am. 2024) |
 | **Hosting / placement** | Hybrid — operator private cloud + Malaysian-region public CSP per dataset tier (ADR-002 / ADR-003) |
@@ -35,6 +35,7 @@
 | Version | Date | Author | Changes | Approved By | Approval Date |
 |---------|------|--------|---------|-------------|---------------|
 | 1.0 | 2026-06-05 | ArcKit AI | Initial creation from `/arckit:my-cyber-security` (executed via arckit-build wave 8); commercial vendor-to-NCII reframing per `my-operator` recipe; cross-references SECD CAF controls and RISK R-005 | [PENDING] | [PENDING] |
+| 1.0 (signed off) | 2026-06-21 | ArcKit AI | Management sign-off — Status → APPROVED (Vpnet owner acceptance); MY cyber/compliance counsel + operator NACSA-liaison caveat retained | Roland Pfeifer, CTO | 2026-06-21 |
 
 ---
 
